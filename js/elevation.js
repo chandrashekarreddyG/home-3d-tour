@@ -3,6 +3,7 @@
 // any wall, door, window or room.
 import * as THREE from 'three';
 import { boxGeo } from './materials.js';
+import { omMedallion, vaishnavaPlaque } from './emblems.js';
 
 export const ELEVATIONS = [
   { id: 'none', name: 'As drawn', blurb: 'Plain plastered elevation (no added features).', paint: '#e8d8bd' },
@@ -77,18 +78,26 @@ export function buildElevations(M, dims) {
   // Screens the open staircase from the roads: across its road face (verandah edge, up past the stair railing)
   // and its open west side up to the roof slab. The stair foot stays open below a 2.2 m header and the top
   // landing stays open onto the roof.
-  const stairScreen = (g, kind, mat) => {
+  // The road face rises 1.4 m above the parapet and carries an Om spiral medallion above any slab-level band
+  // (clearY = lowest free height; tone 'ink' = black on cream, 'gold' = gold on dark).
+  const stairScreen = (g, kind, mat, tone = 'ink', clearY = top + 0.2) => {
     const x0 = stairs[0] - 0.05, x1 = Math.min(stairs[2] + 0.05, W + 0.15), zf = D + F + 0.08, zm = (stairs[1] + stairs[3]) / 2;
-    screenPanel(g, kind, mat, 'x', x0, x1, ground, ptop + 0.9, zf); // road face
+    const yt = ptop + 1.4;
+    screenPanel(g, kind, mat, 'x', x0, x1, ground, yt, zf); // road face
     screenPanel(g, kind, mat, 'z', zm, zf + 0.05, ground, top, x0); // west side under the upper flight
     screenPanel(g, kind, mat, 'z', stairs[1], zm, 2.2, top, x0); // header over the stair foot
+    const R = Math.min(1.0, (x1 - x0) / 2 - 0.3, (yt - 0.1 - clearY) / 2 - 0.12);
+    const om = omMedallion(R, tone, M.glow);
+    om.position.set((x0 + x1) / 2, clearY + R + 0.12, zf + 0.09);
+    g.add(om);
   };
   // 21 ft road side, the counterpart of the stair screen: a tall screened tower closing the rear end of the side
   // verandah (blank wall up to the first window; it hides the utility / wash corner and bookends the side with the
   // stair tower at the far corner), and a lit entrance portal over the side door with steps down to the side gate.
+  // The portal carries a gold Shanku · Namam · Chakra plaque across its full width, above the door.
   const sideOpen = openings.filter((o) => o.vertical && o.c < W / 2).sort((p, q) => p.a - q.a);
   const towerEnd = Math.min(2.6, (sideOpen.length ? sideOpen[0].a : 2.6) - 0.3);
-  const sideFeature = (g, kind, mat, frame = white) => {
+  const sideFeature = (g, kind, mat, frame = white, proud = 0.01) => {
     const xf = -S - 0.08, yt = ptop + 0.9;
     if (towerEnd > 0.9) {
       screenPanel(g, kind, mat, 'z', 0, towerEnd, ground, yt, xf); // road face
@@ -97,12 +106,17 @@ export function buildElevations(M, dims) {
       g.add(box(0.015, yt - ground - 0.3, 0.015, M.lamp, xf - 0.07, (yt + ground) / 2, towerEnd + 0.01)); // LED edge
     }
     // entrance portal: two posts on the verandah edge, a deep beam back to the wall, timber soffit with a light line
-    const pT = ptop + 0.6, t = 0.3, half = 1.15;
+    const pT = ptop + 0.9, t = 0.3, half = 1.15;
     for (const z of [sideZ - half, sideZ + half]) g.add(box(t, pT - ground, t, frame, -S - t / 2, (pT + ground) / 2, z));
     g.add(box(S + t, t, 2 * half + t, frame, -(S + t) / 2, pT - t / 2, sideZ));
     g.add(box(0.03, 0.4, 2 * half - t, M.teak, -S - t + 0.015, pT - t - 0.2, sideZ));
     g.add(box(0.012, 0.012, 2 * half - t - 0.1, M.lamp, -S - t + 0.05, pT - t - 0.41, sideZ));
     screenPanel(g, kind, mat, 'z', sideZ - half + t / 2, sideZ + half - t / 2, top, pT - t - 0.4, -S - 0.08); // fascia
+    const pl0 = top + 0.05, pl1 = pT - t - 0.45;
+    const plaque = vaishnavaPlaque(2 * half + t, pl1 - pl0, M.glow);
+    plaque.rotation.y = -Math.PI / 2; // faces the 21 ft road (−x)
+    plaque.position.set(-S - t - proud, (pl0 + pl1) / 2, sideZ); // `proud` clears any deep band behind it
+    g.add(plaque);
     for (const z of [sideZ - 0.6, sideZ + 0.6]) {
       g.add(box(0.12, 0.01, 0.12, M.lamp, -S / 2, top - slab - 0.005, z));
       const p = glowPlane(0.7, 1.2);
@@ -151,7 +165,7 @@ export function buildElevations(M, dims) {
     g.add(box(1.75, 0.05, 0.12, M.oak, -S + 0.85, ceil - 0.045, D + F - 0.06));
     g.add(box(0.12, 0.05, 1.75, M.oak, -S + 0.06, ceil - 0.045, D + F - 0.85));
     surround(g, white, 0.06, 0.05);
-    stairScreen(g, 'vslats', M.oak);
+    stairScreen(g, 'vslats', M.oak, 'gold');
     sideFeature(g, 'vslats', M.oak, white);
     out.slats = g;
   }
@@ -169,7 +183,7 @@ export function buildElevations(M, dims) {
     g.add(box(3.0, 0.1, 1.2, white, mainX, ceil + 0.05, D + F + 0.6));
     g.add(box(2.8, 0.012, 0.03, M.lamp, mainX, ceil - 0.006, D + F + 1.1));
     surround(g, pale, 0.05, 0.04);
-    stairScreen(g, 'solid', M.stone);
+    stairScreen(g, 'solid', M.stone, 'gold');
     sideFeature(g, 'solid', M.stone, steel);
     out.stone = g;
   }
@@ -358,7 +372,7 @@ export function buildElevations(M, dims) {
     planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
     steps(g, 2.6);
     pavers(g);
-    stairScreen(g, 'solid', M.greyStone);
+    stairScreen(g, 'solid', M.greyStone, 'gold');
     sideFeature(g, 'solid', M.greyStone, white);
     out.ref1 = g;
   }
@@ -393,7 +407,7 @@ export function buildElevations(M, dims) {
     planterLit(g, 'side', D * 0.5, sideZ - 1.4);
     planterLit(g, 'side', sideZ + 1.4, D - 0.2);
     pavers(g);
-    stairScreen(g, 'vslats', M.oak);
+    stairScreen(g, 'vslats', M.oak, 'gold');
     sideFeature(g, 'vslats', M.oak, white);
     out.ref2 = g;
   }
@@ -604,8 +618,8 @@ export function buildElevations(M, dims) {
       drive.receiveShadow = true;
       g.add(drive);
     }
-    stairScreen(g, 'hslats', taupe);
-    sideFeature(g, 'hslats', taupe, dark);
+    stairScreen(g, 'hslats', taupe, 'gold', by + bandH / 2 + 0.05); // medallion above the deep taupe band
+    sideFeature(g, 'hslats', taupe, dark, 0.12);
     out.ref5 = g;
   }
   // ---------- R6: stone, wood & jaali ----------
@@ -700,7 +714,7 @@ export function buildElevations(M, dims) {
       halo.position.set(x, ground + 0.03, z);
       g.add(halo);
     }
-    stairScreen(g, 'vslats', M.oak);
+    stairScreen(g, 'vslats', M.oak, 'gold');
     sideFeature(g, 'vslats', M.oak, charcoal);
     out.ref6 = g;
   }
