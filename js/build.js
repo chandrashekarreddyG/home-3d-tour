@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
+import { buildMandir, rangoli } from './mandir.js';
 
 export const WALL_H = 10;
 export const GROUND = -1.5;
@@ -372,7 +373,8 @@ export function buildModel(plan, renderer, onLabelClick) {
   }
 
   // ----- furniture -----
-  buildFurniture(plan, { X, Z, R, roomAt, root, furnMeshes, colliders });
+  const poojaSpots = [];
+  buildFurniture(plan, { X, Z, R, roomAt, root, furnMeshes, colliders, poojaSpots });
 
   // ----- plot: compound wall, garden, gates -----
   const plot = plan.plot;
@@ -427,7 +429,7 @@ export function buildModel(plan, renderer, onLabelClick) {
   const nav = new NavGrid([plot.x0 - 1, plot.z0 - 1, plot.x1 + 1, plot.z1 + 1], walkAreas, [st], blockers);
 
   // ----- room viewpoints -----
-  for (const room of rooms) room.view = viewpoint(room, doorways, roomAt, nav);
+  for (const room of rooms) room.view = viewpoint(room, doorways, roomAt, nav, poojaSpots);
   // floor-markers at room viewpoints (visible in walk mode)
   const mk = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.55, depthWrite: false });
   for (const room of rooms) {
@@ -450,10 +452,18 @@ export function buildModel(plan, renderer, onLabelClick) {
 
 // Balconies: stand outside the main door looking at the house.
 // Rooms: stand in the walkable spot farthest from the centre (a corner) and look across the room.
-function viewpoint(room, doorways, roomAt, nav) {
+function viewpoint(room, doorways, roomAt, nav, poojaSpots) {
   const yawOf = (dx, dz) => Math.atan2(-dx, -dz);
   const [cx, cz] = room.center;
   const mine = (x, z) => roomAt(x, z) === room && nav.ok(x, z);
+  // Pooja: stand facing the mandir, looking slightly down at the idols.
+  for (const s of poojaSpots) {
+    if (roomAt(s.x - s.n[0] * 0.2, s.z - s.n[1] * 0.2) !== room) continue;
+    for (const d of [2.9, 2.5, 2.1, 1.7]) {
+      const x = s.x + s.n[0] * d, z = s.z + s.n[1] * d;
+      if (mine(x, z)) return { x, z, yaw: yawOf(-s.n[0], -s.n[1]), pitch: -0.3 };
+    }
+  }
   if (room.outdoor) {
     for (const d of doorways) {
       if (d.kind !== 'd2') continue;
@@ -696,15 +706,25 @@ function buildFurniture(plan, ctx) {
       const r = R(it[1]);
       const { alongX, n } = intoRoom(r);
       const [cx, cz] = rectCenter(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 4.2, r[3] - r[1], mat('#c49655', { roughness: 0.5 }), cx, 2.1, cz));
-      g.add(box(r[2] - r[0] + 0.1, 0.2, r[3] - r[1] + 0.1, mat('#d4af37', { roughness: 0.3, metalness: 0.8 }), cx, 4.3, cz));
-      const glow = new THREE.MeshStandardMaterial({ color: '#f2b544', emissive: '#f29b18', emissiveIntensity: 0.9 });
-      const wallX = alongX ? cx : (n[0] > 0 ? r[0] : r[2]);
-      const wallZ = alongX ? (n[1] > 0 ? r[1] : r[3]) : cz;
-      g.add(alongX ? box(1.4, 1.8, 0.06, glow, wallX, 6, wallZ + n[1] * 0.05) : box(0.06, 1.8, 1.4, glow, wallX + n[0] * 0.05, 6, wallZ));
-      g.add(cyl(0.12, 0.18, 0.2, glow, cx + n[0] * 0.3, 4.5, cz + n[1] * 0.3));
+      const L = alongX ? r[2] - r[0] : r[3] - r[1];
+      const D = alongX ? r[3] - r[1] : r[2] - r[0];
+      const g = buildMandir(L, D);
+      g.position.set(cx, 0, cz);
+      g.rotation.y = Math.atan2(n[0], n[1]);
       add(g, r, 0.2);
+      const fx = cx + (n[0] * D) / 2, fz = cz + (n[1] * D) / 2;
+      ctx.poojaSpots.push({ x: fx, z: fz, n });
+      const room = roomAt(cx, cz);
+      if (room) {
+        const rr = room.rects[0], dist = 1.8;
+        const px = fx + n[0] * dist, pz = fz + n[1] * dist;
+        const rad = Math.min(1.1, dist - 0.5, px - rr[0] - 0.4, rr[2] - px - 0.4, pz - rr[1] - 0.4, rr[3] - pz - 0.4);
+        if (rad > 0.4) {
+          const rg = rangoli(rad);
+          rg.position.set(px, 0.02, pz);
+          root.add(rg);
+        }
+      }
     } else if (type === 'diwan') {
       const r = R(it[1]);
       const [cx, cz] = rectCenter(r);

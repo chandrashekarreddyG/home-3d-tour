@@ -158,14 +158,14 @@ function setMode(m) {
   updateWhere();
 }
 
-async function enterWalk(x, z, yaw) {
+async function enterWalk(x, z, yaw, pitch = 0) {
   if (mode === 'orbit') {
     lastOrbit = { pos: camera.position.clone(), target: controls.target.clone() };
   }
   setMode('fly');
   const y = M.floorY(x, z) + EYE;
   const p0 = camera.position.clone(), q0 = camera.quaternion.clone();
-  const p1 = new THREE.Vector3(x, y, z), q1 = quatOf(yaw, 0);
+  const p1 = new THREE.Vector3(x, y, z), q1 = quatOf(yaw, pitch);
   const dur = 1.9;
   let t = 0;
   const ok = await runAnim({ fly: true, update(dt) {
@@ -175,7 +175,7 @@ async function enterWalk(x, z, yaw) {
     camera.quaternion.slerpQuaternions(q0, q1, Math.min(1, e * 1.15));
     return t >= 1;
   } });
-  Object.assign(walker, { x, z, y, yaw, pitch: 0 });
+  Object.assign(walker, { x, z, y, yaw, pitch });
   setMode('walk');
   return ok;
 }
@@ -205,7 +205,7 @@ async function exitWalk(pos, target) {
 }
 
 // ---------- navigation ----------
-function walkPath(pts, finalYaw) {
+function walkPath(pts, finalYaw, finalPitch = 0) {
   let i = 0;
   return runAnim({ update(dt) {
     let step = SPEED * dt * (keys.has('Shift') ? 1.8 : 1);
@@ -221,16 +221,16 @@ function walkPath(pts, finalYaw) {
     }
     walker.pitch = damp(walker.pitch, -0.04, 3, dt);
     return i >= pts.length;
-  } }).then((ok) => (ok && finalYaw != null ? turnTo(finalYaw) : ok));
+  } }).then((ok) => (ok && finalYaw != null ? turnTo(finalYaw, 0.9, finalPitch) : ok));
 }
-function turnTo(yaw, dur = 0.9) {
+function turnTo(yaw, dur = 0.9, pitch = 0) {
   const y0 = walker.yaw, p0 = walker.pitch, dy = wrap(yaw - y0);
   let t = 0;
   return runAnim({ update(dt) {
     t = Math.min(1, t + dt / dur);
     const e = ease(t);
     walker.yaw = y0 + dy * e;
-    walker.pitch = p0 * (1 - e);
+    walker.pitch = p0 + (pitch - p0) * e;
     return t >= 1;
   } });
 }
@@ -244,7 +244,7 @@ function lookAround(dur = 6) {
   } });
 }
 
-async function glideTo(x, z, finalYaw = null) {
+async function glideTo(x, z, finalYaw = null, finalPitch = 0) {
   if (mode === 'orbit') {
     const room = M.roomAt(x, z);
     let yaw = finalYaw;
@@ -261,16 +261,16 @@ async function glideTo(x, z, finalYaw = null) {
     const c = M.nav.nearest(x, z);
     const [nx, nz] = c >= 0 ? M.nav.center(c) : [x, z];
     const fx = M.nav.ok(x, z) ? x : nx, fz = M.nav.ok(x, z) ? z : nz;
-    return enterWalk(fx, fz, yaw);
+    return enterWalk(fx, fz, yaw, finalPitch);
   }
   if (mode !== 'walk') return false;
   const pts = M.nav.path(walker.x, walker.z, x, z);
   if (!pts) return false;
-  return walkPath(pts, finalYaw);
+  return walkPath(pts, finalYaw, finalPitch);
 }
 
 function goToRoom(room) {
-  return glideTo(room.view.x, room.view.z, room.view.yaw);
+  return glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
 }
 
 async function startTour() {
@@ -281,7 +281,7 @@ async function startTour() {
   $('btnTour').textContent = '■ Stop tour';
   for (const room of seq) {
     if (!touring) break;
-    const ok = await glideTo(room.view.x, room.view.z, room.view.yaw);
+    const ok = await goToRoom(room);
     if (!ok || !touring) break;
     if (!(await lookAround())) break;
   }
