@@ -9,6 +9,7 @@ import { buildMandir, rangoli } from './mandir.js';
 import { buildElevations } from './elevation.js';
 import { buildLighting } from './lighting.js';
 import { buildElectrical } from './electrical.js';
+import { buildScaleRefs } from './scale.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
 
@@ -794,10 +795,16 @@ export function buildModel(plan, M, onLabelClick) {
     gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
   });
   for (const g of Object.values(elevations)) root.add(g);
+  // scale references (people on the verandah, a car on G.P Road): shown in the outside views only
+  const scaleRefs = buildScaleRefs(M, {
+    verandah: frontBal, doorX: md ? ((md.a + md.b) / 2) * IN : (W * IN) / 3, stairs: st,
+    roadZ: plotRect[3] + 0.3, roadY: GROUND - 0.06, plotX: plotRect[2] + 2.3, // car parked just past the plot's east corner
+  });
+  root.add(scaleRefs);
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical, scaleRefs,
     colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,

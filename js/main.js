@@ -40,6 +40,9 @@ renderer.toneMappingExposure = 1.0;
 const labelRenderer = new CSS2DRenderer({ element: $('labels') });
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#cfdce6');
+// light aerial haze: far fields soften as they do in real air, which is a big part of how the eye judges size
+// (1 % at 30 m, 15 % at 100 m); colour follows the time of day in applySun
+scene.fog = new THREE.FogExp2('#c4cfd8', 0.004);
 new RGBELoader().load('textures/sky_2k.hdr', (tex) => {
   tex.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = tex;
@@ -99,7 +102,7 @@ let real = false; // realistic view: photographic grade, sharper render, no over
 let MD = null; // current model
 let mode = 'orbit'; // orbit | fly | walk
 const walker = { x: 0, z: 0, y: EYE, yaw: 0, pitch: 0 };
-let anim = null, touring = false, lastOrbit = null, walkFov = 55;
+let anim = null, touring = false, lastOrbit = null, walkFov = 65; // eye-level lens ≈ a 24 mm interior photo lens
 const keys = new Set();
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
@@ -134,6 +137,7 @@ function applySun() {
   scene.environmentIntensity = 0.08 + 0.62 * day;
   scene.backgroundIntensity = 0.08 + 0.92 * day;
   hemi.intensity = 0.05 + 0.25 * day;
+  scene.fog.color.setRGB(0.04 + 0.72 * day, 0.05 + 0.77 * day, 0.07 + 0.8 * day); // haze follows the sky
   night = day < 0.3;
   M.lamp.emissiveIntensity = night ? 6 : 2;
   M.shade.emissiveIntensity = night ? 1.6 : 0.3;
@@ -225,6 +229,7 @@ function setMode(m) {
   controls.enabled = m === 'orbit';
   MD.ceilings.visible = inside;
   MD.markers.visible = m === 'walk' && !real;
+  MD.scaleRefs.visible = m === 'orbit' && $('chkScale').checked; // people and car: outside views only
   MD.labels.visible = !inside;
   MD.siteLabels.visible = !inside;
   MD.roof.visible = !inside && ($('chkRoof').checked || elev.on);
@@ -732,6 +737,7 @@ function applyElec() {
   MD.electrical.labels.visible = MD.electrical.marks.visible = on;
 }
 $('chkElec').addEventListener('change', applyElec);
+$('chkScale').addEventListener('change', () => { MD.scaleRefs.visible = mode === 'orbit' && $('chkScale').checked; });
 // tags are HTML and show through walls: when walking, show only the boards of the room you are in
 function updateElecTags() {
   const L = MD.electrical.labels;

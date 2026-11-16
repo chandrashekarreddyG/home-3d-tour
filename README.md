@@ -43,6 +43,10 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   - Click the floor to glide; routes go through doorways.
   - W A S D to walk, with collision against walls and furniture.
   - Dimensions overlay.
+  - True-size cues: the walk view uses a 65° lens, about a 24 mm interior-photo lens; a light aerial haze softens
+    the far fields; and **People & car** (on by default) adds grey scale figures on the verandah and a 3.85 m
+    hatchback on G.P Road in the outside views (1.72 m man, 1.58 m woman, 1.12 m child). Plan-1's slab measures
+    50′-0″ × 52′-0″ in the model, including the 2′-0″ cantilever.
 - Realistic real-size furnishing:
   - beds, wardrobes, sofas, a modular kitchen with hob and chimney
   - toilets with EWC, vanity, real mirrors and shower glass
