@@ -598,6 +598,12 @@ $('btnFront').addEventListener('click', () => {
   const shift = document.body.classList.contains('panel-open') && innerWidth > 760 ? 1.6 : 0; // keep the house clear of the side panel
   orbitTo(new THREE.Vector3(cx - shift, 3.0, MD.plotRect[3] + 9.5), new THREE.Vector3(cx - shift, 2.2, MD.building[3]), true);
 });
+$('btnSide').addEventListener('click', () => {
+  // square-on view of the 21 ft road facade from across that road, rear tower to front corner
+  const shift = document.body.classList.contains('panel-open') && innerWidth > 760 ? 2.2 : 0; // keep the house clear of the side panel
+  const cz = (MD.building[1] - 0.6 + MD.plotRect[3] - 1.5) / 2 - shift;
+  orbitTo(new THREE.Vector3(MD.plotRect[0] - 15, 3.2, cz), new THREE.Vector3(MD.building[0], 2.4, cz), true);
+});
 $('btnStreet').addEventListener('click', () => {
   // eye-level view from the corner of G.P Road and the 21 ft road, looking at both road-facing sides
   const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);

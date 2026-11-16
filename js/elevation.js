@@ -56,35 +56,69 @@ export function buildElevations(M, dims) {
       put(t, h, o.b + t / 2, ym);
     }
   };
+  const glowPlane = (w, h, mat = M.glow) => new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  // one tall screen panel: along = 'x' (faces +z) or 'z' (faces −x); [a0, a1] along it, [y0, y1] high, at `fixed`
+  // kinds: solid, fluted, vslats / hslats (frame + slats, so light and air still get through)
+  const screenPanel = (g, kind, mat, along, a0, a1, y0, y1, fixed) => {
+    const L = a1 - a0, H = y1 - y0, am = (a0 + a1) / 2, ym = (y0 + y1) / 2;
+    const put = (l, h, d, ax, y, off = 0) => (along === 'x' ? box(l, h, d, mat, ax, y, fixed + off) : box(d, h, l, mat, fixed - off, y, ax));
+    if (kind === 'solid') { g.add(put(L, H, 0.12, am, ym)); return; }
+    if (kind === 'fluted') {
+      g.add(put(L, H, 0.1, am, ym));
+      for (let a = a0 + 0.06; a < a1; a += 0.12) g.add(put(0.05, H - 0.1, 0.03, a, ym, 0.065));
+      return;
+    }
+    g.add(put(L, 0.08, 0.1, am, y1 - 0.04));
+    g.add(put(L, 0.08, 0.1, am, y0 + 0.04));
+    for (const a of [a0 + 0.04, a1 - 0.04]) g.add(put(0.08, H, 0.1, a, ym));
+    if (kind === 'vslats') for (let a = a0 + 0.16; a < a1 - 0.1; a += 0.13) g.add(put(0.05, H - 0.16, 0.1, a, ym));
+    else for (let y = y0 + 0.2; y < y1 - 0.1; y += 0.16) g.add(put(L - 0.16, 0.12, 0.05, am, y));
+  };
   // Screens the open staircase from the roads: across its road face (verandah edge, up past the stair railing)
   // and its open west side up to the roof slab. The stair foot stays open below a 2.2 m header and the top
   // landing stays open onto the roof.
   const stairScreen = (g, kind, mat) => {
     const x0 = stairs[0] - 0.05, x1 = Math.min(stairs[2] + 0.05, W + 0.15), zf = D + F + 0.08, zm = (stairs[1] + stairs[3]) / 2;
-    const yb = ground, yt = ptop + 0.9;
-    // one screen panel: along = 'x' (faces the road) or 'z' (faces west); [a0, a1] along it, [y0, y1] high
-    const panel = (along, a0, a1, y0, y1, fixed) => {
-      const L = a1 - a0, H = y1 - y0, am = (a0 + a1) / 2, ym = (y0 + y1) / 2;
-      const put = (l, h, d, ax, y, off = 0) => (along === 'x' ? box(l, h, d, mat, ax, y, fixed + off) : box(d, h, l, mat, fixed - off, y, ax));
-      if (kind === 'solid') { g.add(put(L, H, 0.12, am, ym)); return; }
-      if (kind === 'fluted') {
-        g.add(put(L, H, 0.1, am, ym));
-        for (let a = a0 + 0.06; a < a1; a += 0.12) g.add(put(0.05, H - 0.1, 0.03, a, ym, 0.065));
-        return;
-      }
-      // slatted: frame + slats, so light and air still reach the stair
-      g.add(put(L, 0.08, 0.1, am, y1 - 0.04));
-      g.add(put(L, 0.08, 0.1, am, y0 + 0.04));
-      for (const a of [a0 + 0.04, a1 - 0.04]) g.add(put(0.08, H, 0.1, a, ym));
-      if (kind === 'vslats') for (let a = a0 + 0.16; a < a1 - 0.1; a += 0.13) g.add(put(0.05, H - 0.16, 0.1, a, ym));
-      else for (let y = y0 + 0.2; y < y1 - 0.1; y += 0.16) g.add(put(L - 0.16, 0.12, 0.05, am, y));
-    };
-    panel('x', x0, x1, yb, yt, zf); // road face
-    panel('z', zm, zf + 0.05, yb, top, x0); // west side under the upper flight
-    panel('z', stairs[1], zm, 2.2, top, x0); // header over the stair foot
+    screenPanel(g, kind, mat, 'x', x0, x1, ground, ptop + 0.9, zf); // road face
+    screenPanel(g, kind, mat, 'z', zm, zf + 0.05, ground, top, x0); // west side under the upper flight
+    screenPanel(g, kind, mat, 'z', stairs[1], zm, 2.2, top, x0); // header over the stair foot
   };
-  // planters / screens must leave the entrance axes and the stair clear
-  const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D);
+  // 21 ft road side, the counterpart of the stair screen: a tall screened tower closing the rear end of the side
+  // verandah (blank wall up to the first window; it hides the utility / wash corner and bookends the side with the
+  // stair tower at the far corner), and a lit entrance portal over the side door with steps down to the side gate.
+  const sideOpen = openings.filter((o) => o.vertical && o.c < W / 2).sort((p, q) => p.a - q.a);
+  const towerEnd = Math.min(2.6, (sideOpen.length ? sideOpen[0].a : 2.6) - 0.3);
+  const sideFeature = (g, kind, mat, frame = white) => {
+    const xf = -S - 0.08, yt = ptop + 0.9;
+    if (towerEnd > 0.9) {
+      screenPanel(g, kind, mat, 'z', 0, towerEnd, ground, yt, xf); // road face
+      screenPanel(g, kind, mat, 'x', xf - 0.05, 0, ground, yt, -0.08); // rear return
+      g.add(box(S + 0.2, 0.12, towerEnd + 0.15, frame, -S / 2 - 0.08, yt + 0.06, towerEnd / 2 - 0.07)); // cap
+      g.add(box(0.015, yt - ground - 0.3, 0.015, M.lamp, xf - 0.07, (yt + ground) / 2, towerEnd + 0.01)); // LED edge
+    }
+    // entrance portal: two posts on the verandah edge, a deep beam back to the wall, timber soffit with a light line
+    const pT = ptop + 0.6, t = 0.3, half = 1.15;
+    for (const z of [sideZ - half, sideZ + half]) g.add(box(t, pT - ground, t, frame, -S - t / 2, (pT + ground) / 2, z));
+    g.add(box(S + t, t, 2 * half + t, frame, -(S + t) / 2, pT - t / 2, sideZ));
+    g.add(box(0.03, 0.4, 2 * half - t, M.teak, -S - t + 0.015, pT - t - 0.2, sideZ));
+    g.add(box(0.012, 0.012, 2 * half - t - 0.1, M.lamp, -S - t + 0.05, pT - t - 0.41, sideZ));
+    screenPanel(g, kind, mat, 'z', sideZ - half + t / 2, sideZ + half - t / 2, top, pT - t - 0.4, -S - 0.08); // fascia
+    for (const z of [sideZ - 0.6, sideZ + 0.6]) {
+      g.add(box(0.12, 0.01, 0.12, M.lamp, -S / 2, top - slab - 0.005, z));
+      const p = glowPlane(0.7, 1.2);
+      p.rotation.y = -Math.PI / 2;
+      p.position.set(-0.034, 2.55, z);
+      g.add(p);
+    }
+    // two granite steps down from the side verandah towards the side gate
+    const r = -ground / 3;
+    for (let k = 1; k <= 2; k++) {
+      const yTop = -k * r, x1 = -S - (k - 1) * 0.3;
+      g.add(box(0.3, yTop - ground, 1.4 + k * 0.3, M.granite, x1 - 0.15, (yTop + ground) / 2, sideZ));
+    }
+  };
+  // planters / screens must leave the entrance axes, the stair and the side tower clear
+  const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D) && !(x < 0 && z < towerEnd + 0.4);
 
   // ---------- E: floating frame ----------
   {
@@ -100,6 +134,7 @@ export function buildElevations(M, dims) {
     g.add(box(0.02, ceil - 2.2, 2.4, charcoal, -0.011, (ceil + 2.2) / 2, sideZ));
     surround(g, charcoal);
     stairScreen(g, 'vslats', white);
+    sideFeature(g, 'vslats', white, charcoal);
     out.frame = g;
   }
   // ---------- F: oak slats ----------
@@ -117,6 +152,7 @@ export function buildElevations(M, dims) {
     g.add(box(0.12, 0.05, 1.75, M.oak, -S + 0.06, ceil - 0.045, D + F - 0.85));
     surround(g, white, 0.06, 0.05);
     stairScreen(g, 'vslats', M.oak);
+    sideFeature(g, 'vslats', M.oak, white);
     out.slats = g;
   }
   // ---------- G: stone & glass ----------
@@ -134,6 +170,7 @@ export function buildElevations(M, dims) {
     g.add(box(2.8, 0.012, 0.03, M.lamp, mainX, ceil - 0.006, D + F + 1.1));
     surround(g, pale, 0.05, 0.04);
     stairScreen(g, 'solid', M.stone);
+    sideFeature(g, 'solid', M.stone, steel);
     out.stone = g;
   }
   // ---------- H: pergola & planters ----------
@@ -164,6 +201,7 @@ export function buildElevations(M, dims) {
     for (let x = -S + 0.6; x < W - 0.5; x += 1.25) if (clearOf(x, D + F + 0.3)) planter(x, D + F + 0.3, true);
     for (let z = 0.6; z < D + F - 0.5; z += 1.25) if (clearOf(-S - 0.3, z)) planter(-S - 0.3, z, false);
     stairScreen(g, 'hslats', pale);
+    sideFeature(g, 'hslats', pale, charcoal);
     out.pergola = g;
   }
   // ======================= reference-inspired (owner's photos) =======================
@@ -191,7 +229,6 @@ export function buildElevations(M, dims) {
     for (const [a0, b0, a1, b1] of rects) g.add(FACE[face].put(a1 - a0, b1 - b0, t, mat, (a0 + a1) / 2, (b0 + b1) / 2));
     return rects;
   };
-  const glowPlane = (w, h, mat = M.glow) => new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
   // up/down wall washer with its beams on the wall; slides sideways (or is dropped) to stay off doors and windows
   const sconce = (g, face, along, y = 2.0) => {
     const hits = (a) => openings.filter(FACE[face].open).some((o) => a > o.a - 0.15 && a < o.b + 0.15);
@@ -318,10 +355,11 @@ export function buildElevations(M, dims) {
     sconce(g, 'front', W - 0.4);
     for (const z of [sideZ - 0.85, sideZ + 0.85]) sconce(g, 'side', z);
     planterLit(g, 'front', stairs[0] - 0.1, W - 0.1);
-    planterLit(g, 'side', 0.6, sideZ - 1.2);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
     steps(g, 2.6);
     pavers(g);
     stairScreen(g, 'solid', M.greyStone);
+    sideFeature(g, 'solid', M.greyStone, white);
     out.ref1 = g;
   }
   // ---------- R2: brick & wood box ----------
@@ -352,9 +390,11 @@ export function buildElevations(M, dims) {
     steps(g, 2.4, true);
     planterLit(g, 'front', mainX + 1.4, stairs[0] - 0.3);
     planterLit(g, 'front', stairs[0] - 0.1, W - 0.1);
-    planterLit(g, 'side', D * 0.5, D - 0.2);
+    planterLit(g, 'side', D * 0.5, sideZ - 1.4);
+    planterLit(g, 'side', sideZ + 1.4, D - 0.2);
     pavers(g);
     stairScreen(g, 'vslats', M.oak);
+    sideFeature(g, 'vslats', M.oak, white);
     out.ref2 = g;
   }
   // ---------- R3: feature frame & diagonal grooves ----------
@@ -408,10 +448,11 @@ export function buildElevations(M, dims) {
     sconce(g, 'front', fx1 - 0.5, 2.2);
     sconce(g, 'side', sideZ + 1.15, 2.2);
     planterLit(g, 'front', fx0 + 0.1, fx1 - 0.1);
-    planterLit(g, 'side', 0.5, sideZ - 1.6);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.6);
     steps(g, 2.2);
     pavers(g);
     stairScreen(g, 'solid', grey);
+    sideFeature(g, 'solid', grey, M.black);
     out.ref3 = g;
   }
   // ---------- R4: wood, brick & fluted box ----------
@@ -473,6 +514,7 @@ export function buildElevations(M, dims) {
       }
     }
     stairScreen(g, 'fluted', white);
+    sideFeature(g, 'fluted', white, charcoal);
     out.ref4 = g;
   }
   // ---------- R5: taupe band & ledgestone (with its own boundary on the two road sides) ----------
@@ -563,6 +605,7 @@ export function buildElevations(M, dims) {
       g.add(drive);
     }
     stairScreen(g, 'hslats', taupe);
+    sideFeature(g, 'hslats', taupe, dark);
     out.ref5 = g;
   }
   // ---------- R6: stone, wood & jaali ----------
@@ -658,6 +701,7 @@ export function buildElevations(M, dims) {
       g.add(halo);
     }
     stairScreen(g, 'vslats', M.oak);
+    sideFeature(g, 'vslats', M.oak, charcoal);
     out.ref6 = g;
   }
 

@@ -5,26 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Padma Reddy Residence · 3D Walkthrough</title>
   <meta name="description" content="Dimensionally accurate interactive 3D walkthrough of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
-  <link rel="stylesheet" href="style.css?v=14" />
+  <link rel="stylesheet" href="style.css?v=15" />
   <!-- ?v= forces browsers to fetch fresh copies of every module after an update (bump on each release) -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
         "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "./js/build.js": "./js/build.js?v=14",
-        "./js/elevation.js": "./js/elevation.js?v=14",
-        "./js/furniture.js": "./js/furniture.js?v=14",
-        "./js/lighting.js": "./js/lighting.js?v=14",
-        "./js/mandir.js": "./js/mandir.js?v=14",
-        "./js/materials.js": "./js/materials.js?v=14",
-        "./js/music.js": "./js/music.js?v=14",
-        "./js/nav.js": "./js/nav.js?v=14",
-        "./js/plans.js": "./js/plans.js?v=14",
-        "./js/site.js": "./js/site.js?v=14",
-        "./js/sun.js": "./js/sun.js?v=14",
-        "./js/units.js": "./js/units.js?v=14",
-        "./js/verify.js": "./js/verify.js?v=14"
+        "./js/build.js": "./js/build.js?v=15",
+        "./js/elevation.js": "./js/elevation.js?v=15",
+        "./js/furniture.js": "./js/furniture.js?v=15",
+        "./js/lighting.js": "./js/lighting.js?v=15",
+        "./js/mandir.js": "./js/mandir.js?v=15",
+        "./js/materials.js": "./js/materials.js?v=15",
+        "./js/music.js": "./js/music.js?v=15",
+        "./js/nav.js": "./js/nav.js?v=15",
+        "./js/plans.js": "./js/plans.js?v=15",
+        "./js/site.js": "./js/site.js?v=15",
+        "./js/sun.js": "./js/sun.js?v=15",
+        "./js/units.js": "./js/units.js?v=15",
+        "./js/verify.js": "./js/verify.js?v=15"
       }
     }
   </script>
@@ -70,7 +70,7 @@
       <h2>Elevation · road-facing sides</h2>
       <div class="row first">
         <label class="chk"><input type="checkbox" id="chkElev" /> Show elevation design</label>
-        <span><button id="btnFront" class="link">Front view</button> · <button id="btnStreet" class="link">Corner view</button></span>
+        <span><button id="btnFront" class="link">Front view</button> · <button id="btnSide" class="link">Side view</button> · <button id="btnStreet" class="link">Corner view</button></span>
       </div>
       <div id="elevs" class="seg wrap"></div>
       <p id="elevNote" class="note"></p>
@@ -133,6 +133,6 @@
   </dialog>
 
   <div id="loading">Loading 3D model…</div>
-  <script type="module" src="js/main.js?v=14"></script>
+  <script type="module" src="js/main.js?v=15"></script>
 </body>
 </html>
