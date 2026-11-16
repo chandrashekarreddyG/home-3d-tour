@@ -6,7 +6,7 @@ const SIZE = {
   marble_01: 1.5, laminate_floor_02: 1.7, anti_skid_tiles: 1.8, long_white_tiles: 1.27, painted_plaster_wall: 2,
   plastered_wall_04: 3.2, oak_veneer_01: 1.83, walnut_veneer: 1.8, teak_veneer: 1.0, rough_linen: 0.271,
   granite_tile: 2.3, granite_tile_04: 2.0, sparse_grass: 2.0, large_grey_tiles: 3.0, asphalt_02: 3.0,
-  dry_ground_01: 4.0, red_laterite_soil_stones: 2.0, velour_velvet: 0.28, clay_roof_tiles_02: 2.5, red_sandstone_wall: 2.0,
+  dry_ground_01: 4.0, red_laterite_soil_stones: 2.0, velour_velvet: 0.28, red_sandstone_wall: 2.0,
   terrazzo_tiles: 2.0, terracotta_floor_tiles: 2.08, japanese_stone_wall: 1.9, brick_wall_02: 2.0,
 };
 
@@ -120,7 +120,6 @@ export function makeMaterials(renderer) {
       t.colorSpace = THREE.SRGBColorSpace;
       return new THREE.MeshBasicMaterial({ map: t, color: '#ffd9a8', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     })(),
-    roofTile: pbr('clay_roof_tiles_02', { roughness: 0.85 }),
     laterite: pbr('red_sandstone_wall', { color: '#d9906c', roughness: 1 }),
     wood: pbr('laminate_floor_02', { roughness: 0.9 }),
     bath: pbr('anti_skid_tiles', { roughness: 1 }),

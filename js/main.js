@@ -545,13 +545,13 @@ $('btnTour').addEventListener('click', () => startTour());
 $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbit' && ($('chkRoof').checked || elev.on); });
 
 // elevation ideas (road-facing sides)
-const elev = { on: false, id: 'verandah' };
+const elev = { on: false, id: 'frame' };
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
     const h = document.createElement('span');
     h.className = 'seg-label';
-    h.textContent = { Kerala: 'Kerala · minimal', Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos' }[e.style];
+    h.textContent = { Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos' }[e.style];
     $('elevs').append(h);
     lastStyle = e.style;
   }

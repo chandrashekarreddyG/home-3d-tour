@@ -40,7 +40,6 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - Pooja room has no window, and the mandir faces the entrance.
 - Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
-  - Kerala, minimal: Tiled verandah, Laterite & teak, Twin gables, Continuous eave
   - Modern, subtle colours: Floating frame, Oak slats, Stone & glass, Pergola & planters
   - Inspired by the owner's reference photos: Stone band & wood soffit, Brick & wood box, Feature frame & grooves
     (cut-stone and brick cladding cut around the real openings, up/down wall washers, lit planters, granite entrance
@@ -64,7 +63,7 @@ python3 -m http.server 8000   # open http://localhost:8000
 | `js/build.js` | scene construction in metres |
 | `js/verify.js` | measurement validation (ray-cast against the built model) |
 | `js/furniture.js` | real-size furniture and fixtures |
-| `js/elevation.js` | Kerala elevation ideas |
+| `js/elevation.js` | elevation ideas (modern + reference-inspired) |
 | `js/site.js` | survey parcels, roads and the site location |
 | `js/nav.js` | walkability grid and A* routing |
 | `js/sun.js` | solar position |
