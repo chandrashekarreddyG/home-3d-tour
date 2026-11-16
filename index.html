@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Padma Reddy Residence · 3D Walkthrough</title>
+  <meta name="description" content="Interactive 3D virtual tour of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body class="panel-open" data-mode="orbit">
+  <canvas id="scene"></canvas>
+  <div id="labels"></div>
+
+  <aside id="panel">
+    <header>
+      <h1>Padma Reddy Residence</h1>
+      <p class="sub">Interactive 3D walkthrough · Yellareddypet</p>
+    </header>
+
+    <section>
+      <h2>Design</h2>
+      <div id="plans" class="seg"></div>
+      <p id="planNote" class="note"></p>
+    </section>
+
+    <section>
+      <h2>View</h2>
+      <div class="btns">
+        <button id="btnSite">Whole site</button>
+        <button id="btnHouse">Dollhouse</button>
+        <button id="btnWalk" class="primary">Walk in</button>
+        <button id="btnTour">▶ Guided tour</button>
+      </div>
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="chkRoof" /> Show roof</label>
+        <button id="btnDrawing" class="link">Original drawings</button>
+      </div>
+    </section>
+
+    <section class="rooms-sec">
+      <h2>Rooms</h2>
+      <ul id="rooms"></ul>
+    </section>
+
+    <footer class="help">
+      <p><b>Overview</b> drag to orbit, scroll to zoom, click a room to glide in.</p>
+      <p><b>Inside</b> click the floor to glide (through doorways), drag to look, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to walk, <kbd>Shift</kbd> faster, <kbd>Esc</kbd> back out.</p>
+    </footer>
+  </aside>
+  <button id="panelToggle" aria-label="Toggle panel">☰</button>
+
+  <div id="hud">
+    <div id="where"></div>
+    <div id="hint"></div>
+  </div>
+  <canvas id="minimap" title="Click to glide there"></canvas>
+  <div id="compassWrap" title="North (from survey map)"><div id="compass"><i></i><span>N</span></div></div>
+
+  <dialog id="drawing">
+    <div class="dlg-head">
+      <div id="drawingTabs" class="seg"></div>
+      <button id="drawingClose" aria-label="Close">✕</button>
+    </div>
+    <div class="dlg-body"><img id="drawingImg" alt="" /></div>
+  </dialog>
+
+  <div id="loading">Loading 3D model…</div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
