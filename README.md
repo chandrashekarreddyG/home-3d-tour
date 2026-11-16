@@ -30,7 +30,10 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   guided walk-in tour starts, unless the visitor has already clicked, scrolled or pressed a key.
 - A female Telugu voice-over names each room as the guided tour arrives. The clips are in `audio/te/`, made with the
   macOS Geeta voice (`say -v Geeta -r 150 … | afconvert -d aac`). Browsers hold back sound until the visitor taps,
-  so a "Tap for Telugu voice" chip appears when needed.
+  so a "Tap for voice & music" chip appears when needed.
+- Calm background music plays during the guided tour. It is generated live with Web Audio in `js/music.js`
+  (soft chord pad, pentatonic bells, reverb), so there are no files and no licence. It sits about 17 dB under
+  the voice and drops about 10 dB more while a room name is spoken.
 - Bird's-eye, dollhouse and whole-site views, plus a first-person walk at 1.6 m eye height.
   - Click the floor to glide; routes go through doorways.
   - W A S D to walk, with collision against walls and furniture.
