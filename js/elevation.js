@@ -3,7 +3,7 @@
 // any wall, door, window or room.
 import * as THREE from 'three';
 import { boxGeo } from './materials.js';
-import { omMedallion } from './emblems.js';
+import { omMedallion, artPanel } from './emblems.js';
 
 export const ELEVATIONS = [
   { id: 'none', name: 'As drawn', blurb: 'Plain plastered elevation (no added features).', paint: '#e8d8bd' },
@@ -93,16 +93,22 @@ export function buildElevations(M, dims) {
   };
   // 21 ft road side, the counterpart of the stair screen: a tall screened tower closing the rear end of the side
   // verandah (blank wall up to the first window; it hides the utility / wash corner and bookends the side with the
-  // stair tower at the far corner), plus downlights and granite steps at the side door towards the side gate.
+  // stair tower at the far corner; same height, and it carries a painted Shanku · Namam · Chakra panel above any
+  // slab-level band, as the stair tower carries the Om), plus downlights and granite steps at the side door.
   const sideOpen = openings.filter((o) => o.vertical && o.c < W / 2).sort((p, q) => p.a - q.a);
   const towerEnd = Math.min(2.6, (sideOpen.length ? sideOpen[0].a : 2.6) - 0.3);
-  const sideFeature = (g, kind, mat, frame = white) => {
-    const xf = -S - 0.08, yt = ptop + 0.9;
+  const sideFeature = (g, kind, mat, frame = white, clearY = top + 0.2) => {
+    const xf = -S - 0.08, yt = ptop + 1.4;
     if (towerEnd > 0.9) {
       screenPanel(g, kind, mat, 'z', 0, towerEnd, ground, yt, xf); // road face
       screenPanel(g, kind, mat, 'x', xf - 0.05, 0, ground, yt, -0.08); // rear return
       g.add(box(S + 0.2, 0.12, towerEnd + 0.15, frame, -S / 2 - 0.08, yt + 0.06, towerEnd / 2 - 0.07)); // cap
       g.add(box(0.015, yt - ground - 0.3, 0.015, M.lamp, xf - 0.07, (yt + ground) / 2, towerEnd + 0.01)); // LED edge
+      const pw = Math.min(towerEnd - 0.3, (yt - 0.15 - clearY) * (1952 / 890)), ph = pw * (890 / 1952);
+      const panel = artPanel('textures/emblems/shanku-namam-chakra.png', pw, ph, M.glow);
+      panel.rotation.y = -Math.PI / 2; // faces the 21 ft road (−x)
+      panel.position.set(xf - 0.09, (clearY + yt - 0.1) / 2, towerEnd / 2);
+      g.add(panel);
     }
     // two downlights in the verandah soffit washing the wall either side of the side door
     for (const z of [sideZ - 0.6, sideZ + 0.6]) {
@@ -607,7 +613,7 @@ export function buildElevations(M, dims) {
       g.add(drive);
     }
     stairScreen(g, 'hslats', taupe, 'gold', by + bandH / 2 + 0.05); // medallion above the deep taupe band
-    sideFeature(g, 'hslats', taupe, dark);
+    sideFeature(g, 'hslats', taupe, dark, by + bandH / 2 + 0.05); // panel above the deep taupe band
     out.ref5 = g;
   }
   // ---------- R6: stone, wood & jaali ----------

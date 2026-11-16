@@ -1,6 +1,7 @@
-// Om medallion for the stair tower, modelled in 3D (built facing +z, centred on the origin, sizes in metres):
-// the Om at the centre of a spiral of tapering arcs. A soft halo behind it uses the shared glow material,
-// so it reads as backlit after dark.
+// Devotional facade emblems (built facing +z, centred on the origin, sizes in metres):
+//  - omMedallion: 3D Om at the centre of a spiral of tapering arcs (stair tower, G.P Road)
+//  - artPanel: flat painted panel from line artwork, e.g. Shanku · Namam · Chakra (side tower, 21 ft road)
+// A soft halo behind each uses the shared glow material, so they read as backlit after dark.
 import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { OM_PATH } from './omglyph.js';
@@ -59,6 +60,29 @@ export function omMedallion(R, tone, glow) {
   }
   g.add(mesh(omGeometry(R * 0.42, 0.04), fg, 0, 0, 0.04));
   const halo = new THREE.Mesh(new THREE.PlaneGeometry((R + 0.12) * 2.9, (R + 0.12) * 2.9), glow);
+  halo.position.z = -0.01;
+  g.add(halo);
+  return g;
+}
+
+// flat painted panel: the artwork (white ground) on a white board with a slim gold frame, w × h
+const art = new Map();
+export function artPanel(url, w, h, glow) {
+  const k = materials(), g = new THREE.Group();
+  if (!art.has(url)) {
+    const t = new THREE.TextureLoader().load(url);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    art.set(url, new THREE.MeshStandardMaterial({ map: t, roughness: 0.75 }));
+  }
+  g.add(mesh(new THREE.BoxGeometry(w + 0.08, h + 0.08, 0.03), k.cream, 0, 0, 0.015));
+  const face = mesh(new THREE.PlaneGeometry(w, h), art.get(url), 0, 0, 0.031);
+  face.castShadow = false;
+  g.add(face);
+  for (const [bw, bh, x, y] of [[w + 0.12, 0.025, 0, (h + 0.1) / 2], [w + 0.12, 0.025, 0, -(h + 0.1) / 2], [0.025, h + 0.12, -(w + 0.1) / 2, 0], [0.025, h + 0.12, (w + 0.1) / 2, 0]]) {
+    g.add(mesh(new THREE.BoxGeometry(bw, bh, 0.02), k.gold, x, y, 0.035));
+  }
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(w * 1.5, h * 2.2), glow);
   halo.position.z = -0.01;
   g.add(halo);
   return g;

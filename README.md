@@ -63,6 +63,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in
     `js/omglyph.js`.
+  - The 21 ft road side tower rises to the same height and carries a flat painted Shanku · Namam · Chakra panel
+    (the owner's line artwork, `textures/emblems/shanku-namam-chakra.png`) in a slim gold frame. It sits above the
+    slab bands and has the same soft halo after dark.
 - **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, Indian
   marble, black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &
