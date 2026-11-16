@@ -293,7 +293,7 @@ export function buildMandir(L, D) {
   kal.position.y = H;
   g.add(kal);
   // warm lamp light
-  const light = new THREE.PointLight('#ffb347', 5, 10, 2);
+  const light = new THREE.PointLight('#ffb347', 0.5, 3, 2); // diya glow (world units are metres)
   light.position.set(0, H + 1.0, D / 2 + 0.6);
   g.add(light);
   return g;

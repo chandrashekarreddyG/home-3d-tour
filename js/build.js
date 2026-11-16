@@ -1,158 +1,30 @@
-// Builds the 3D house (walls, openings, floors, furniture) and the surrounding survey site.
+// Builds the house from plans.js in METRES (1 world unit = 1 m) plus the survey site.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { IN, FT, ftIn } from './units.js';
+import { STD } from './plans.js';
+import { boxGeo } from './materials.js';
+import { kit, SIZES } from './furniture.js';
+import { buildMandir, rangoli } from './mandir.js';
+import { buildElevations } from './elevation.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
-import { buildMandir, rangoli } from './mandir.js';
 
-export const WALL_H = 10;
-export const GROUND = -1.5;
-const T_OUT = 0.75;
-const T_IN = 0.375;
-const OPEN = { d: [0, 7], d2: [0, 7], a: [0, 7.6], w: [3, 7], v: [5.6, 7] };
-const SITE_W = 56.08; // Padma Reddy frontage along G.P Road
+export const CEIL = STD.ceiling * IN; // 3.048 m
+export const DOOR_H = STD.doorHead * IN; // 2.134 m
+export const GROUND = -STD.plinth * IN; // −0.457 m
+const SLAB = STD.slab * IN;
+const SITE_W_FT = 56 + 1 / 12; // Padma Reddy frontage 56′-1″
 
-// ---------- deterministic noise ----------
-function rng(seed) {
-  return () => {
-    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// ---------- textures ----------
-const texCache = {};
-function canvasTex(name, world, draw, renderer) {
-  if (texCache[name]) return texCache[name];
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
-  const g = c.getContext('2d');
-  draw(g, 512, rng(name.length * 97 + 13));
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  t.userData.world = world;
-  texCache[name] = t;
-  return t;
-}
-
-const shade = (hex, k) => {
-  const c = new THREE.Color(hex);
-  c.offsetHSL(0, 0, k);
-  return '#' + c.getHexString();
+const OPEN = {
+  d: [0, DOOR_H], dt: [0, DOOR_H], dd: [0, DOOR_H], a: [0, DOOR_H],
+  w: [STD.sill * IN, DOOR_H], v: [STD.ventSill * IN, DOOR_H],
 };
+const FRAME = 0.06; // door frame face width (m)
 
-function tiles(g, S, R, n, base, grout, vary, gw = 3) {
-  const s = S / n;
-  g.fillStyle = grout; g.fillRect(0, 0, S, S);
-  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-    g.fillStyle = shade(base, (R() - 0.5) * vary);
-    g.fillRect(i * s + gw / 2, j * s + gw / 2, s - gw, s - gw);
-  }
-}
-function speckle(g, S, R, base, amp, count, size = 2) {
-  g.fillStyle = base; g.fillRect(0, 0, S, S);
-  for (let k = 0; k < count; k++) {
-    g.fillStyle = shade(base, (R() - 0.5) * amp);
-    g.fillRect(R() * S, R() * S, size + R() * size, size + R() * size);
-  }
-}
-
-function makeTextures(renderer) {
-  const T = (n, w, d) => canvasTex(n, w, d, renderer);
-  return {
-    tile: T('tile', 4, (g, S, R) => tiles(g, S, R, 2, '#ece5d8', '#cfc5b3', 0.04, 4)),
-    ktile: T('ktile', 3, (g, S, R) => tiles(g, S, R, 2, '#d8d2c8', '#b9b0a2', 0.06, 4)),
-    bath: T('bath', 2, (g, S, R) => tiles(g, S, R, 6, '#c9dde3', '#f4f7f8', 0.05, 4)),
-    stone: T('stone', 6, (g, S, R) => { tiles(g, S, R, 3, '#bdb3a4', '#8e8578', 0.08, 5); }),
-    paver: T('paver', 8, (g, S, R) => tiles(g, S, R, 8, '#c6bba9', '#9e9483', 0.08, 3)),
-    wood: T('wood', 6, (g, S, R) => {
-      const n = 8, h = S / n;
-      for (let i = 0; i < n; i++) {
-        const base = shade('#a8744a', (R() - 0.5) * 0.1);
-        let x = -R() * S;
-        while (x < S) {
-          const len = S * (0.45 + R() * 0.4);
-          g.fillStyle = shade(base, (R() - 0.5) * 0.05);
-          g.fillRect(x, i * h, len, h);
-          g.strokeStyle = 'rgba(60,35,20,0.18)';
-          for (let k = 0; k < 6; k++) {
-            g.beginPath();
-            const yy = i * h + R() * h;
-            g.moveTo(x, yy); g.bezierCurveTo(x + len / 3, yy + (R() - 0.5) * 6, x + (2 * len) / 3, yy + (R() - 0.5) * 6, x + len, yy);
-            g.stroke();
-          }
-          g.fillStyle = 'rgba(40,22,10,0.55)'; g.fillRect(x, i * h, 2, h);
-          x += len;
-        }
-        g.fillStyle = 'rgba(40,22,10,0.5)'; g.fillRect(0, i * h, S, 2);
-      }
-    }),
-    marble: T('marble', 6, (g, S, R) => {
-      g.fillStyle = '#f3f0ea'; g.fillRect(0, 0, S, S);
-      for (let k = 0; k < 14; k++) {
-        g.strokeStyle = `rgba(120,120,130,${0.08 + R() * 0.2})`;
-        g.lineWidth = 0.5 + R() * 2;
-        g.beginPath();
-        let x = R() * S, y = 0;
-        g.moveTo(x, y);
-        while (y < S) { x += (R() - 0.5) * 60; y += 20 + R() * 40; g.lineTo(x, y); }
-        g.stroke();
-      }
-      g.strokeStyle = 'rgba(170,160,145,0.6)'; g.lineWidth = 3; g.strokeRect(0, 0, S, S);
-    }),
-    grass: T('grass', 24, (g, S, R) => speckle(g, S, R, '#7c9a55', 0.12, 9000, 2)),
-    soil: T('soil', 24, (g, S, R) => speckle(g, S, R, '#c7ad84', 0.1, 8000, 2)),
-    earth: T('earth', 20, (g, S, R) => speckle(g, S, R, '#b39a7c', 0.1, 8000, 2)),
-    asphalt: T('asphalt', 16, (g, S, R) => speckle(g, S, R, '#55585c', 0.12, 12000, 1.5)),
-  };
-}
-
-// ---------- materials ----------
-const matCache = new Map();
-function mat(color, o = {}) {
-  const key = color + JSON.stringify(o);
-  if (!matCache.has(key)) matCache.set(key, new THREE.MeshStandardMaterial({ color, roughness: 0.8, ...o }));
-  return matCache.get(key);
-}
-
-// ---------- geometry helpers ----------
-function flatRect(x0, z0, x1, z1, y, world = 1) {
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute([x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1], 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute([x0 / world, -z0 / world, x1 / world, -z0 / world, x1 / world, -z1 / world, x0 / world, -z1 / world], 2));
-  g.setIndex([0, 2, 1, 0, 3, 2]);
-  g.computeVertexNormals();
-  return g;
-}
-function flatPoly(pts, y, world = 1) {
-  const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
-  const g = new THREE.ShapeGeometry(shape);
-  g.rotateX(-Math.PI / 2);
-  g.translate(0, y, 0);
-  const p = g.attributes.position, uv = g.attributes.uv;
-  for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / world, -p.getZ(i) / world);
-  return g;
-}
-function box(w, h, d, material, x, y, z, shadow = true) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-  m.position.set(x, y, z);
-  m.castShadow = shadow;
-  m.receiveShadow = true;
-  return m;
-}
-function cyl(rt, rb, h, material, x, y, z, seg = 20) {
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), material);
-  m.position.set(x, y, z);
-  m.castShadow = true;
-  m.receiveShadow = true;
-  return m;
-}
-const normRect = (r) => [Math.min(r[0], r[2]), Math.min(r[1], r[3]), Math.max(r[0], r[2]), Math.max(r[1], r[3])];
-const rectCenter = (r) => [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2];
+const rectM = (r) => r.map((v) => v * IN);
+const centerOf = (r) => [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2];
+const area = (r) => (r[2] - r[0]) * (r[3] - r[1]);
 
 function label(html, cls, onClick) {
   const el = document.createElement(onClick ? 'button' : 'div');
@@ -162,662 +34,874 @@ function label(html, cls, onClick) {
   return new CSS2DObject(el);
 }
 
+// UVs in world metres (continuous across neighbouring wall pieces).
+function worldUV(mesh) {
+  const g = mesh.geometry, p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  const o = mesh.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i) + o.x, y = p.getY(i) + o.y, z = p.getZ(i) + o.z;
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i));
+    if (ax > 0.5) uv.setXY(i, z, y);
+    else if (ay > 0.5) uv.setXY(i, x, z);
+    else uv.setXY(i, x, y);
+  }
+  uv.needsUpdate = true;
+}
+function flatRect(r, y, down = false) {
+  const [x0, z0, x1, z1] = r;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1], 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute([x0, z0, x1, z0, x1, z1, x0, z1], 2));
+  g.setIndex(down ? [0, 1, 2, 0, 2, 3] : [0, 2, 1, 0, 3, 2]);
+  g.computeVertexNormals();
+  return g;
+}
+function flatPoly(pts, y) {
+  const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const g = new THREE.ShapeGeometry(shape);
+  g.rotateX(-Math.PI / 2);
+  g.translate(0, y, 0);
+  const p = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i), p.getZ(i));
+  return g;
+}
+function subtractRect(r, h) {
+  if (h[2] <= r[0] || h[0] >= r[2] || h[3] <= r[1] || h[1] >= r[3]) return [r];
+  const out = [];
+  if (h[1] > r[1]) out.push([r[0], r[1], r[2], h[1]]);
+  if (h[3] < r[3]) out.push([r[0], h[3], r[2], r[3]]);
+  const z0 = Math.max(r[1], h[1]), z1 = Math.min(r[3], h[3]);
+  if (h[0] > r[0]) out.push([r[0], z0, h[0], z1]);
+  if (h[2] < r[2]) out.push([h[2], z0, r[2], z1]);
+  return out.filter((q) => q[2] - q[0] > 1e-4 && q[3] - q[1] > 1e-4);
+}
+
 // =====================================================================
-export function buildModel(plan, renderer, onLabelClick) {
-  const TX = makeTextures(renderer);
-  const floorMat = {
-    tile: new THREE.MeshStandardMaterial({ map: TX.tile, roughness: 0.35 }),
-    ktile: new THREE.MeshStandardMaterial({ map: TX.ktile, roughness: 0.45 }),
-    bath: new THREE.MeshStandardMaterial({ map: TX.bath, roughness: 0.3 }),
-    wood: new THREE.MeshStandardMaterial({ map: TX.wood, roughness: 0.55 }),
-    marble: new THREE.MeshStandardMaterial({ map: TX.marble, roughness: 0.2 }),
-    stone: new THREE.MeshStandardMaterial({ map: TX.stone, roughness: 0.85 }),
-  };
-  const s = plan.px;
-  const [ox, oy] = plan.origin;
-  const X = (p) => (p - ox) / s;
-  const Z = (p) => (p - oy) / s;
-  const R = (r) => normRect([X(r[0]), Z(r[1]), X(r[2]), Z(r[3])]);
+export function buildModel(plan, M, onLabelClick) {
+  const K = kit(M);
+  const { ox, oy, kx, kz } = plan.map;
+  const pxX = (p) => (p - ox) * kx; // drawing px → inches
+  const pxZ = (p) => (p - oy) * kz;
 
   const root = new THREE.Group();
   const ceilings = new THREE.Group();
   const roof = new THREE.Group();
   const labels = new THREE.Group();
   const siteLabels = new THREE.Group();
+  const dims = new THREE.Group();
   const markers = new THREE.Group();
-  root.add(ceilings, roof, labels, siteLabels, markers);
-  ceilings.visible = false;
-  roof.visible = false;
+  root.add(ceilings, roof, labels, siteLabels, dims, markers);
+  ceilings.visible = roof.visible = dims.visible = markers.visible = false;
 
-  const floors = []; // pickable floor meshes
-  const solids = []; // walls (block picking)
-  const furnMeshes = []; // furniture (pick through to room)
-  const colliders = []; // {r, clear} walls & big furniture footprint
-  const mini = { walls: [], windows: [], doors: [] };
+  const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [];
+  const mini = { walls: [], windows: [] };
+  const report = { openings: [], furniture: [], adjustments: [] };
 
-  // ----- outer building rect -----
-  const outerWalls = plan.walls.filter((w) => w[4] === 'o');
-  const bx0 = Math.min(...outerWalls.map((w) => X(Math.min(w[0], w[2])))) - T_OUT / 2;
-  const bx1 = Math.max(...outerWalls.map((w) => X(Math.max(w[0], w[2])))) + T_OUT / 2;
-  const bz0 = Math.min(...outerWalls.map((w) => Z(Math.min(w[1], w[3])))) - T_OUT / 2;
-  const bz1 = Math.max(...outerWalls.map((w) => Z(Math.max(w[1], w[3])))) + T_OUT / 2;
-  const building = [bx0, bz0, bx1, bz1];
-  const bcx = (bx0 + bx1) / 2, bcz = (bz0 + bz1) / 2;
+  const [W, D] = plan.outer; // inches
+  const building = [0, 0, W * IN, D * IN];
+  const bal = plan.balconies;
 
-  // ----- rooms -----
+  // ---------------- zones ----------------
   const rooms = [];
-  const addZone = (z, outdoor) => {
-    const rects = (z.rs || [z.r]).map(R);
-    const big = rects.reduce((a, b) => ((a[2] - a[0]) * (a[3] - a[1]) >= (b[2] - b[0]) * (b[3] - b[1]) ? a : b));
-    rooms.push({ name: z.n, dims: z.d || '', rects, outdoor, tour: z.tour !== false, finish: z.f, center: rectCenter(big) });
-  };
-  plan.rooms.forEach((z) => addZone(z, false));
-  plan.outdoor.forEach((z) => addZone(z, true));
+  for (const z of plan.rooms) {
+    const rects = (z.rs || [z.r]).map(rectM);
+    const main = rects.reduce((a, b) => (area(a) >= area(b) ? a : b));
+    rooms.push({ name: z.n, drawLabel: z.d || '', lab: z.lab, issue: z.issue, rects, main, finish: z.f, tour: z.tour !== false, outdoor: false, center: centerOf(main), lights: [] });
+  }
+  const st = [pxX(plan.stairs[0]) * IN, pxZ(plan.stairs[1]) * IN, pxX(plan.stairs[2]) * IN, pxZ(plan.stairs[3]) * IN];
+  st[1] = D * IN; // stairs start at the building's front face (drawn on the balcony)
+  const sideBal = [-bal.side * IN, 0, 0, D * IN];
+  const frontBal = [-bal.side * IN, D * IN, W * IN, (D + bal.front) * IN];
+  st[3] = Math.min(st[3], frontBal[3]);
+  rooms.push({ name: 'Side Balcony', drawLabel: '5′-0″ wide', lab: [bal.side, null], rects: [sideBal], main: sideBal, finish: 'stone', tour: true, outdoor: true, center: centerOf(sideBal), lights: [] });
+  rooms.push({ name: 'Front Balcony', drawLabel: '7′-0″ wide', lab: [null, bal.front], rects: [frontBal], main: frontBal, finish: 'stone', tour: true, outdoor: true, center: centerOf(frontBal), lights: [] });
   const roomAt = (x, z) => rooms.find((r) => r.rects.some((q) => inRect(x, z, q)));
+  const roomAtIn = (x, z) => roomAt(x * IN, z * IN);
+  const byName = (n) => rooms.find((r) => r.name === n);
 
-  // ----- walls -----
-  const wallIn = mat('#f3efe7', { roughness: 0.92 });
-  const wallOut = mat('#e6d3b3', { roughness: 0.95 });
-  const wallCap = mat('#8a8176', { roughness: 0.9 });
-  const frameMat = mat('#6b4a2f', { roughness: 0.6 });
-  const alu = mat('#4c5258', { roughness: 0.4, metalness: 0.6 });
-  const glass = new THREE.MeshStandardMaterial({ color: '#a9cbe0', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.28, depthWrite: false });
+  // ---------------- walls & openings ----------------
   const doorways = [];
-
-  for (const [x1, y1, x2, y2, k, ops] of plan.walls) {
-    const t = k === 'o' ? T_OUT : T_IN;
+  const openingsAll = [];
+  plan.walls.forEach(([x1, z1, x2, z2, t, ops], wi) => {
     const vertical = x1 === x2;
-    const conv = vertical ? Z : X;
-    const c = vertical ? X(x1) : Z(y1);
-    const a0 = conv(Math.min(vertical ? y1 : x1, vertical ? y2 : x2));
-    const a1 = conv(Math.max(vertical ? y1 : x1, vertical ? y2 : x2));
-    let mats = wallIn;
-    if (k === 'o') {
-      mats = [wallIn, wallIn, wallCap, wallIn, wallIn, wallIn];
-      if (vertical) mats[c < bcx ? 1 : 0] = wallOut;
-      else mats[c < bcz ? 5 : 4] = wallOut;
-    } else {
-      mats = [wallIn, wallIn, wallCap, wallIn, wallIn, wallIn];
+    const outer = t === 9;
+    const conv = vertical ? pxZ : pxX;
+    const c = vertical ? x1 : z1; // inches
+    const a0 = Math.min(vertical ? z1 : x1, vertical ? z2 : x2);
+    const a1 = Math.max(vertical ? z1 : x1, vertical ? z2 : x2);
+    // outer walls: horizontal ones run to the outer corners, vertical ones stop at their inner faces
+    const start = outer ? (vertical ? a0 + t / 2 : a0 - t / 2) : a0;
+    const end = outer ? (vertical ? a1 - t / 2 : a1 + t / 2) : a1;
+
+    // resolve openings: centre from the drawing, width from the standard / drawing
+    const res = ops.map(([kind, f, to, swing]) => {
+      const p0 = conv(Math.min(f, to)), p1 = conv(Math.max(f, to));
+      const dc = (p0 + p1) / 2, dw = p1 - p0;
+      let w;
+      if (kind === 'd') w = STD.door;
+      else if (kind === 'dt') w = STD.doorToilet;
+      else if (kind === 'dd') w = STD.doubleSizes.reduce((a, b) => (Math.abs(b - dw) < Math.abs(a - dw) ? b : a));
+      else if (kind === 'v') w = STD.ventW;
+      else if (kind === 'w') w = Math.round(dw / STD.windowRound) * STD.windowRound;
+      else w = Math.round(dw);
+      return { kind, swing, drawCenter: dc, drawWidth: dw, a: dc - w / 2, b: dc + w / 2 };
+    }).sort((p, q) => p.a - q.a);
+    // keep a 3″ pier between neighbours; doors keep their size, windows give way
+    for (let i = 1; i < res.length; i++) {
+      const p = res[i - 1], q = res[i];
+      if (q.a < p.b + 3) {
+        const win = q.kind === 'w' || q.kind === 'v' ? q : p.kind === 'w' || p.kind === 'v' ? p : q;
+        const cut = p.b + 3 - q.a;
+        if (win === q) q.a += cut; else p.b -= cut;
+        report.adjustments.push(`${plan.short}: window next to a ${win === q ? p.kind : q.kind} on wall #${wi + 1} trimmed by ${cut.toFixed(1)}″ to keep a 3″ pier.`);
+      }
     }
-    const footprint = (a, b) => (vertical ? [c - t / 2, a, c + t / 2, b] : [a, c - t / 2, b, c + t / 2]);
+    // keep openings clear of the wall's end returns
+    const lim0 = a0 + (outer ? 4.5 : 2.25), lim1 = a1 - (outer ? 4.5 : 2.25);
+    for (const o of res) {
+      if (o.a < lim0 + 2) { const s = lim0 + 2 - o.a; o.a += s; o.b += s; }
+      if (o.b > lim1 - 2) { const s = o.b - (lim1 - 2); o.a -= s; o.b -= s; }
+    }
+
+    // probe which space lies on each side of the wall
+    const sideRoom = (along, sgn) => {
+      const off = t / 2 + 3;
+      return vertical ? roomAtIn(c + sgn * off, along) : roomAtIn(along, c + sgn * off);
+    };
+    const faceMat = (along, sgn, y0) => {
+      const r = sideRoom(along, sgn);
+      if (!r || r.outdoor) return outer ? M.paintExt : M.paint;
+      if (r.finish === 'bath' && y0 < DOOR_H - 0.001) return M.bathTile;
+      return M.paint;
+    };
+    const tM = t * IN, cM = c * IN;
+    // split pieces where perpendicular walls meet this one, so each face segment belongs to one room
+    const junctions = plan.walls
+      .filter((w2) => (w2[0] === w2[2]) !== vertical)
+      .filter((w2) => {
+        const s0 = Math.min(vertical ? w2[0] : w2[1], vertical ? w2[2] : w2[3]) - w2[4] / 2;
+        const s1 = Math.max(vertical ? w2[0] : w2[1], vertical ? w2[2] : w2[3]) + w2[4] / 2;
+        return c >= s0 - 0.01 && c <= s1 + 0.01;
+      })
+      .map((w2) => (vertical ? w2[1] : w2[0]));
     const piece = (a, b, y0, y1, tag) => {
+      const cuts = [a, ...junctions.filter((j) => j > a + 0.5 && j < b - 0.5).sort((p, q) => p - q), b];
+      for (let i = 0; i < cuts.length - 1; i++) pieceRaw(cuts[i], cuts[i + 1], y0, y1, tag);
+    };
+    const pieceRaw = (a, b, y0, y1, tag) => {
       if (b - a < 0.01) return;
-      const m = vertical
-        ? box(t, y1 - y0, b - a, mats, c, (y0 + y1) / 2, (a + b) / 2)
-        : box(b - a, y1 - y0, t, mats, (a + b) / 2, (y0 + y1) / 2, c);
-      m.userData.wall = true;
-      root.add(m);
-      solids.push(m);
-      if (y0 < 2) {
-        colliders.push({ r: footprint(a, b), clear: 0.6, wall: true });
-        (tag === 'sill' ? mini.windows : mini.walls).push(footprint(a, b));
+      const splits = y0 < DOOR_H - 0.001 && y1 > DOOR_H + 0.001 ? [[y0, DOOR_H], [DOOR_H, y1]] : [[y0, y1]];
+      for (const [ya, yb] of splits) {
+        const mid = (a + b) / 2;
+        const neg = faceMat(mid, -1, ya), pos = faceMat(mid, 1, ya);
+        const ends = outer ? M.paintExt : M.paint;
+        const mats = vertical ? [pos, neg, M.cap, M.cap, ends, ends] : [ends, ends, M.cap, M.cap, pos, neg];
+        const aM = a * IN, bM = b * IN;
+        const m = new THREE.Mesh(vertical ? boxGeo(tM, yb - ya, bM - aM) : boxGeo(bM - aM, yb - ya, tM), mats);
+        m.position.set(vertical ? cM : (aM + bM) / 2, (ya + yb) / 2, vertical ? (aM + bM) / 2 : cM);
+        m.castShadow = m.receiveShadow = true;
+        worldUV(m);
+        m.userData.wall = true;
+        m.userData.houseWall = true;
+        m.userData.t = vertical ? m.geometry.parameters.width : m.geometry.parameters.depth;
+        root.add(m);
+        solids.push(m);
+      }
+      const fp = vertical ? [cM - tM / 2, a * IN, cM + tM / 2, b * IN] : [a * IN, cM - tM / 2, b * IN, cM + tM / 2];
+      if (y0 < 0.5) {
+        colliders.push({ r: fp, clear: 0.22, wall: true });
+        (tag === 'sill' ? mini.windows : mini.walls).push(fp);
+        // skirting on painted interior faces
+        for (const sgn of [-1, 1]) {
+          const r = sideRoom((a + b) / 2, sgn);
+          if (!r || r.outdoor || r.finish === 'bath') continue;
+          const skMat = r.finish === 'wood' ? M.walnut : M.tile;
+          const off = cM + sgn * (tM / 2 + 0.006);
+          const sk = vertical ? new THREE.Mesh(boxGeo(0.012, 0.1, (b - a) * IN), skMat) : new THREE.Mesh(boxGeo((b - a) * IN, 0.1, 0.012), skMat);
+          sk.position.set(vertical ? off : ((a + b) / 2) * IN, 0.05, vertical ? ((a + b) / 2) * IN : off);
+          sk.receiveShadow = true;
+          worldUV(sk);
+          root.add(sk);
+        }
       }
     };
-    const openings = ops
-      .map(([kind, f, to]) => ({ kind, a: conv(Math.min(f, to)), b: conv(Math.max(f, to)) }))
-      .sort((p, q) => p.a - q.a);
-    let cur = a0 - t / 2;
-    for (const o of openings) {
-      if (o.a > cur) piece(cur, o.a, 0, WALL_H);
+
+    let cur = start;
+    for (const o of res) {
+      if (o.a > cur) piece(cur, o.a, 0, CEIL);
       const [lo, hi] = OPEN[o.kind];
       if (lo > 0) piece(o.a, o.b, 0, lo, 'sill');
-      piece(o.a, o.b, hi, WALL_H);
-      addOpening(o, lo, hi);
+      piece(o.a, o.b, hi, CEIL);
       cur = Math.max(cur, o.b);
+      const rec = {
+        plan: plan.short, wall: wi + 1, kind: o.kind, vertical, outer, c, t, a: o.a, b: o.b, lo, hi,
+        drawCenter: o.drawCenter, drawWidth: o.drawWidth, swing: o.swing,
+        sides: [sideRoom((o.a + o.b) / 2, -1)?.name || 'outside', sideRoom((o.a + o.b) / 2, 1)?.name || 'outside'],
+      };
+      openingsAll.push(rec);
+      report.openings.push(rec);
+      addOpening(rec);
     }
-    if (a1 + t / 2 > cur) piece(cur, a1 + t / 2, 0, WALL_H);
+    if (end > cur) piece(cur, end, 0, CEIL);
 
-    function addOpening(o, lo, hi) {
-      const L = o.b - o.a, mid = (o.a + o.b) / 2;
-      const place = (w, h, d, m, along, y, across = 0) =>
-        vertical ? box(d, h, w, m, c + across, y, along) : box(w, h, d, m, along, y, c + across);
+    function addOpening(o) {
+      const aM = o.a * IN, bM = o.b * IN, L = bM - aM, mid = (aM + bM) / 2;
+      const place = (w, h, d, mat, along, y, across = 0, shadow = true) => {
+        const m = vertical ? K.box(d, h, w, mat, cM + across, y, along, shadow) : K.box(w, h, d, mat, along, y, cM + across, shadow);
+        root.add(m);
+        return m;
+      };
       if (o.kind === 'w' || o.kind === 'v') {
-        const fw = 0.12;
-        root.add(place(L, hi - lo, 0.04, glass, mid, (lo + hi) / 2));
-        root.add(place(L, fw, t * 0.6, alu, mid, lo + fw / 2));
-        root.add(place(L, fw, t * 0.6, alu, mid, hi - fw / 2));
-        root.add(place(fw, hi - lo, t * 0.6, alu, o.a + fw / 2, (lo + hi) / 2));
-        root.add(place(fw, hi - lo, t * 0.6, alu, o.b - fw / 2, (lo + hi) / 2));
-        if (o.kind === 'w' && L > 2.5) root.add(place(fw * 0.8, hi - lo, t * 0.6, alu, mid, (lo + hi) / 2));
-        if (o.kind === 'w') root.add(place(L + 0.4, 0.12, t + 0.3, mat('#d9d2c4'), mid, lo - 0.06));
-        mini.windows.push(footprint(o.a, o.b));
-      } else {
-        const j = 0.22;
-        if (o.kind !== 'a') {
-          root.add(place(j, hi, t + 0.1, frameMat, o.a + j / 2, hi / 2));
-          root.add(place(j, hi, t + 0.1, frameMat, o.b - j / 2, hi / 2));
-          root.add(place(L, j, t + 0.1, frameMat, mid, hi - j / 2));
+        const f = 0.05, lo = o.lo, hi = o.hi;
+        place(L, f, 0.08, M.alu, mid, lo + f / 2);
+        place(L, f, 0.08, M.alu, mid, hi - f / 2);
+        place(f, hi - lo, 0.08, M.alu, aM + f / 2, (lo + hi) / 2);
+        place(f, hi - lo, 0.08, M.alu, bM - f / 2, (lo + hi) / 2);
+        if (o.kind === 'w') {
+          const n = L > 1.5 ? 3 : 2, pw = (L - 2 * f) / n + 0.03;
+          for (let i = 0; i < n; i++) {
+            const along = aM + f + (L - 2 * f) * ((i + 0.5) / n);
+            const off = (i % 2 ? 1 : -1) * 0.018;
+            place(pw, hi - lo - 2 * f, 0.008, M.glass, along, (lo + hi) / 2, off, false);
+            place(0.035, hi - lo - 2 * f, 0.03, M.alu, along - pw / 2, (lo + hi) / 2, off);
+            place(0.035, hi - lo - 2 * f, 0.03, M.alu, along + pw / 2, (lo + hi) / 2, off);
+          }
+          place(L + 0.04, 0.02, tM + 0.05, M.granite, mid, lo + 0.01); // granite sill
+        } else {
+          for (let k = 0; k < 3; k++) {
+            const m = place(L - 2 * f, (hi - lo - 2 * f) / 3, 0.006, M.frosted, mid, lo + f + ((hi - lo - 2 * f) * (k + 0.5)) / 3, 0, false);
+            if (vertical) m.rotation.z = 0.35; else m.rotation.x = 0.35;
+          }
         }
-        const n = vertical ? [1, 0] : [0, 1];
-        const p = vertical ? [c, mid] : [mid, c];
-        doorways.push({ p, n, kind: o.kind, outer: k === 'o', width: L });
-        mini.doors.push(footprint(o.a, o.b));
+        mini.windows.push(vertical ? [cM - tM / 2, aM, cM + tM / 2, bM] : [aM, cM - tM / 2, bM, cM + tM / 2]);
+        // chajja (sunshade) over exterior windows not covered by a balcony slab
+        const extSgn = outer ? (vertical ? (c < W / 2 ? -1 : 1) : c < D / 2 ? -1 : 1) : 0;
+        if (outer) {
+          const exPt = vertical ? [cM + extSgn * (tM / 2 + 0.3), mid] : [mid, cM + extSgn * (tM / 2 + 0.3)];
+          if (!roomAt(exPt[0], exPt[1])) place(L + 0.3, 0.075, 0.45, M.paintExt, mid, DOOR_H + 0.19, extSgn * (tM / 2 + 0.225));
+        }
+        // curtains in habitable rooms
+        if (o.kind === 'w') {
+          for (const sgn of [-1, 1]) {
+            const r = sideRoom((o.a + o.b) / 2, sgn);
+            if (!r || r.outdoor || ['bath', 'kitchen'].includes(r.finish) || r.name === 'Pooja') continue;
+            const off = sgn * (tM / 2 + 0.12);
+            const rodY = DOOR_H + 0.09;
+            const rod = place(L + 0.5, 0.02, 0.02, M.chrome, mid, rodY, off, false);
+            rod.castShadow = false;
+            const pw = Math.min(0.55, L * 0.35 + 0.15), ph = rodY - 0.03;
+            for (const end of [-1, 1]) {
+              const panel = K.curtainPanel(pw, ph);
+              const along = mid + end * (L / 2 + 0.25 - pw / 2);
+              if (vertical) { panel.rotation.y = Math.PI / 2; panel.position.set(cM + off, ph / 2 + 0.02, along); }
+              else panel.position.set(along, ph / 2 + 0.02, cM + off);
+              root.add(panel);
+            }
+          }
+        }
+        return;
+      }
+      // doors and arches
+      const n = vertical ? [1, 0] : [0, 1];
+      const p = vertical ? [cM, mid] : [mid, cM];
+      doorways.push({ p, n, kind: o.kind, outer, width: L });
+      // granite threshold
+      const th = vertical ? K.box(tM, 0.012, L, M.granite, cM, 0.006, mid, false) : K.box(L, 0.012, tM, M.granite, mid, 0.006, cM, false);
+      root.add(th);
+      if (o.kind === 'a') return;
+      const sw = o.kind === 'dd' ? (o.swing === '-' ? -1 : 1) : o.swing[1] === '-' ? -1 : 1;
+      const faceOff = sw * (tM / 2 - 0.05); // frame flush with the swing-side face
+      const fMat = outer || o.kind === 'dd' ? M.teak : M.walnut;
+      place(FRAME, o.hi, 0.1, fMat, aM + FRAME / 2, o.hi / 2, faceOff);
+      place(FRAME, o.hi, 0.1, fMat, bM - FRAME / 2, o.hi / 2, faceOff);
+      place(L, FRAME, 0.1, fMat, mid, o.hi - FRAME / 2, faceOff);
+      for (const ja of [aM + FRAME / 2, bM - FRAME / 2]) {
+        colliders.push({ r: vertical ? [cM + faceOff - 0.05, ja - FRAME / 2, cM + faceOff + 0.05, ja + FRAME / 2] : [ja - FRAME / 2, cM + faceOff - 0.05, ja + FRAME / 2, cM + faceOff + 0.05], clear: 0.22, wall: true });
+      }
+      const leafMat = o.kind === 'dt' ? M.white : outer || o.kind === 'dd' ? M.teak : M.oak;
+      const clear = L - 2 * FRAME;
+      const leaves = o.kind === 'dd' ? [['a', clear / 2], ['b', clear / 2]] : [[o.swing[0], clear]];
+      const lh = o.hi - FRAME - 0.012, lt = 0.035;
+      for (const [hinge, lw] of leaves) {
+        const pivot = hinge === 'a' ? aM + FRAME : bM - FRAME;
+        const inward = hinge === 'a' ? 1 : -1; // along-wall direction from hinge into the opening
+        const across = cM + sw * (tM / 2); // swing-side wall face
+        const g = new THREE.Group();
+        const leaf = new THREE.Mesh(boxGeo(lt, lh, lw), leafMat);
+        leaf.position.set(0, 0.012 + lh / 2, sw * (lw / 2));
+        leaf.castShadow = leaf.receiveShadow = true;
+        g.add(leaf);
+        for (const s of [-1, 1]) {
+          const h = K.box(0.02, 0.02, 0.13, M.chrome, s * (lt / 2 + 0.03), 1.0, sw * (lw - 0.08));
+          g.add(h, K.box(0.03, 0.06, 0.006, M.chrome, s * (lt / 2 + 0.005), 1.0, sw * (lw - 0.08)));
+        }
+        // leaf stands open at 90°, its back against the hinge jamb; local +z points along the swing
+        const ax = pivot + inward * (lt / 2);
+        if (vertical) {
+          g.rotation.y = Math.PI / 2; // local +z → world +x
+          g.position.set(across, 0, ax);
+        } else g.position.set(ax, 0, across);
+        root.add(g);
+        g.traverse((m) => m.isMesh && furnMeshes.push(m));
+        const lr = vertical
+          ? [Math.min(across, across + sw * lw), ax - lt / 2, Math.max(across, across + sw * lw), ax + lt / 2]
+          : [ax - lt / 2, Math.min(across, across + sw * lw), ax + lt / 2, Math.max(across, across + sw * lw)];
+        colliders.push({ r: lr, clear: 0.05 }); // a 35 mm leaf: you can brush past it
+        o.leaves = (o.leaves || []).concat([{ rect: lr, sweep: lw, pivot: vertical ? [across, pivot] : [pivot, across], sw }]);
       }
     }
-  }
+  });
 
-  // ----- plinth, floors, ceilings, roof -----
-  const plinthMat = mat('#9b8e7d', { roughness: 0.95 });
-  const slabRects = [building, ...rooms.filter((r) => r.outdoor).flatMap((r) => r.rects)];
-  for (const r of slabRects) {
-    const m = box(r[2] - r[0], -GROUND, r[3] - r[1], plinthMat, (r[0] + r[2]) / 2, GROUND / 2 - 0.01, (r[1] + r[3]) / 2, false);
-    root.add(m);
-  }
-  const ceilMat = mat('#fbfaf7', { roughness: 1 });
-  const lampMat = new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff3d6', emissiveIntensity: 1.2 });
-  const hiMat = new THREE.MeshBasicMaterial({ color: '#ffb703', transparent: true, opacity: 0.3, depthWrite: false });
+  // ---------------- floors, ceilings, slab, plinth ----------------
+  const floorMat = { tile: M.tile, kitchen: M.kitchen, bath: M.bath, wood: M.wood, marble: M.marble, stone: M.stone };
+  const hiMat = new THREE.MeshBasicMaterial({ color: '#ffb703', transparent: true, opacity: 0.25, depthWrite: false });
   for (const room of rooms) {
-    room.floors = [];
     room.highlight = new THREE.Group();
     room.highlight.visible = false;
     for (const r of room.rects) {
-      const fm = new THREE.Mesh(flatRect(r[0], r[1], r[2], r[3], 0, floorMat[room.finish].map.userData.world), floorMat[room.finish]);
+      const fm = new THREE.Mesh(flatRect(r, 0), floorMat[room.finish]);
       fm.receiveShadow = true;
       fm.userData.floor = room;
       root.add(fm);
       floors.push(fm);
-      room.floors.push(fm);
-      room.highlight.add(new THREE.Mesh(flatRect(r[0], r[1], r[2], r[3], 0.05), hiMat));
-      const cm = new THREE.Mesh(flatRect(r[0], r[1], r[2], r[3], WALL_H - 0.01), ceilMat);
-      cm.geometry.setIndex([0, 1, 2, 0, 2, 3]);
-      cm.geometry.computeVertexNormals();
-      ceilings.add(cm);
+      room.highlight.add(new THREE.Mesh(flatRect(r, 0.02), hiMat));
+      const cr = room.name === 'Front Balcony' ? subtractRect(r, st) : [r];
+      for (const q of cr) {
+        const cm = new THREE.Mesh(flatRect(q, CEIL, true), M.ceiling);
+        cm.castShadow = true;
+        cm.receiveShadow = true;
+        ceilings.add(cm);
+      }
     }
     root.add(room.highlight);
-    if (!room.outdoor && room.tour) {
-      const [cx, cz] = room.center;
-      const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.08, 24), lampMat);
-      lamp.position.set(cx, WALL_H - 0.05, cz);
-      ceilings.add(lamp);
-    }
-    const el = label(`<b>${room.name}</b>${room.dims ? `<span>${room.dims}</span>` : ''}`, 'rlabel' + (room.tour ? '' : ' minor'), () => onLabelClick(room));
-    el.position.set(room.center[0], room.outdoor ? 1.5 : 3.6, room.center[1]);
-    labels.add(el);
   }
-  const roofMat = mat('#c9c1b4', { roughness: 0.95 });
-  for (const r of slabRects) roof.add(box(r[2] - r[0] + 0.2, 0.5, r[3] - r[1] + 0.2, roofMat, (r[0] + r[2]) / 2, WALL_H + 0.25, (r[1] + r[3]) / 2));
-  const par = 3, pt = 0.5;
-  roof.add(box(bx1 - bx0, par, pt, wallOut, bcx, WALL_H + 0.5 + par / 2, bz0 + pt / 2));
-  roof.add(box(bx1 - bx0, par, pt, wallOut, bcx, WALL_H + 0.5 + par / 2, bz1 - pt / 2));
-  roof.add(box(pt, par, bz1 - bz0, wallOut, bx0 + pt / 2, WALL_H + 0.5 + par / 2, bcz));
-  roof.add(box(pt, par, bz1 - bz0, wallOut, bx1 - pt / 2, WALL_H + 0.5 + par / 2, bcz));
-
-  // balcony columns
-  const colMat = mat('#e9dcc4', { roughness: 0.9 });
-  for (const [px, py] of plan.columns) {
-    const x = X(px) + (X(px) < bcx ? 0.5 : -0.5);
-    const z = Z(py) + (Z(py) < bcz ? 0.5 : -0.5);
-    const m = box(1, WALL_H, 1, colMat, x, WALL_H / 2, z);
-    m.userData.wall = true;
+  // plinth and the RCC slab over the house + balconies (the slab is the roof; stair well left open)
+  for (const r of [building, sideBal, frontBal]) {
+    const m = K.box(r[2] - r[0], -GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, GROUND / 2 - 0.001, (r[1] + r[3]) / 2);
+    worldUV(m);
     root.add(m);
-    solids.push(m);
-    colliders.push({ r: [x - 0.5, z - 0.5, x + 0.5, z + 0.5], clear: 0.5, wall: true });
-    mini.walls.push([x - 0.5, z - 0.5, x + 0.5, z + 0.5]);
+  }
+  for (const r of [building, sideBal, ...subtractRect(frontBal, st)]) {
+    const m = K.box(r[2] - r[0], SLAB, r[3] - r[1], M.slab, (r[0] + r[2]) / 2, CEIL + SLAB / 2, (r[1] + r[3]) / 2);
+    roof.add(m);
+  }
+  {
+    const pt = 0.115, ph = STD.parapet * IN, y = CEIL + SLAB + ph / 2;
+    const [x0, z0, x1, z1] = [-bal.side * IN, 0, W * IN, (D + bal.front) * IN];
+    roof.add(K.box(x1 - x0, ph, pt, M.paintExt, (x0 + x1) / 2, y, z0 + pt / 2));
+    roof.add(K.box(x1 - x0, ph, pt, M.paintExt, (x0 + x1) / 2, y, z1 - pt / 2));
+    roof.add(K.box(pt, ph, z1 - z0, M.paintExt, x0 + pt / 2, y, (z0 + z1) / 2));
+    roof.add(K.box(pt, ph, z1 - z0, M.paintExt, x1 - pt / 2, y, (z0 + z1) / 2));
   }
 
-  // ----- stairs (dog-leg, rising toward +x then back) -----
-  const st = R(plan.stairs);
+  // ---------------- staircase (dog-leg on the front balcony; geometry assumed) ----------------
+  const stairInfo = {};
   {
-    const stairMat = mat('#cfc7b8', { roughness: 0.85 });
     const [x0, z0, x1, z1] = st;
-    const zm = (z0 + z1) / 2, land = 3, n = 9, rise = WALL_H / 2 / n, run = (x1 - land - x0) / n;
-    for (let i = 0; i < n; i++) {
+    const risers = 18, rise = (CEIL + SLAB) / risers, tread = 0.25, perFlight = risers / 2;
+    const zm = (z0 + z1) / 2, runLen = (perFlight - 1) * tread, landing = x1 - x0 - runLen;
+    for (let i = 0; i < perFlight - 1; i++) {
       const h1 = (i + 1) * rise;
-      root.add(box(run, h1, zm - z0, stairMat, x0 + (i + 0.5) * run, h1 / 2, (z0 + zm) / 2));
-      const h2 = WALL_H / 2 + (i + 1) * rise;
-      root.add(box(run, h2, z1 - zm, stairMat, x1 - land - (i + 0.5) * run, h2 / 2, (zm + z1) / 2));
+      root.add(K.box(tread, h1, zm - z0, M.granite, x0 + (i + 0.5) * tread, h1 / 2, (z0 + zm) / 2));
+      const h2 = (perFlight + i + 1) * rise;
+      root.add(K.box(tread, h2, z1 - zm, M.granite, x0 + runLen - (i + 0.5) * tread, h2 / 2, (zm + z1) / 2));
     }
-    root.add(box(land, WALL_H / 2, z1 - z0, stairMat, x1 - land / 2, WALL_H / 4, (z0 + z1) / 2));
-    root.add(box(x1 - land - x0, 3, 0.3, wallIn, (x0 + x1 - land) / 2, WALL_H / 2 + 1.5, zm));
+    root.add(K.box(landing, perFlight * rise, z1 - z0, M.granite, x1 - landing / 2, (perFlight * rise) / 2, (z0 + z1) / 2));
+    root.add(K.box(runLen, 1.0 + perFlight * rise, 0.115, M.paintExt, x0 + runLen / 2, (1.0 + perFlight * rise) / 2, zm));
+    // railing on the open (south) side of the upper flight and the landing
+    const rail = M.solid('#1f2124', { metalness: 0.6, roughness: 0.4 });
+    for (let i = 0; i <= perFlight - 1; i++) {
+      const x = x0 + runLen - i * tread, yb = (perFlight + i) * rise;
+      root.add(K.box(0.02, 0.9, 0.02, rail, x, yb + 0.45, z1 - 0.04));
+    }
+    const hy0 = perFlight * rise + 0.9, hy1 = (risers - 1) * rise + 0.9;
+    const hr = K.box(Math.hypot(runLen, hy1 - hy0), 0.05, 0.06, M.teak, x0 + runLen / 2, (hy0 + hy1) / 2, z1 - 0.04);
+    hr.rotation.z = Math.atan2(hy1 - hy0, -runLen);
+    root.add(hr);
     mini.walls.push([x0, z0, x1, z1]);
+    Object.assign(stairInfo, { risers, rise, tread, width: zm - z0, landing, rect: st });
   }
 
-  // ----- furniture -----
+  // ---------------- furniture ----------------
   const poojaSpots = [];
-  buildFurniture(plan, { X, Z, R, roomAt, root, furnMeshes, colliders, poojaSpots });
+  const faceOf = (room, side, alongM) => {
+    const r = alongM == null ? room.main : room.rects.find((q) => (side === 'n' || side === 's' ? alongM >= q[0] && alongM <= q[2] : alongM >= q[1] && alongM <= q[3])) || room.main;
+    return { n: r[1], s: r[3], w: r[0], e: r[2] }[side];
+  };
+  const NORMAL = { n: [0, 1], s: [0, -1], w: [1, 0], e: [-1, 0] }; // wall side → into-room normal
+  const FACING = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] }; // facing direction → normal
+  const placeLocal = (obj, nrm, x, z) => {
+    obj.rotation.y = Math.atan2(nrm[0], nrm[1]);
+    obj.position.set(x, obj.position.y, z);
+  };
+  const footWorld = (foot, nrm, x, z) => {
+    const th = Math.atan2(nrm[0], nrm[1]), c = Math.cos(th), s = Math.sin(th);
+    const pts = [[foot[0], foot[1]], [foot[2], foot[1]], [foot[2], foot[3]], [foot[0], foot[3]]].map(([u, v]) => [x + u * c + v * s, z - u * s + v * c]);
+    const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
+    return [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)];
+  };
+  const addItem = (room, name, built, nrm, x, z, block = 0.2, front = true) => {
+    placeLocal(built.g, nrm, x, z);
+    root.add(built.g);
+    built.g.traverse((m) => m.isMesh && furnMeshes.push(m));
+    if (built.foot) {
+      const rect = footWorld(built.foot, nrm, x, z);
+      if (block != null) colliders.push({ r: rect, clear: block });
+      report.furniture.push({ room: room.name, name, rect, normal: front ? nrm : null, size: built.size });
+      return rect;
+    }
+  };
+  const alongAt = (side, px) => (side === 'n' || side === 's' ? pxX(px) : pxZ(px)) * IN;
+  const wallsideAt = (room, side, alongM, nrm) => {
+    const f = faceOf(room, side, alongM);
+    return side === 'n' || side === 's' ? [alongM, f] : [f, alongM];
+  };
+  const clampAlong = (room, side, a, b) => {
+    const r = room.main;
+    const lo = side === 'n' || side === 's' ? r[0] : r[1], hi = side === 'n' || side === 's' ? r[2] : r[3];
+    return [Math.max(lo, a), Math.min(hi, b)];
+  };
 
-  // ----- plot: compound wall, garden, gates -----
-  const plot = plan.plot;
-  const plotRect = [plot.x0, plot.z0, plot.x1, plot.z1];
+  const wcSpots = {};
+  const wardRects = {};
+  const furnList = [...plan.furn].sort((a, b) => ['ward', 'crock'].includes(b[0]) - ['ward', 'crock'].includes(a[0]));
+  for (const it of furnList) {
+    const [type, rn] = it;
+    const room = byName(rn);
+    if (!room) continue;
+    if (type === 'bed') {
+      const nrm = NORMAL.n;
+      const b = K.bed(it[3]);
+      const half = b.foot[2];
+      const x0 = pxX(it[2]) * IN;
+      let [lo, hi] = [room.main[0] + half, room.main[2] - half];
+      // keep 600 mm in front of any wardrobe beside the bed
+      const bz0 = room.main[1], bz1 = room.main[1] + b.foot[3];
+      for (const wr of wardRects[rn] || []) {
+        if (wr[3] <= bz0 || wr[1] >= bz1) continue;
+        if (wr[0] > x0) hi = Math.min(hi, wr[0] - 0.6 - half);
+        else lo = Math.max(lo, wr[2] + 0.6 + half);
+      }
+      const x = Math.min(hi, Math.max(lo, x0));
+      if (Math.abs(x - x0) > 0.005) report.adjustments.push(`${rn}: bed moved ${Math.round(Math.abs(x - x0) * 1000)} mm ${x < x0 ? 'west' : 'east'} of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).`);
+      addItem(room, `${it[3] === 'king' ? 'King' : 'Queen'} bed ${it[3] === 'king' ? '1830×1980' : '1520×1980'} mm + side tables`, b, nrm, x, faceOf(room, 'n', x), 0.2);
+    } else if (type === 'ward' || type === 'crock') {
+      const side = it[2], nrm = NORMAL[side];
+      const [a, b] = clampAlong(room, side, alongAt(side, it[3]), alongAt(side, it[4]));
+      const built = type === 'ward' ? K.wardrobe(b - a) : K.crockery(b - a);
+      const [x, z] = wallsideAt(room, side, (a + b) / 2);
+      const rect = addItem(room, type === 'ward' ? `Wardrobe ${Math.round((b - a) * 1000)}×600 mm` : `Crockery unit ${Math.round((b - a) * 1000)}×380 mm`, built, nrm, x, z, 0.15);
+      (wardRects[rn] = wardRects[rn] || []).push(rect);
+    } else if (type === 'sofa') {
+      const [, , axis, backPx, f, t, facing] = it;
+      const nrm = FACING[facing];
+      const back = (axis === 'z' ? pxZ(backPx) : pxX(backPx)) * IN;
+      const a = (axis === 'z' ? pxX(f) : pxZ(f)) * IN, b = (axis === 'z' ? pxX(t) : pxZ(t)) * IN;
+      const built = K.sofa(b - a);
+      const [x, z] = axis === 'z' ? [(a + b) / 2, back] : [back, (a + b) / 2];
+      addItem(room, `Sofa ${Math.round((b - a) * 1000)}×880 mm`, built, nrm, x, z, 0.2);
+    } else if (type === 'ctable') {
+      const built = K.coffeeTable(it[4], it[5]);
+      addItem(room, `Coffee table ${Math.round(it[4] * 1000)}×${Math.round(it[5] * 1000)} mm`, built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.15, false);
+    } else if (type === 'tv') {
+      const side = it[2], nrm = NORMAL[side], along = alongAt(side, it[3]);
+      const [x, z] = wallsideAt(room, side, along);
+      addItem(room, 'TV console 1200 mm + 55″ TV', K.tvUnit(), nrm, x, z, 0.15);
+    } else if (type === 'dining') {
+      const built = K.dining(it[4]);
+      addItem(room, it[4] === 'round4' ? 'Round dining table Ø1000 mm, 4 chairs' : 'Dining table 900×1500 mm, 6 chairs', built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
+    } else if (type === 'plant') {
+      addItem(room, 'Floor planter', K.plant(), [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
+    } else if (type === 'fridge') {
+      const nrm = FACING[it[4]];
+      const cx = pxX(it[2]) * IN, cz = pxZ(it[3]) * IN;
+      // back against the wall behind it
+      const side = { w: 'e', e: 'w', n: 's', s: 'n' }[it[4]];
+      const [x, z] = side === 'e' || side === 'w' ? [faceOf(room, side), cz] : [cx, faceOf(room, side)];
+      addItem(room, 'Refrigerator 700×720×1800 mm', K.fridge(), nrm, x, z, 0.15);
+    } else if (type === 'kitchen') {
+      const spec = it[2];
+      const taken = [];
+      for (const [side, f, t] of spec.runs) {
+        const nrm = NORMAL[side];
+        let [a, b] = clampAlong(room, side, alongAt(side, f), alongAt(side, t));
+        // don't overlap a perpendicular run already placed
+        for (const q of taken) {
+          const lo = side === 'n' || side === 's' ? q[0] : q[1], hi = side === 'n' || side === 's' ? q[2] : q[3];
+          if (a < hi && b > lo) { if (lo <= a + 0.01) a = hi; else b = lo; }
+        }
+        if (b - a < 0.3) continue;
+        const built = K.counter(b - a, { backsplash: true });
+        const [x, z] = wallsideAt(room, side, (a + b) / 2);
+        const rect = addItem(room, `Kitchen counter ${Math.round((b - a) * 1000)}×600×850 mm`, built, nrm, x, z, 0.15);
+        taken.push(rect);
+      }
+      for (const [key, fn, nm] of [['hob', K.hob, 'Hob 750 mm + chimney 900 mm'], ['sink', K.sink, 'Sink 800×500 mm']]) {
+        if (!spec[key]) continue;
+        const [side, p] = spec[key];
+        const along = alongAt(side, p);
+        const [x, z] = wallsideAt(room, side, along);
+        const built = fn();
+        placeLocal(built.g, NORMAL[side], x, z);
+        root.add(built.g);
+        report.furniture.push({ room: room.name, name: nm, rect: null });
+      }
+      for (const [side, f, t] of spec.upper || []) {
+        let [a, b] = clampAlong(room, side, alongAt(side, f), alongAt(side, t));
+        // skip the wall's windows
+        const face = faceOf(room, side);
+        const wins = openingsAll.filter((o) => (o.kind === 'w' || o.kind === 'v') && o.vertical === (side === 'w' || side === 'e') && Math.abs(o.c * IN - face) < (o.t * IN) / 2 + 0.01);
+        let segs = [[a, b]];
+        for (const o of wins) {
+          const wa = o.a * IN - 0.05, wb = o.b * IN + 0.05;
+          segs = segs.flatMap(([p, q]) => (wb <= p || wa >= q ? [[p, q]] : [[p, wa], [wb, q]].filter(([u, v]) => v - u > 0.3)));
+        }
+        for (const [p, q] of segs) {
+          const built = K.upper(q - p);
+          const [x, z] = wallsideAt(room, side, (p + q) / 2);
+          placeLocal(built.g, NORMAL[side], x, z);
+          root.add(built.g);
+          built.g.traverse((m) => m.isMesh && furnMeshes.push(m));
+        }
+      }
+    } else if (type === 'wc' || type === 'vanity') {
+      const side = it[2], nrm = NORMAL[side], along = alongAt(side, it[3]);
+      const [x, z] = wallsideAt(room, side, along);
+      const built = type === 'wc' ? K.wc() : K.vanity();
+      addItem(room, type === 'wc' ? 'EWC 380×700 mm' : 'Vanity 600×450 mm + mirror', built, nrm, x, z, 0.12);
+      if (type === 'wc') wcSpots[rn] = [x, z];
+    } else if (type === 'glass') {
+      const [, , axis, pos, f, t] = it;
+      const p = (axis === 'x' ? pxX(pos) : pxZ(pos)) * IN;
+      const a = Math.max(axis === 'x' ? room.main[1] : room.main[0], (axis === 'x' ? pxZ(f) : pxX(f)) * IN);
+      const b = Math.min(axis === 'x' ? room.main[3] : room.main[2], (axis === 'x' ? pxZ(t) : pxX(t)) * IN);
+      // shower zone = side of the partition away from the WC
+      const wcp = wcSpots[rn] || room.center;
+      const wcSide = axis === 'x' ? Math.sign(wcp[0] - p) : Math.sign(wcp[1] - p);
+      const len = (b - a) * 0.6; // fixed glass panel, rest is the walk-in gap
+      const g = K.showerGlass(len);
+      const start = a + (wcSide > 0 ? 0 : (b - a) - len);
+      if (axis === 'x') { g.g.rotation.y = Math.PI / 2; g.g.position.set(p, 0, start + len / 2); }
+      else g.g.position.set(start + len / 2, 0, p);
+      root.add(g.g);
+      colliders.push({ r: axis === 'x' ? [p - 0.005, start, p + 0.005, start + len] : [start, p - 0.005, start + len, p + 0.005], clear: 0.15 });
+      const r = room.main;
+      const zone = axis === 'x' ? (wcSide > 0 ? [r[0], r[1], p, r[3]] : [p, r[1], r[2], r[3]]) : wcSide > 0 ? [r[0], r[1], r[2], p] : [r[0], p, r[2], r[3]];
+      const side = axis === 'x' ? (wcSide > 0 ? 'w' : 'e') : wcSide > 0 ? 'n' : 's';
+      const zc = centerOf(zone);
+      const along = side === 'n' || side === 's' ? zc[0] : zc[1];
+      const sh = K.showerHead();
+      const [sx, sz] = side === 'n' || side === 's' ? [along, faceOf(room, side)] : [faceOf(room, side), along];
+      placeLocal(sh.g, NORMAL[side], sx, sz);
+      root.add(sh.g);
+      report.furniture.push({ room: room.name, name: `Shower glass ${Math.round(len * 1000)} mm (10 mm toughened, 2.0 m high)`, rect: null });
+    } else if (type === 'mandir') {
+      const side = it[2], nrm = NORMAL[side];
+      const r = room.main;
+      const wallLen = side === 'n' || side === 's' ? r[2] - r[0] : r[3] - r[1];
+      const L = Math.min(1.2, wallLen - 0.2), Dm = 0.45;
+      const along = side === 'n' || side === 's' ? (r[0] + r[2]) / 2 : (r[1] + r[3]) / 2;
+      const [fx, fz] = wallsideAt(room, side, along);
+      const g = buildMandir(L / FT, Dm / FT);
+      g.scale.setScalar(FT);
+      const holder = new THREE.Group();
+      g.position.set(0, 0, Dm / 2);
+      holder.add(g);
+      addItem(room, `Mandir ${Math.round(L * 1000)}×450 mm (idols: Ganesha, Venkateswara, Lakshmi, Shiva lingam)`, { g: holder, foot: [-L / 2, 0, L / 2, Dm] }, nrm, fx, fz, 0.15);
+      const front = [fx + nrm[0] * Dm, fz + nrm[1] * Dm];
+      poojaSpots.push({ x: front[0], z: front[1], n: nrm, room });
+      const depthLeft = side === 'n' || side === 's' ? r[3] - r[1] - Dm : r[2] - r[0] - Dm;
+      const rad = Math.min(0.42, depthLeft / 2 - 0.25, (wallLen - 0.3) / 2);
+      if (rad > 0.2) {
+        const rg = rangoli(rad);
+        rg.position.set(front[0] + nrm[0] * (rad + 0.2), 0.004, front[1] + nrm[1] * (rad + 0.2));
+        root.add(rg);
+      }
+    } else if (type === 'diwan') {
+      const a = pxX(it[2]) * IN, b = pxX(it[3]) * IN, x = (a + b) / 2;
+      addItem(room, `Diwan ${Math.round((b - a) * 1000)}×800 mm`, K.diwan(b - a), NORMAL.n, x, faceOf(room, 'n', x), 0.2);
+    }
+  }
+
+  // ---------------- ceiling fans, downlights ----------------
+  for (const room of rooms) {
+    if (room.outdoor) continue;
+    const r = room.main;
+    const habitable = ['wood', 'tile'].includes(room.finish) && room.tour;
+    const [cx, cz] = room.center;
+    if (habitable && area(r) > 6) {
+      const f = K.fan();
+      f.g.position.set(cx, CEIL, cz);
+      ceilings.add(f.g);
+      fans.push(f.rotor);
+    }
+    const sp = room.finish === 'bath' ? 1.0 : 1.35;
+    const nx = Math.max(1, Math.round((r[2] - r[0] - 0.6) / sp)), nz = Math.max(1, Math.round((r[3] - r[1] - 0.6) / sp));
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
+      const x = r[0] + ((r[2] - r[0]) * (i + 0.5)) / nx, z = r[1] + ((r[3] - r[1]) * (j + 0.5)) / nz;
+      if (habitable && Math.hypot(x - cx, z - cz) < 0.75) continue;
+      const dl = K.downlight();
+      dl.position.set(x, CEIL, z);
+      ceilings.add(dl);
+      room.lights.push([x, z]);
+    }
+    if (!room.lights.length) room.lights.push([cx, cz]);
+  }
+  for (const b of rooms.filter((r) => r.outdoor)) {
+    const r = b.main, horiz = r[2] - r[0] > r[3] - r[1];
+    const n = Math.max(1, Math.round((horiz ? r[2] - r[0] : r[3] - r[1]) / 2.5));
+    for (let i = 0; i < n; i++) {
+      const x = horiz ? r[0] + ((r[2] - r[0]) * (i + 0.5)) / n : (r[0] + r[2]) / 2;
+      const z = horiz ? (r[1] + r[3]) / 2 : r[1] + ((r[3] - r[1]) * (i + 0.5)) / n;
+      if (inRect(x, z, st)) continue;
+      const dl = K.downlight();
+      dl.position.set(x, CEIL, z);
+      ceilings.add(dl);
+      b.lights.push([x, z]);
+    }
+  }
+
+  // ---------------- compound wall, gates, garden ----------------
+  const p = plan.plot;
+  const plotRect = [p.x0 * IN, p.z0 * IN, p.x1 * IN, p.z1 * IN];
   {
-    const garden = new THREE.Mesh(flatRect(plot.x0, plot.z0, plot.x1, plot.z1, GROUND + 0.02, TX.paver.userData.world), new THREE.MeshStandardMaterial({ map: TX.paver, roughness: 0.9 }));
+    const garden = new THREE.Mesh(flatRect(plotRect, GROUND + 0.002), M.paving);
     garden.receiveShadow = true;
-    garden.userData.floor = { name: 'Compound', dims: '', outdoor: true, garden: true, rects: [plotRect], tour: false };
+    garden.userData.floor = { name: 'Compound', label: '', outdoor: true, garden: true, rects: [plotRect], tour: false };
     root.add(garden);
     floors.push(garden);
-    const cw = mat('#d8c9ae', { roughness: 0.95 }), gateMat = mat('#2f3337', { roughness: 0.5, metalness: 0.7 });
-    const H = 4.5, tt = 0.6;
+    const Hc = STD.compound * IN, tt = 0.23;
     const sides = {
-      n: { a: plot.x0, b: plot.x1, fixed: plot.z0, vertical: false },
-      s: { a: plot.x0, b: plot.x1, fixed: plot.z1, vertical: false },
-      w: { a: plot.z0, b: plot.z1, fixed: plot.x0, vertical: true },
-      e: { a: plot.z0, b: plot.z1, fixed: plot.x1, vertical: true },
+      n: { a: plotRect[0], b: plotRect[2], fixed: plotRect[1], vertical: false, sgn: 1 },
+      s: { a: plotRect[0], b: plotRect[2], fixed: plotRect[3], vertical: false, sgn: -1 },
+      w: { a: plotRect[1], b: plotRect[3], fixed: plotRect[0], vertical: true, sgn: 1 },
+      e: { a: plotRect[1], b: plotRect[3], fixed: plotRect[2], vertical: true, sgn: -1 },
     };
+    const gateMat = M.solid('#24272b', { metalness: 0.7, roughness: 0.45 });
     for (const [side, d] of Object.entries(sides)) {
-      const gates = plot.gates.filter((g) => g.side === side).sort((p, q) => p.from - q.from);
+      const gates = p.gates.filter((g) => g.side === side).map((g) => [g.from * IN, g.to * IN]).sort((u, v) => u[0] - v[0]);
+      const fixed = d.fixed + d.sgn * (tt / 2); // wall sits inside the plot line
       let cur = d.a;
       const seg = (a, b) => {
         if (b - a < 0.05) return;
-        const m = d.vertical ? box(tt, H, b - a, cw, d.fixed, GROUND + H / 2, (a + b) / 2) : box(b - a, H, tt, cw, (a + b) / 2, GROUND + H / 2, d.fixed);
+        const m = d.vertical ? K.box(tt, Hc, b - a, M.paintExt, fixed, GROUND + Hc / 2, (a + b) / 2) : K.box(b - a, Hc, tt, M.paintExt, (a + b) / 2, GROUND + Hc / 2, fixed);
+        worldUV(m);
         m.userData.wall = true;
         root.add(m);
         solids.push(m);
-        const fp = d.vertical ? [d.fixed - tt / 2, a, d.fixed + tt / 2, b] : [a, d.fixed - tt / 2, b, d.fixed + tt / 2];
-        colliders.push({ r: fp, clear: 0.5, wall: true });
+        const fp = d.vertical ? [fixed - tt / 2, a, fixed + tt / 2, b] : [a, fixed - tt / 2, b, fixed + tt / 2];
+        colliders.push({ r: fp, clear: 0.22, wall: true });
         mini.walls.push(fp);
       };
-      for (const g of gates) {
-        seg(cur, g.from);
-        for (const pos of [g.from, g.to]) {
-          root.add(d.vertical ? box(1.2, H + 1, 1.2, cw, d.fixed, GROUND + (H + 1) / 2, pos) : box(1.2, H + 1, 1.2, cw, pos, GROUND + (H + 1) / 2, d.fixed));
-        }
-        const gl = (g.to - g.from) * 0.45;
-        const leaf = d.vertical ? box(0.15, 4, gl, gateMat, d.fixed + (side === 'w' ? -0.6 : 0.6), GROUND + 2.2, g.from + 0.6 + gl / 2) : box(gl, 4, 0.15, gateMat, g.from + 0.6 + gl / 2, GROUND + 2.2, d.fixed + (side === 's' ? 0.6 : -0.6));
+      for (const [ga, gb] of gates) {
+        seg(cur, ga);
+        for (const pos of [ga, gb]) root.add(d.vertical ? K.box(0.3, Hc + 0.15, 0.3, M.paintExt, fixed, GROUND + (Hc + 0.15) / 2, pos) : K.box(0.3, Hc + 0.15, 0.3, M.paintExt, pos, GROUND + (Hc + 0.15) / 2, fixed));
+        const gl = (gb - ga) / 2 - 0.2;
+        const leaf = d.vertical ? K.box(0.04, 1.35, gl, gateMat, fixed + d.sgn * 0.3, GROUND + 0.75, ga + 0.15 + gl / 2) : K.box(gl, 1.35, 0.04, gateMat, ga + 0.15 + gl / 2, GROUND + 0.75, fixed + d.sgn * 0.3);
         root.add(leaf);
-        cur = g.to;
+        cur = gb;
       }
       seg(cur, d.b);
     }
   }
 
-  // ----- site from the survey map -----
-  const site = buildSite(plan, TX, root, siteLabels);
+  // ---------------- site from the survey map ----------------
+  const site = buildSite(plan, M, K, root, siteLabels, plotRect);
 
-  // ----- navigation -----
+  // ---------------- navigation ----------------
   const walkAreas = [...rooms.flatMap((r) => r.rects), plotRect];
-  const blockers = colliders.map((c) => ({ r: c.r, clear: c.clear }));
-  const nav = new NavGrid([plot.x0 - 1, plot.z0 - 1, plot.x1 + 1, plot.z1 + 1], walkAreas, [st], blockers);
-
-  // ----- room viewpoints -----
-  for (const room of rooms) room.view = viewpoint(room, doorways, roomAt, nav, poojaSpots);
-  // floor-markers at room viewpoints (visible in walk mode)
-  const mk = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.55, depthWrite: false });
+  const nav = new NavGrid([plotRect[0] - 0.5, plotRect[1] - 0.5, plotRect[2] + 0.5, plotRect[3] + 0.5], walkAreas, [st], colliders);
+  const start = viewpoint(byName('Front Balcony'), doorways, roomAt, nav, poojaSpots)[0];
   for (const room of rooms) {
-    if (!room.tour) continue;
-    const ring = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 32), mk);
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.set(room.center[0], 0.04, room.center[1]);
-    markers.add(ring);
+    const cands = viewpoint(room, doorways, roomAt, nav, poojaSpots);
+    room.view = cands.find((c, i) => i > 30 || nav.path(start.x, start.z, c.x, c.z)) || cands[0];
+    // clear span through the main rect's centre (covers L-shaped rooms the same way the validator measures them)
+    const [mx, mz] = room.center;
+    const across = room.rects.filter((q) => mz >= q[1] && mz <= q[3]), down = room.rects.filter((q) => mx >= q[0] && mx <= q[2]);
+    const sw = Math.max(...across.map((q) => q[2])) - Math.min(...across.map((q) => q[0]));
+    const sd = Math.max(...down.map((q) => q[3])) - Math.min(...down.map((q) => q[1]));
+    room.spanRect = [Math.min(...across.map((q) => q[0])), Math.min(...down.map((q) => q[1])), Math.max(...across.map((q) => q[2])), Math.max(...down.map((q) => q[3]))];
+    room.label = room.outdoor ? room.drawLabel : `${ftIn(sw)} × ${ftIn(sd)}`;
   }
-  markers.visible = false;
 
-  const insideSlab = (x, z) => slabRects.some((r) => inRect(x, z, r));
+  // ---------------- labels, dimension overlay, markers ----------------
+  const mk = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false });
+  for (const room of rooms) {
+    const [cx, cz] = room.center;
+    const el = label(`<b>${room.name}</b><span>${room.label}</span>`, 'rlabel' + (room.tour ? '' : ' minor'), () => onLabelClick(room));
+    el.position.set(cx, room.outdoor ? 0.6 : 1.4, cz);
+    labels.add(el);
+    if (room.tour) {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.12, 0.17, 32), mk);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(room.view.x, 0.01, room.view.z);
+      markers.add(ring);
+    }
+    if (!room.outdoor) addDims(dims, room.spanRect);
+  }
+
+  // ---------------- elevation ideas for the road-facing sides ----------------
+  const door = (vertical) => openingsAll.find((o) => o.kind === 'dd' && o.outer && o.vertical === vertical && (vertical ? o.c < W / 2 : o.c > D / 2));
+  const md = door(false), sd = door(true);
+  const elevations = buildElevations(M, {
+    W: W * IN, D: D * IN, S: bal.side * IN, F: bal.front * IN, ceil: CEIL, slab: SLAB, parapet: STD.parapet * IN, ground: GROUND,
+    mainX: md ? ((md.a + md.b) / 2) * IN : (W * IN) / 3, sideZ: sd ? ((sd.a + sd.b) / 2) * IN : (D * IN) / 2, stairs: st,
+  });
+  for (const g of Object.values(elevations)) root.add(g);
+
+  const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, markers, rooms, floors, solids, furnMeshes,
-    colliders, nav, building, plotRect, stairs: st, mini, site, roomAt,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations,
+    colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,
   };
 }
 
-// Balconies: stand outside the main door looking at the house.
-// Rooms: stand in the walkable spot farthest from the centre (a corner) and look across the room.
+// Dimension lines across a room (shown with the "Dimensions" toggle).
+function addDims(group, r) {
+  const [x0, z0, x1, z1] = r;
+  const y = 0.03;
+  const mat = new THREE.LineBasicMaterial({ color: '#d9362b', depthTest: false, transparent: true });
+  const line = (pts) => {
+    const g = new THREE.BufferGeometry().setFromPoints(pts.map(([x, z]) => new THREE.Vector3(x, y, z)));
+    const l = new THREE.LineSegments(g, mat);
+    l.renderOrder = 10;
+    group.add(l);
+  };
+  const zx = z0 + (z1 - z0) * 0.35, xz = x0 + (x1 - x0) * 0.65, tk = 0.12;
+  line([[x0, zx], [x1, zx], [x0, zx - tk], [x0, zx + tk], [x1, zx - tk], [x1, zx + tk]]);
+  line([[xz, z0], [xz, z1], [xz - tk, z0], [xz + tk, z0], [xz - tk, z1], [xz + tk, z1]]);
+  const w = x1 - x0, d = z1 - z0;
+  for (const [txt, x, z] of [[`${w.toFixed(3)} m · ${ftIn(w)}`, (x0 + x1) / 2, zx], [`${d.toFixed(3)} m · ${ftIn(d)}`, xz, (z0 + z1) / 2]]) {
+    const el = label(txt, 'dimlabel');
+    el.position.set(x, y, z);
+    group.add(el);
+  }
+}
+
+// Candidate standpoints, best first. Balconies: outside the main/side door facing the house.
+// Pooja: facing the mandir. Rooms: walkable spots farthest from the centre (corners) looking across.
 function viewpoint(room, doorways, roomAt, nav, poojaSpots) {
   const yawOf = (dx, dz) => Math.atan2(-dx, -dz);
   const [cx, cz] = room.center;
   const mine = (x, z) => roomAt(x, z) === room && nav.ok(x, z);
-  // Pooja: stand facing the mandir, looking slightly down at the idols.
+  const out = [];
   for (const s of poojaSpots) {
-    if (roomAt(s.x - s.n[0] * 0.2, s.z - s.n[1] * 0.2) !== room) continue;
-    for (const d of [2.9, 2.5, 2.1, 1.7]) {
+    if (s.room !== room) continue;
+    for (const d of [1.5, 1.25, 1.0, 0.8, 0.6]) {
       const x = s.x + s.n[0] * d, z = s.z + s.n[1] * d;
-      if (mine(x, z)) return { x, z, yaw: yawOf(-s.n[0], -s.n[1]), pitch: -0.3 };
+      if (mine(x, z)) out.push({ x, z, yaw: yawOf(-s.n[0], -s.n[1]), pitch: -0.28 });
     }
   }
   if (room.outdoor) {
     for (const d of doorways) {
-      if (d.kind !== 'd2') continue;
+      if (d.kind !== 'dd' || !d.outer) continue;
       for (const sgn of [1, -1]) {
-        for (const depth of [4.6, 4, 3.2, 2.6]) {
+        for (const depth of [1.4, 1.2, 1.0, 0.8]) {
           const x = d.p[0] + d.n[0] * sgn * depth, z = d.p[1] + d.n[1] * sgn * depth;
-          if (mine(x, z) && mine(x + d.n[0] * sgn * 0.8, z + d.n[1] * sgn * 0.8)) return { x, z, yaw: yawOf(-d.n[0] * sgn, -d.n[1] * sgn) };
+          if (mine(x, z)) out.push({ x, z, yaw: yawOf(-d.n[0] * sgn, -d.n[1] * sgn) });
         }
       }
     }
-    return { x: cx, z: cz, yaw: 0 };
+    return out.length ? out : [{ x: cx, z: cz, yaw: 0 }];
   }
-  const r = room.rects.reduce((a, b) => ((a[2] - a[0]) * (a[3] - a[1]) >= (b[2] - b[0]) * (b[3] - b[1]) ? a : b));
-  const inset = Math.min(1.1, (r[2] - r[0]) / 3, (r[3] - r[1]) / 3);
-  let best = null, bestD = -1;
-  for (let x = r[0] + inset; x <= r[2] - inset; x += 0.25) {
-    for (let z = r[1] + inset; z <= r[3] - inset; z += 0.25) {
+  if (out.length) return out;
+  if (room.finish === 'bath') {
+    // toilets: stand just inside the door, looking into the room
+    for (const d of doorways) {
+      for (const sgn of [1, -1]) {
+        for (const depth of [0.75, 0.6, 0.9, 0.45]) {
+          const x = d.p[0] + d.n[0] * sgn * depth, z = d.p[1] + d.n[1] * sgn * depth;
+          if (!mine(x, z)) continue;
+          // look along the toilet's long axis toward its farther end
+          const r = room.main, alongX = r[2] - r[0] >= r[3] - r[1];
+          const [lx, lz] = alongX ? [Math.abs(r[0] - x) > Math.abs(r[2] - x) ? r[0] : r[2], cz] : [cx, Math.abs(r[1] - z) > Math.abs(r[3] - z) ? r[1] : r[3]];
+          out.push({ x, z, yaw: yawOf(lx - x, lz - z), pitch: -0.38 });
+        }
+      }
+    }
+    if (out.length) return out;
+  }
+  const r = room.main;
+  const inset = Math.min(0.35, (r[2] - r[0]) / 3, (r[3] - r[1]) / 3);
+  const cands = [];
+  for (let x = r[0] + inset; x <= r[2] - inset; x += 0.08) {
+    for (let z = r[1] + inset; z <= r[3] - inset; z += 0.08) {
       if (!mine(x, z)) continue;
       const d = Math.hypot(x - cx, z - cz);
-      if (d > bestD) { bestD = d; best = [x, z]; }
+      cands.push({ x, z, d, yaw: d > 0.3 ? yawOf(cx - x, cz - z) : 0 });
     }
   }
-  if (!best) return { x: cx, z: cz, yaw: 0 };
-  const yaw = bestD > 1 ? yawOf(cx - best[0], cz - best[1]) : 0;
-  return { x: best[0], z: best[1], yaw };
+  if (!cands.length) return [{ x: cx, z: cz, yaw: 0 }];
+  return cands.sort((a, b) => b.d - a.d);
 }
 
 // =====================================================================
-function buildFurniture(plan, ctx) {
-  const { X, Z, R, roomAt, root, furnMeshes, colliders } = ctx;
-  const add = (obj, blockRect, clear = 0.3) => {
-    obj.traverse((o) => { if (o.isMesh) { o.userData.furn = true; furnMeshes.push(o); } });
-    root.add(obj);
-    if (blockRect) colliders.push({ r: blockRect, clear });
-  };
-  const intoRoom = (r) => {
-    const [cx, cz] = rectCenter(r);
-    const room = roomAt(cx, cz);
-    const [rx, rz] = room ? room.center : [cx, cz];
-    const alongX = r[2] - r[0] >= r[3] - r[1];
-    return alongX ? { alongX, n: [0, Math.sign(rz - cz) || 1] } : { alongX, n: [Math.sign(rx - cx) || 1, 0] };
-  };
-  const rotFor = { n: 0, s: Math.PI, w: Math.PI / 2, e: -Math.PI / 2 };
-
-  const wood = mat('#7b5638', { roughness: 0.6 });
-  const darkWood = mat('#5a3a26', { roughness: 0.6 });
-  const white = mat('#f3f1ec', { roughness: 0.7 });
-  const porcelain = mat('#f7f7f4', { roughness: 0.15 });
-  const fabric = mat('#6f8291', { roughness: 0.95 });
-  const fabricLight = mat('#8a9cab', { roughness: 0.95 });
-  const steel = mat('#b8bcc0', { roughness: 0.3, metalness: 0.8 });
-  const black = mat('#1c1d20', { roughness: 0.4, metalness: 0.3 });
-
-  for (const it of plan.furn) {
-    const type = it[0];
-    if (type === 'bed') {
-      const [x0, z0, x1, z1] = R(it[1]);
-      const w = x1 - x0, L = z1 - z0, cx = (x0 + x1) / 2;
-      const g = new THREE.Group();
-      g.add(box(w, 1.1, L, darkWood, cx, 0.55, (z0 + z1) / 2));
-      g.add(box(w - 0.2, 0.7, L - 0.35, white, cx, 1.45, (z0 + z1) / 2 + 0.12));
-      g.add(box(w + 0.04, 0.14, L * 0.6, mat('#86aec2', { roughness: 0.95 }), cx, 1.86, z1 - L * 0.3 - 0.05));
-      for (const sx of [-1, 1]) g.add(box(w * 0.38, 0.38, 1.1, white, cx + sx * w * 0.22, 1.98, z0 + 0.95));
-      g.add(box(w + 0.3, 3.8, 0.3, darkWood, cx, 1.9, z0 + 0.15));
-      for (const sx of [-1, 1]) {
-        const nx = sx < 0 ? x0 - 1.0 : x1 + 1.0;
-        g.add(box(1.5, 1.9, 1.5, wood, nx, 0.95, z0 + 0.9));
-        g.add(cyl(0.12, 0.18, 0.8, steel, nx, 2.3, z0 + 0.9));
-        const shadeM = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 0.6, 20, 1, true), new THREE.MeshStandardMaterial({ color: '#fff4dc', emissive: '#ffdca0', emissiveIntensity: 0.5, side: THREE.DoubleSide }));
-        shadeM.position.set(nx, 2.95, z0 + 0.9);
-        g.add(shadeM);
-      }
-      const room = roomAt(cx, (z0 + z1) / 2);
-      let rug = [x0 - 1.3, z0 + L * 0.35, x1 + 1.3, z1 + 1.6];
-      if (room) { const rr = room.rects[0]; rug = [Math.max(rug[0], rr[0] + 0.4), rug[1], Math.min(rug[2], rr[2] - 0.4), Math.min(rug[3], rr[3] - 0.4)]; }
-      const rugM = new THREE.Mesh(flatRect(rug[0], rug[1], rug[2], rug[3], 0.015), mat('#cdbba5', { roughness: 1 }));
-      rugM.receiveShadow = true;
-      g.add(rugM);
-      add(g, [x0 - 1.75, z0, x1 + 1.75, z1], 0.3);
-    } else if (type === 'ward') {
-      const r = R(it[1]);
-      const [cx, cz] = rectCenter(r);
-      const { alongX, n } = intoRoom(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 7, r[3] - r[1], mat('#8d6446', { roughness: 0.55 }), cx, 3.5, cz));
-      const len = alongX ? r[2] - r[0] : r[3] - r[1];
-      const doors = Math.max(1, Math.round(len / 1.8));
-      const face = alongX ? (n[1] > 0 ? r[3] : r[1]) : n[0] > 0 ? r[2] : r[0];
-      for (let i = 1; i < doors; i++) {
-        const a = (alongX ? r[0] : r[1]) + (len * i) / doors;
-        g.add(alongX ? box(0.04, 6.8, 0.04, darkWood, a, 3.5, face + n[1] * 0.01) : box(0.04, 6.8, 0.04, darkWood, face + n[0] * 0.01, 3.5, a));
-      }
-      for (let i = 0; i < doors; i++) {
-        const a = (alongX ? r[0] : r[1]) + (len * (i + 0.5)) / doors;
-        g.add(alongX ? box(0.08, 0.9, 0.1, steel, a, 3.6, face + n[1] * 0.05) : box(0.1, 0.9, 0.08, steel, face + n[0] * 0.05, 3.6, a));
-      }
-      add(g, r, 0.3);
-    } else if (type === 'sofa') {
-      const r = R(it[1]);
-      const back = it[2];
-      const [cx, cz] = rectCenter(r);
-      const w = r[2] - r[0], d = r[3] - r[1];
-      const g = new THREE.Group();
-      g.add(box(w, 1.2, d, fabric, cx, 0.6, cz));
-      const bt = 0.75;
-      if (back === 'n') g.add(box(w, 2.8, bt, fabric, cx, 1.4, r[1] + bt / 2));
-      if (back === 's') g.add(box(w, 2.8, bt, fabric, cx, 1.4, r[3] - bt / 2));
-      if (back === 'e') g.add(box(bt, 2.8, d, fabric, r[2] - bt / 2, 1.4, cz));
-      if (back === 'w') g.add(box(bt, 2.8, d, fabric, r[0] + bt / 2, 1.4, cz));
-      const at = 0.45;
-      if (back === 'n' || back === 's') {
-        g.add(box(at, 2.0, d, fabric, r[0] + at / 2, 1.0, cz));
-        g.add(box(at, 2.0, d, fabric, r[2] - at / 2, 1.0, cz));
-        g.add(box(w - 2 * at, 0.3, d - bt, fabricLight, cx, 1.35, back === 'n' ? cz + bt / 2 : cz - bt / 2));
-      } else {
-        g.add(box(w, 2.0, at, fabric, cx, 1.0, r[1] + at / 2));
-        g.add(box(w, 2.0, at, fabric, cx, 1.0, r[3] - at / 2));
-        g.add(box(w - bt, 0.3, d - 2 * at, fabricLight, back === 'e' ? cx - bt / 2 : cx + bt / 2, 1.35, cz));
-      }
-      add(g, r, 0.3);
-    } else if (type === 'ctable') {
-      const r = R(it[1]);
-      const [cx, cz] = rectCenter(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 0.12, r[3] - r[1], mat('#4a3b30', { roughness: 0.35 }), cx, 1.35, cz));
-      g.add(box(r[2] - r[0] - 0.3, 1.2, r[3] - r[1] - 0.3, darkWood, cx, 0.65, cz));
-      add(g, r, 0.15);
-    } else if (type === 'tv') {
-      const r = R(it[1]);
-      const { alongX, n } = intoRoom(r);
-      const [cx, cz] = rectCenter(r);
-      const len = Math.max(4.5, alongX ? r[2] - r[0] : r[3] - r[1]);
-      const g = new THREE.Group();
-      const wallPos = alongX ? cz : cx;
-      const dep = 1.3;
-      const off = wallPos + (alongX ? n[1] : n[0]) * (dep / 2);
-      g.add(alongX ? box(len, 1.6, dep, wood, cx, 0.8, off) : box(dep, 1.6, len, wood, off, 0.8, cz));
-      const tvM = new THREE.MeshStandardMaterial({ color: '#0b0c10', roughness: 0.15, metalness: 0.4, emissive: '#0c1a2e', emissiveIntensity: 0.6 });
-      const tvOff = wallPos + (alongX ? n[1] : n[0]) * 0.12;
-      g.add(alongX ? box(4.2, 2.4, 0.12, tvM, cx, 4.4, tvOff) : box(0.12, 2.4, 4.2, tvM, tvOff, 4.4, cz));
-      const fr = alongX ? [cx - len / 2, Math.min(wallPos, off + n[1] * dep / 2), cx + len / 2, Math.max(wallPos, off + n[1] * dep / 2)] : [Math.min(wallPos, off + n[0] * dep / 2), cz - len / 2, Math.max(wallPos, off + n[0] * dep / 2), cz + len / 2];
-      add(g, fr, 0.2);
-    } else if (type === 'plant') {
-      const x = X(it[1]), z = Z(it[2]);
-      const g = new THREE.Group();
-      g.add(cyl(0.65, 0.5, 1.3, mat('#a0522d', { roughness: 0.9 }), x, 0.65, z));
-      const leaf = mat('#4f8a3c', { roughness: 0.9, flatShading: true });
-      const f1 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0, 1), leaf);
-      f1.position.set(x, 2.3, z); f1.castShadow = true;
-      const f2 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), leaf);
-      f2.position.set(x + 0.2, 3.1, z - 0.1); f2.castShadow = true;
-      g.add(f1, f2);
-      add(g, [x - 0.6, z - 0.6, x + 0.6, z + 0.6], 0.2);
-    } else if (type === 'rdining' || type === 'dining') {
-      const g = new THREE.Group();
-      const top = mat('#7a5235', { roughness: 0.4 });
-      const chairs = [];
-      let fr;
-      if (type === 'rdining') {
-        const cx = X(it[1]), cz = Z(it[2]), r = it[3] / plan.px;
-        g.add(cyl(r, r, 0.12, top, cx, 2.5, cz, 40));
-        g.add(cyl(0.25, 0.5, 2.4, darkWood, cx, 1.2, cz));
-        for (let k = 0; k < 4; k++) {
-          const a = (k * Math.PI) / 2;
-          chairs.push([cx + Math.cos(a) * (r + 0.9), cz + Math.sin(a) * (r + 0.9), cx, cz]);
-        }
-        fr = [cx - r - 1.5, cz - r - 1.5, cx + r + 1.5, cz + r + 1.5];
-      } else {
-        const r = R(it[1]);
-        const [cx, cz] = rectCenter(r);
-        g.add(box(r[2] - r[0], 0.12, r[3] - r[1], top, cx, 2.5, cz));
-        for (const [lx, lz] of [[r[0] + 0.2, r[1] + 0.2], [r[2] - 0.2, r[1] + 0.2], [r[0] + 0.2, r[3] - 0.2], [r[2] - 0.2, r[3] - 0.2]]) g.add(box(0.16, 2.44, 0.16, darkWood, lx, 1.22, lz));
-        const L = r[3] - r[1];
-        for (const f of [0.25, 0.75]) {
-          chairs.push([r[0] - 0.8, r[1] + L * f, cx, r[1] + L * f]);
-          chairs.push([r[2] + 0.8, r[1] + L * f, cx, r[1] + L * f]);
-        }
-        chairs.push([cx, r[1] - 0.8, cx, cz], [cx, r[3] + 0.8, cx, cz]);
-        fr = [r[0] - 1.4, r[1] - 1.4, r[2] + 1.4, r[3] + 1.4];
-      }
-      for (const [x, z, tx, tz] of chairs) {
-        const ch = new THREE.Group();
-        ch.add(box(1.4, 0.15, 1.4, top, 0, 1.55, 0));
-        ch.add(box(1.4, 1.8, 0.14, top, 0, 2.5, 0.63));
-        for (const [lx, lz] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) ch.add(box(0.12, 1.5, 0.12, darkWood, lx, 0.75, lz));
-        ch.position.set(x, 0, z);
-        ch.rotation.y = Math.atan2(-(tx - x), -(tz - z));
-        g.add(ch);
-      }
-      add(g, fr, 0.1);
-    } else if (type === 'counter') {
-      const r = R(it[1]);
-      const [cx, cz] = rectCenter(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 2.75, r[3] - r[1], mat('#e6ddd0', { roughness: 0.6 }), cx, 1.375, cz));
-      g.add(box(r[2] - r[0] + 0.05, 0.12, r[3] - r[1] + 0.05, mat('#2b2b2e', { roughness: 0.25, metalness: 0.1 }), cx, 2.81, cz));
-      add(g, r, 0.25);
-    } else if (type === 'stove') {
-      const x = X(it[1]), z = Z(it[2]);
-      const g = new THREE.Group();
-      g.add(box(1.3, 0.12, 2.2, black, x, 2.93, z));
-      for (const dz of [-0.5, 0.5]) g.add(cyl(0.28, 0.28, 0.06, mat('#3a3a3c', { metalness: 0.6, roughness: 0.4 }), x, 3.02, z + dz));
-      add(g);
-    } else if (type === 'ksink') {
-      const x = X(it[1]), z = Z(it[2]);
-      const g = new THREE.Group();
-      g.add(box(1.3, 0.06, 1.7, steel, x, 2.9, z));
-      g.add(cyl(0.05, 0.05, 1.0, steel, x - 0.5, 3.4, z));
-      g.add(box(0.6, 0.06, 0.06, steel, x - 0.2, 3.88, z));
-      add(g);
-    } else if (type === 'fridge') {
-      const r = R(it[1]);
-      const [cx, cz] = rectCenter(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 6, r[3] - r[1], mat('#d3d7db', { roughness: 0.3, metalness: 0.5 }), cx, 3, cz));
-      add(g, r, 0.2);
-    } else if (type === 'wc' || type === 'basin') {
-      const x = X(it[1]), z = Z(it[2]);
-      const g = new THREE.Group();
-      if (type === 'wc') {
-        g.add(box(1.4, 1.3, 0.55, porcelain, 0, 2.0, -0.95));
-        const bowl = cyl(0.62, 0.45, 1.3, porcelain, 0, 0.65, -0.05, 28);
-        bowl.scale.z = 1.3;
-        g.add(bowl);
-        const seat = cyl(0.64, 0.64, 0.1, porcelain, 0, 1.36, -0.05, 28);
-        seat.scale.z = 1.3;
-        g.add(seat);
-      } else {
-        g.add(box(1.9, 2.5, 1.3, mat('#e9e4da', { roughness: 0.5 }), 0, 1.25, -0.25));
-        const sink = new THREE.Mesh(new THREE.SphereGeometry(0.6, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), porcelain);
-        sink.rotation.x = Math.PI;
-        sink.position.set(0, 2.75, -0.2);
-        g.add(sink);
-        g.add(box(1.8, 2.2, 0.05, mat('#dfe8ec', { roughness: 0.02, metalness: 1 }), 0, 5.1, -0.88));
-      }
-      g.position.set(x, 0, z);
-      g.rotation.y = rotFor[it[3]] ?? 0;
-      add(g);
-    } else if (type === 'pooja') {
-      const r = R(it[1]);
-      const { alongX, n } = intoRoom(r);
-      const [cx, cz] = rectCenter(r);
-      const L = alongX ? r[2] - r[0] : r[3] - r[1];
-      const D = alongX ? r[3] - r[1] : r[2] - r[0];
-      const g = buildMandir(L, D);
-      g.position.set(cx, 0, cz);
-      g.rotation.y = Math.atan2(n[0], n[1]);
-      add(g, r, 0.2);
-      const fx = cx + (n[0] * D) / 2, fz = cz + (n[1] * D) / 2;
-      ctx.poojaSpots.push({ x: fx, z: fz, n });
-      const room = roomAt(cx, cz);
-      if (room) {
-        const rr = room.rects[0], dist = 1.8;
-        const px = fx + n[0] * dist, pz = fz + n[1] * dist;
-        const rad = Math.min(1.1, dist - 0.5, px - rr[0] - 0.4, rr[2] - px - 0.4, pz - rr[1] - 0.4, rr[3] - pz - 0.4);
-        if (rad > 0.4) {
-          const rg = rangoli(rad);
-          rg.position.set(px, 0.02, pz);
-          root.add(rg);
-        }
-      }
-    } else if (type === 'diwan') {
-      const r = R(it[1]);
-      const [cx, cz] = rectCenter(r);
-      const g = new THREE.Group();
-      g.add(box(r[2] - r[0], 1.4, r[3] - r[1], mat('#3fa7bd', { roughness: 0.9 }), cx, 0.7, cz));
-      for (const sx of [r[0] + 0.4, r[2] - 0.4]) {
-        const b = cyl(0.35, 0.35, r[3] - r[1] - 0.2, mat('#2c8aa0', { roughness: 0.9 }), sx, 1.75, cz);
-        b.rotation.x = Math.PI / 2;
-        g.add(b);
-      }
-      add(g, r, 0.25);
-    }
-  }
-}
-
-// =====================================================================
-function buildSite(plan, TX, root, siteLabels) {
-  const p = plan.plot;
-  const W = ([u, v]) => [p.x0 + SITE_W - u, p.z1 - v];
+function buildSite(plan, M, K, root, siteLabels, plotRect) {
+  // survey frame (feet): u along G.P Road NW→SE, v away from the road; Padma core = (0,0)-(56′-1″,59′-1″)
+  const Wp = ([u, v]) => [plotRect[0] + (SITE_W_FT - u) * FT, plotRect[3] - v * FT];
   const group = new THREE.Group();
   root.add(group);
-
-  const grass = new THREE.Mesh(flatRect(-600, -600, 600, 600, GROUND - 0.4, TX.grass.userData.world), new THREE.MeshStandardMaterial({ map: TX.grass, roughness: 1 }));
+  const grass = new THREE.Mesh(flatRect([-250, -250, 250, 250], GROUND - 0.12), M.grass);
   grass.receiveShadow = true;
   group.add(grass);
-
-  const roadMat = {
-    asphalt: new THREE.MeshStandardMaterial({ map: TX.asphalt, roughness: 0.95 }),
-    earth: new THREE.MeshStandardMaterial({ map: TX.earth, roughness: 1 }),
-  };
   const centroid = (pts) => [pts.reduce((a, q) => a + q[0], 0) / pts.length, pts.reduce((a, q) => a + q[1], 0) / pts.length];
   for (const r of ROADS) {
-    const pts = r.poly.map(W);
-    const m = new THREE.Mesh(flatPoly(pts, GROUND - 0.2, TX[r.kind].userData.world), roadMat[r.kind]);
+    const pts = r.poly.map(Wp);
+    const m = new THREE.Mesh(flatPoly(pts, GROUND - 0.06), r.kind === 'asphalt' ? M.asphalt : M.earth);
     m.receiveShadow = true;
     group.add(m);
-    const [lx, lz] = r.at ? W(r.at) : centroid(pts);
+    const [lx, lz] = r.at ? Wp(r.at) : centroid(pts);
     const el = label(r.label, 'slabel road');
-    el.position.set(lx, GROUND + 0.5, lz);
+    el.position.set(lx, GROUND + 0.2, lz);
     siteLabels.add(el);
   }
-  // G.P road centre line
   {
-    const a = W([-70, -10]), b = W([140, -10]);
-    const dash = mat('#f2f2f2', { roughness: 0.6 });
+    const a = Wp([-70, -10]), b = Wp([140, -10]);
+    const dash = M.solid('#f2f2f2', { roughness: 0.6 });
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    for (let s = 0; s < len; s += 10) {
+    for (let s = 0; s < len; s += 3) {
       const t = s / len;
-      const m = box(5, 0.02, 0.4, dash, a[0] + (b[0] - a[0]) * t, GROUND - 0.17, a[1] + (b[1] - a[1]) * t, false);
+      const m = K.box(1.5, 0.01, 0.12, dash, a[0] + (b[0] - a[0]) * t, GROUND - 0.05, a[1] + (b[1] - a[1]) * t, false);
+      m.rotation.y = Math.atan2(-(b[1] - a[1]), b[0] - a[0]);
       group.add(m);
     }
   }
-
-  const fills = {
-    plot: new THREE.MeshStandardMaterial({ map: TX.soil, roughness: 1 }),
-    strip: new THREE.MeshStandardMaterial({ color: '#e7c66b', roughness: 1, transparent: true, opacity: 0.55, depthWrite: false }),
-  };
-  const edgeMat = { home: mat('#d9362b', { roughness: 0.6 }), other: mat('#2d2d2d', { roughness: 0.8 }) };
-  const edge = (a, b, m, w = 0.3) => {
+  const stripMat = new THREE.MeshStandardMaterial({ color: '#e7c66b', roughness: 1, transparent: true, opacity: 0.5, depthWrite: false });
+  const edgeMat = { home: M.solid('#d9362b'), other: M.solid('#2d2d2d', { roughness: 0.8 }) };
+  const edge = (a, b, m, w) => {
     const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz);
-    const e = box(L, 0.25, w, m, (a[0] + b[0]) / 2, GROUND + 0.12, (a[1] + b[1]) / 2, false);
+    const e = K.box(L, 0.06, w, m, (a[0] + b[0]) / 2, GROUND + 0.03, (a[1] + b[1]) / 2, false);
     e.rotation.y = Math.atan2(-dz, dx);
     group.add(e);
   };
-  const stone = mat('#f4f1ea', { roughness: 0.8 });
+  const stone = M.solid('#f1eee7', { roughness: 0.8 });
   for (const parcel of PARCELS) {
-    const pts = parcel.poly.map(W);
+    const pts = parcel.poly.map(Wp);
     if (parcel.kind !== 'home') {
-      const m = new THREE.Mesh(flatPoly(pts, GROUND + (parcel.kind === 'strip' ? -0.05 : -0.1), TX.soil.userData.world), fills[parcel.kind]);
+      const m = new THREE.Mesh(flatPoly(pts, GROUND + (parcel.kind === 'strip' ? -0.02 : -0.04)), parcel.kind === 'strip' ? stripMat : M.soil);
       m.receiveShadow = true;
       group.add(m);
     }
     for (let i = 0; i < pts.length; i++) {
-      edge(pts[i], pts[(i + 1) % pts.length], parcel.kind === 'home' ? edgeMat.home : edgeMat.other, parcel.kind === 'home' ? 0.45 : 0.25);
-      group.add(box(0.8, 1.6, 0.8, stone, pts[i][0], GROUND + 0.8, pts[i][1]));
+      edge(pts[i], pts[(i + 1) % pts.length], parcel.kind === 'home' ? edgeMat.home : edgeMat.other, parcel.kind === 'home' ? 0.14 : 0.08);
+      group.add(K.box(0.2, 0.45, 0.2, stone, pts[i][0], GROUND + 0.22, pts[i][1]));
     }
     const [lx, lz] = centroid(pts);
     const el = label(`<b>${parcel.label}</b>${parcel.sub ? `<span>${parcel.sub}</span>` : ''}`, `slabel ${parcel.kind}`);
-    el.position.set(lx, parcel.kind === 'home' ? WALL_H + 6 : GROUND + 2, lz);
+    el.position.set(lx, parcel.kind === 'home' ? CEIL + 2 : GROUND + 0.6, lz);
     siteLabels.add(el);
   }
   for (const d of DIMENSIONS) {
-    const a = W(d.a), b = W(d.b);
+    const a = Wp(d.a), b = Wp(d.b), t = d.at ?? 0.5;
     const el = label(d.text, 'dlabel');
-    const t = d.at ?? 0.5;
-    el.position.set(a[0] + (b[0] - a[0]) * t, GROUND + 0.6, a[1] + (b[1] - a[1]) * t);
+    el.position.set(a[0] + (b[0] - a[0]) * t, GROUND + 0.2, a[1] + (b[1] - a[1]) * t);
     siteLabels.add(el);
   }
-
-  // a few trees on the open plots and across the road
-  const R = rng(4242);
-  const trunk = mat('#6b4a32', { roughness: 0.9 });
-  const leaves = [mat('#5b8c3a', { roughness: 0.9, flatShading: true }), mat('#6f9b45', { roughness: 0.9, flatShading: true }), mat('#4b7a33', { roughness: 0.9, flatShading: true })];
+  // trees (neem-sized: ~6–9 m) on the open plots and across the road
+  let seed = 4242;
+  const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const inPoly = (x, z, pts) => {
     let c = false;
     for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -828,36 +912,140 @@ function buildSite(plan, TX, root, siteLabels) {
   };
   const spots = [];
   for (const id of ['thirupathi', 'thirumal']) {
-    const poly = PARCELS.find((q) => q.id === id).poly.map(W);
-    for (let k = 0; k < 7; k++) {
-      const pt = [0, 0];
-      const xs = poly.map((q) => q[0]), zs = poly.map((q) => q[1]);
-      for (let tries = 0; tries < 40; tries++) {
-        pt[0] = Math.min(...xs) + R() * (Math.max(...xs) - Math.min(...xs));
-        pt[1] = Math.min(...zs) + R() * (Math.max(...zs) - Math.min(...zs));
-        if (inPoly(pt[0], pt[1], poly)) { spots.push([...pt]); break; }
-      }
+    const poly = PARCELS.find((q) => q.id === id).poly.map(Wp);
+    const xs = poly.map((q) => q[0]), zs = poly.map((q) => q[1]);
+    for (let k = 0; k < 6; k++) for (let tries = 0; tries < 40; tries++) {
+      const pt = [Math.min(...xs) + R() * (Math.max(...xs) - Math.min(...xs)), Math.min(...zs) + R() * (Math.max(...zs) - Math.min(...zs))];
+      if (inPoly(pt[0], pt[1], poly)) { spots.push(pt); break; }
     }
   }
-  for (let k = 0; k < 14; k++) spots.push(W([-60 + k * 14 + R() * 6, -30 - R() * 14]));
-  for (const [x, z] of spots) {
-    const s = 0.8 + R() * 0.7;
+  for (let k = 0; k < 12; k++) spots.push(Wp([-60 + k * 16 + R() * 6, -30 - R() * 14]));
+  const trunk = M.walnut, leafMats = [M.solid('#56803c', { roughness: 0.85 }), M.solid('#668f45', { roughness: 0.85 }), M.solid('#4a7234', { roughness: 0.85 })];
+  spots.forEach(([x, z], k) => {
+    const s = 0.8 + R() * 0.5;
     const t = new THREE.Group();
-    t.add(cyl(0.35 * s, 0.5 * s, 7 * s, trunk, 0, 3.5 * s, 0, 8));
-    const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(5 * s, 1), leaves[k3(x, z) % 3]);
-    crown.position.y = 9 * s;
-    crown.castShadow = true;
-    t.add(crown);
+    t.add(K.cyl(0.15 * s, 0.22 * s, 3 * s, trunk, 0, 1.5 * s, 0, 10));
+    for (let i = 0; i < 4; i++) {
+      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry((1.6 + R()) * s, 2), leafMats[(k + i) % 3]);
+      crown.position.set((R() - 0.5) * 1.6 * s, (3.6 + R() * 1.4) * s, (R() - 0.5) * 1.6 * s);
+      crown.castShadow = true;
+      t.add(crown);
+    }
     t.position.set(x, GROUND, z);
     group.add(t);
-  }
+  });
+  stripGarden(plan, M, K, group, Wp, siteLabels);
 
-  const all = [...PARCELS.flatMap((q) => q.poly), ...ROADS.filter((r) => r.id !== 'gp').flatMap((r) => r.poly)].map(W);
+  const all = [...PARCELS.flatMap((q) => q.poly), ...ROADS.filter((r) => r.id !== 'gp').flatMap((r) => r.poly)].map(Wp);
   const xs = all.map((q) => q[0]), zs = all.map((q) => q[1]);
-  return {
-    group,
-    bounds: [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)],
-    toWorld: W,
-  };
+  return { group, bounds: [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)], toWorld: Wp };
 }
-const k3 = (x, z) => Math.abs(Math.floor(x * 7 + z * 13));
+
+// Small garden on the triangular 23 SqYds strip along the 21 ft road (owner request).
+// It runs from G.P Road up to 3′-6″ short of the side gate so the gate stays clear; the narrow
+// tail of the triangle beyond the gate is left as is.
+function stripGarden(plan, M, K, group, Wp, siteLabels) {
+  const U0 = SITE_W_FT; // plot line (the strip starts here, outside the compound)
+  const uOut = (v) => 63.25 - (7 + 2 / 12) * (v / 59.08); // outer edge of the 23 SqYds strip (7′-2″ at the road → 0)
+  const wg = plan.plot.gates.filter((g) => g.side === 'w');
+  const vGate = wg.length ? Math.min(...wg.map((g) => (plan.plot.z1 - g.to) / 12)) : 40;
+  const v0 = 1.5, v1 = vGate - 3.5, inset = 0.3; // feet
+  if (v1 - v0 < 4) return;
+  const at = (v, t) => Wp([U0 + inset + (uOut(v) - inset - (U0 + inset)) * t, v]); // t: 0 at compound wall → 1 at road edge
+  const poly = [at(v0, 0), at(v0, 1), at(v1, 1), at(v1, 0)];
+  const y0 = GROUND;
+  // raised bed: granite kerb, soil, lawn
+  const kerb = M.granite;
+  for (let i = 0; i < 4; i++) {
+    const a = poly[i], b = poly[(i + 1) % 4];
+    const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz);
+    const e = K.box(L + 0.1, 0.18, 0.1, kerb, (a[0] + b[0]) / 2, y0 + 0.09, (a[1] + b[1]) / 2);
+    e.rotation.y = Math.atan2(-dz, dx);
+    group.add(e);
+  }
+  const lawn = new THREE.Mesh(flatPoly(poly, y0 + 0.14), M.grass);
+  lawn.receiveShadow = true;
+  group.add(lawn);
+
+  const flowerGeo = new THREE.IcosahedronGeometry(1, 0);
+  const inst = (pts, mat) => {
+    const m = new THREE.InstancedMesh(flowerGeo, mat, pts.length);
+    const t = new THREE.Matrix4();
+    pts.forEach(([x, y, z, s], i) => m.setMatrixAt(i, t.makeScale(s, s, s).setPosition(x, y, z)));
+    m.castShadow = true;
+    group.add(m);
+  };
+  let seed = 77;
+  const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const shrubGreen = M.solid('#3f6b2f', { roughness: 0.8 });
+  const colours = { hibiscus: M.solid('#c8102e', { roughness: 0.6 }), bougainvillea: M.solid('#c2187a', { roughness: 0.6 }), marigold: M.solid('#f59f00', { roughness: 0.7 }), marigoldDeep: M.solid('#e8590c', { roughness: 0.7 }), plumeria: M.solid('#fff6dc', { roughness: 0.5 }) };
+  const blooms = { hibiscus: [], bougainvillea: [], marigold: [], marigoldDeep: [], plumeria: [] };
+
+  // road-side hedge of hibiscus / bougainvillea shrubs (~0.8 m tall)
+  const lenFt = v1 - v0;
+  const nShrub = Math.max(3, Math.floor((lenFt * FT) / 0.9));
+  for (let i = 0; i < nShrub; i++) {
+    const v = v0 + 1 + (i / (nShrub - 1)) * (lenFt - 2);
+    const [x, z] = at(v, 0.86);
+    const kind = i % 2 ? 'bougainvillea' : 'hibiscus';
+    const r = 0.3 + R() * 0.08;
+    const s = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), shrubGreen);
+    s.position.set(x, y0 + 0.14 + r * 0.9, z);
+    s.scale.y = 1.15;
+    s.castShadow = true;
+    group.add(s);
+    for (let k = 0; k < 9; k++) {
+      const a = R() * Math.PI * 2, b = R() * Math.PI * 0.45;
+      blooms[kind].push([x + Math.cos(a) * Math.cos(b) * r, y0 + 0.14 + r * 0.9 + Math.sin(b) * r * 1.1, z + Math.sin(a) * Math.cos(b) * r, 0.04]);
+    }
+  }
+  // marigold border along the compound wall side
+  for (let v = v0 + 0.6; v < v1 - 0.4; v += 0.75) {
+    for (const t of [0.08, 0.2]) {
+      const [x, z] = at(v + (t > 0.1 ? 0.37 : 0), t);
+      const p = new THREE.Mesh(new THREE.IcosahedronGeometry(0.11, 1), shrubGreen);
+      p.position.set(x, y0 + 0.22, z);
+      group.add(p);
+      blooms[R() > 0.5 ? 'marigold' : 'marigoldDeep'].push([x, y0 + 0.31, z, 0.05], [x + 0.06, y0 + 0.29, z - 0.05, 0.04]);
+    }
+  }
+  // stepping-stone path down the middle
+  for (let v = v0 + 0.8; v < v1 - 0.5; v += 2.0) {
+    const [x, z] = at(v, 0.5);
+    const st = K.cyl(0.2, 0.2, 0.04, M.stone, x, y0 + 0.16, z, 20);
+    st.scale.z = 0.7;
+    group.add(st);
+  }
+  // two frangipani (plumeria) trees at the wide end, and solar bollard lights
+  for (const [v, t] of [[v0 + 2.5, 0.45], [v0 + Math.min(10, lenFt * 0.45), 0.5]]) {
+    const [x, z] = at(v, t);
+    const tree = new THREE.Group();
+    tree.add(K.cyl(0.05, 0.07, 1.3, M.walnut, 0, 0.65, 0, 8));
+    for (let k = 0; k < 3; k++) {
+      const a = (k * Math.PI * 2) / 3 + R();
+      const br = K.cyl(0.03, 0.04, 0.8, M.walnut, Math.cos(a) * 0.2, 1.55, Math.sin(a) * 0.2, 6);
+      br.rotation.z = Math.cos(a) * 0.5;
+      br.rotation.x = -Math.sin(a) * 0.5;
+      tree.add(br);
+      const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 1), shrubGreen);
+      leaf.position.set(Math.cos(a) * 0.42, 2.0, Math.sin(a) * 0.42);
+      leaf.scale.y = 0.6;
+      leaf.castShadow = true;
+      tree.add(leaf);
+      for (let f = 0; f < 7; f++) blooms.plumeria.push([x + Math.cos(a) * 0.42 + (R() - 0.5) * 0.6, y0 + 0.14 + 2.18 + R() * 0.1, z + Math.sin(a) * 0.42 + (R() - 0.5) * 0.6, 0.035]);
+    }
+    tree.position.set(x, y0 + 0.14, z);
+    group.add(tree);
+  }
+  for (const v of [v0 + 0.4, (v0 + v1) / 2, v1 - 0.4]) {
+    const [x, z] = at(v, 0.32);
+    group.add(K.cyl(0.04, 0.05, 0.55, M.alu, x, y0 + 0.14 + 0.275, z, 12));
+    group.add(K.cyl(0.06, 0.06, 0.06, M.lamp, x, y0 + 0.14 + 0.58, z, 12));
+  }
+  for (const [k, pts] of Object.entries(blooms)) if (pts.length) inst(pts, colours[k]);
+
+  const [lx, lz] = at((v0 + v1) / 2, 0.5);
+  const el = label('<b>Garden</b><span>23 SqYds strip · gate kept clear</span>', 'slabel strip');
+  el.position.set(lx, GROUND + 1.2, lz);
+  siteLabels.add(el);
+}

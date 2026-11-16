@@ -11,6 +11,9 @@ export const SITE_TITLE = 'Yellareddypet (V), Yellareddypet (M), Rajanna Siricil
 // Map north expressed as a unit vector in (u, v).
 export const NORTH_UV = [-0.47, -0.88];
 
+// Site location supplied by the owner: 18°22′23.68″N 78°38′48.17″E
+export const SITE_LOCATION = { lat: 18 + 22 / 60 + 23.68 / 3600, lon: 78 + 38 / 60 + 48.17 / 3600, dms: '18°22′23.68″N 78°38′48.17″E' };
+
 const P = {
   A: [0, 0], Bin: [56.08, 0], B: [63.25, 0], C: [56.08, 59.08], D1: [0, 59.08], D: [0, 61.25],
   A1: [-1.5, 0], AD44: [0, 44.25], S20b: [-6.75, 44.25], S40tl: [-14.58, 44.25], S40bl: [-19.42, 61.25],

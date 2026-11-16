@@ -1,37 +1,68 @@
-# Padma Reddy Residence — 3D walkthrough
+# Padma Reddy Residence: to-scale 3D walkthrough
 
-Interactive 3D virtual tour of three house designs (Ground Floor Plan, Plan-1, Plan-2) on the
-G. Padma Reddy site at Yellareddypet (V), Rajanna Siricilla Dist., built from the architect's
-floor-plan PDFs and the YMR survey map (MAP2).
+Interactive 3D tour of the three house designs (Ground Floor Plan, Plan-1 and Plan-2) on the G. Padma Reddy site
+at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N, 78°38′48.17″E.
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 
-## Use
+## Accuracy
 
-- **Whole site**: survey parcels, strips, G.P Road, 12 ft and 21 ft roads, with the house on its plot.
-- **Dollhouse**: roofless view. Click any room (or its label) to glide inside.
-- **Walk in / Guided tour**: first-person view. Click the floor to glide there; the route goes through doorways.
-  Drag to look, `W A S D` / arrows to walk, `Shift` to go faster, `Esc` to return to the overview.
-- **Minimap**: click to glide to a spot.
-- **Original drawings**: the source plans and site map.
+- **1 world unit = 1 metre.** Feet and inches are converted exactly (1″ = 25.4 mm).
+- Walls are placed from the drawings' **written dimension chains**, not traced pixels. Outer walls are 9″ and inner
+  walls 4½″, and room sizes are clear wall-face to wall-face.
+  - Example, Plan-1 top row: 9 + 114 + 4½ + 120 + 4½ + 58½ + 4½ + 192 + 9 = 516″ = 43′-0″.
+- The **measurement report** (button in the app, and [VALIDATION.md](VALIDATION.md)) ray-casts the built model's wall
+  meshes and compares every room with its drawing label to within 1 mm. It also checks door and window widths,
+  furniture clearances, door swings and walking routes.
+- Two drawing labels contradict their own dimension chains. Both are modelled from the chain and flagged in the report:
+  - **Plan-1 Great Room** is labelled 23′-4½″ but the chain gives 25′-1½″.
+  - **GF Dining** is labelled 9′ but the top row sums to 41′-7½″ against the 41′-3″ overall.
+- Anything the drawings don't dimension is listed as an assumption:
+  - heights: 10′ ceiling, 7′ lintels, 3′ sills
+  - door and window positions, scaled from the drawing
+  - standard door widths
+  - standard furniture sizes
+  - the stair risers
 
-## Notes
+## Features
 
-- Dimensions come from the drawings: walls are 9″ outer and 4.5″ inner, ceilings 10′, the plinth 1′-6″.
-- The survey sketch isn't drawn to scale. Parcel shapes were rebuilt from the written dimensions.
-- The Ground Floor Plan was drawn for a 57′ × 65′ plot, which is bigger than the 56′-1″ × 59′-1″ site. With its front
-  set on G.P Road, the rear wall crosses the plot line.
+- Bird's-eye, dollhouse and whole-site views, plus a first-person walk at 1.6 m eye height.
+  - Click the floor to glide; routes go through doorways.
+  - W A S D to walk, with collision against walls and furniture.
+  - Dimensions overlay.
+- Realistic real-size furnishing:
+  - beds, wardrobes, sofas, a modular kitchen with hob and chimney
+  - toilets with EWC, vanity, real mirrors and shower glass
+  - fans, downlights, curtains, and hinged doors that swing as drawn
+- PBR materials (CC0 scans from Poly Haven), an HDRI sky, soft sun shadows and ambient occlusion.
+- The sun is placed from the real location using the date and time slider (IST).
+  North comes from the survey map.
+- Pooja room has no window, and the mandir faces the entrance.
+- Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
+- Kerala-style **elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
+  - Tiled verandah
+  - Laterite & teak
+  - Twin gables
+  - Continuous eave
 
 ## Develop
 
-Static site with no build step. Three.js is loaded from a CDN.
+Static site with no build step. Three.js r170 is loaded from a CDN.
 
 ```sh
-python3 -m http.server 8000   # then open http://localhost:8000
+python3 -m http.server 8000   # open http://localhost:8000
 ```
 
-- `js/plans.js`: traced plan data (walls, openings, rooms, furniture)
-- `js/site.js`: survey parcels and roads
-- `js/build.js`: scene construction
-- `js/nav.js`: walkability grid + A* routing
-- `js/main.js`: camera modes, interaction, UI
+| File | Purpose |
+| --- | --- |
+| `js/plans.js` | dimension-chain geometry, openings, rooms, furniture anchors |
+| `js/build.js` | scene construction in metres |
+| `js/verify.js` | measurement validation (ray-cast against the built model) |
+| `js/furniture.js` | real-size furniture and fixtures |
+| `js/elevation.js` | Kerala elevation ideas |
+| `js/site.js` | survey parcels, roads and the site location |
+| `js/nav.js` | walkability grid and A* routing |
+| `js/sun.js` | solar position |
+| `js/main.js` | camera modes, interaction, UI |
+
+To regenerate `VALIDATION.md`, run `measurementReport()` in the browser console for each plan.

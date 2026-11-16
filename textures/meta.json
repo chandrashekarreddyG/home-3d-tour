@@ -1,0 +1,200 @@
+{
+ "marble_01": {
+  "size_m": [
+   1.5,
+   1.5
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "laminate_floor_02": {
+  "size_m": [
+   1.7,
+   1.7
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "anti_skid_tiles": {
+  "size_m": [
+   1.8,
+   1.8
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "long_white_tiles": {
+  "size_m": [
+   1.27,
+   1.27
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "painted_plaster_wall": {
+  "size_m": [
+   2.0,
+   2.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "plastered_wall_04": {
+  "size_m": [
+   3.2,
+   3.2
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "oak_veneer_01": {
+  "size_m": [
+   1.83,
+   1.83
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "walnut_veneer": {
+  "size_m": [
+   1.8,
+   1.8
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "teak_veneer": {
+  "size_m": [
+   1.0,
+   1.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "rough_linen": {
+  "size_m": [
+   0.271,
+   0.271
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "granite_tile": {
+  "size_m": [
+   2.3,
+   2.3
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "granite_tile_04": {
+  "size_m": [
+   2.0,
+   2.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "sparse_grass": {
+  "size_m": [
+   2.0,
+   2.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "large_grey_tiles": {
+  "size_m": [
+   3.0,
+   3.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "asphalt_02": {
+  "size_m": [
+   3.0,
+   3.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "dry_ground_01": {
+  "size_m": [
+   4.0,
+   4.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "red_laterite_soil_stones": {
+  "size_m": [
+   2.0,
+   2.0
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ },
+ "velour_velvet": {
+  "size_m": [
+   0.284,
+   0.273
+  ],
+  "maps": [
+   "diff",
+   "nor",
+   "rough"
+  ]
+ }
+}

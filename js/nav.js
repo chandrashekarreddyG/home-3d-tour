@@ -1,6 +1,6 @@
-// Walkability grid + A* so the camera glides through doorways instead of through walls.
+// Walkability grid (metres) + A* so the camera glides through doorways instead of through walls.
 
-export const CELL = 0.5;
+export const CELL = 0.1;
 
 export function rectDist(x, z, r) {
   const dx = Math.max(r[0] - x, 0, x - r[2]);
@@ -8,50 +8,59 @@ export function rectDist(x, z, r) {
   return Math.hypot(dx, dz);
 }
 
-export const inRect = (x, z, r) => x >= r[0] && x <= r[2] && z >= r[1] && z <= r[3];
+export const inRect = (x, z, r) => x >= r[0] - 1e-9 && x <= r[2] + 1e-9 && z >= r[1] - 1e-9 && z <= r[3] + 1e-9;
 
 export class NavGrid {
-  // areas: rects the camera may stand in; blockers: [{r, clear}] footprints to keep away from
+  // areas: rects you may stand in; holes: rects you may not; blockers: [{r, clear}] obstacle footprints + clearance
   constructor(bounds, areas, holes, blockers) {
     this.x0 = bounds[0];
     this.z0 = bounds[1];
     this.nx = Math.ceil((bounds[2] - bounds[0]) / CELL);
     this.nz = Math.ceil((bounds[3] - bounds[1]) / CELL);
     this.walk = new Uint8Array(this.nx * this.nz);
-    for (let j = 0; j < this.nz; j++) {
-      const z = this.z0 + (j + 0.5) * CELL;
-      for (let i = 0; i < this.nx; i++) {
-        const x = this.x0 + (i + 0.5) * CELL;
-        if (!areas.some((r) => inRect(x, z, r))) continue;
-        if (holes.some((r) => inRect(x, z, r))) continue;
-        if (blockers.some((b) => rectDist(x, z, b.r) < b.clear)) continue;
-        this.walk[j * this.nx + i] = 1;
+    const fill = (r, v) => {
+      const [i0, j0, i1, j1] = this.cellRange(r);
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const [x, z] = this.centerIJ(i, j);
+        if (inRect(x, z, r)) this.walk[j * this.nx + i] = v;
+      }
+    };
+    for (const r of areas) fill(r, 1);
+    for (const r of holes) fill(r, 0);
+    for (const b of blockers) {
+      const c = b.clear;
+      const [i0, j0, i1, j1] = this.cellRange([b.r[0] - c, b.r[1] - c, b.r[2] + c, b.r[3] + c]);
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const [x, z] = this.centerIJ(i, j);
+        if (rectDist(x, z, b.r) < c) this.walk[j * this.nx + i] = 0;
       }
     }
   }
 
+  cellRange(r) {
+    const cl = (v, n) => Math.max(0, Math.min(n - 1, v));
+    return [
+      cl(Math.floor((r[0] - this.x0) / CELL), this.nx), cl(Math.floor((r[1] - this.z0) / CELL), this.nz),
+      cl(Math.floor((r[2] - this.x0) / CELL), this.nx), cl(Math.floor((r[3] - this.z0) / CELL), this.nz),
+    ];
+  }
+  centerIJ(i, j) { return [this.x0 + (i + 0.5) * CELL, this.z0 + (j + 0.5) * CELL]; }
   cellOf(x, z) {
-    const i = Math.floor((x - this.x0) / CELL);
-    const j = Math.floor((z - this.z0) / CELL);
+    const i = Math.floor((x - this.x0) / CELL), j = Math.floor((z - this.z0) / CELL);
     if (i < 0 || j < 0 || i >= this.nx || j >= this.nz) return -1;
     return j * this.nx + i;
   }
-
-  center(c) {
-    return [this.x0 + ((c % this.nx) + 0.5) * CELL, this.z0 + (Math.floor(c / this.nx) + 0.5) * CELL];
-  }
-
+  center(c) { return this.centerIJ(c % this.nx, Math.floor(c / this.nx)); }
   ok(x, z) {
     const c = this.cellOf(x, z);
     return c >= 0 && this.walk[c] === 1;
   }
 
-  nearest(x, z) {
+  nearest(x, z, maxRad = 40) {
     const i0 = Math.min(this.nx - 1, Math.max(0, Math.floor((x - this.x0) / CELL)));
     const j0 = Math.min(this.nz - 1, Math.max(0, Math.floor((z - this.z0) / CELL)));
-    for (let rad = 0; rad < 24; rad++) {
-      let best = -1;
-      let bestD = Infinity;
+    for (let rad = 0; rad < maxRad; rad++) {
+      let best = -1, bestD = Infinity;
       for (let j = j0 - rad; j <= j0 + rad; j++) {
         for (let i = i0 - rad; i <= i0 + rad; i++) {
           if (Math.max(Math.abs(i - i0), Math.abs(j - j0)) !== rad) continue;
@@ -78,10 +87,9 @@ export class NavGrid {
     return true;
   }
 
-  // Returns world-space waypoints from (sx,sz) to (tx,tz), or null when unreachable.
+  // World waypoints from (sx,sz) to (tx,tz), or null when unreachable.
   path(sx, sz, tx, tz) {
-    const s = this.nearest(sx, sz);
-    const t = this.nearest(tx, tz);
+    const s = this.nearest(sx, sz), t = this.nearest(tx, tz);
     if (s < 0 || t < 0) return null;
     const N = this.nx * this.nz;
     const g = new Float32Array(N).fill(Infinity);
@@ -118,10 +126,8 @@ export class NavGrid {
     const cells = [];
     for (let c = t; c !== -1; c = came[c]) cells.push(this.center(c));
     cells.reverse();
-    const start = [sx, sz];
-    const pts = [start, ...cells];
+    const pts = [[sx, sz], ...cells];
     if (this.ok(tx, tz)) pts.push([tx, tz]);
-    // string-pull: keep only the corners we can't see past
     const out = [];
     let i = 0;
     while (i < pts.length - 1) {

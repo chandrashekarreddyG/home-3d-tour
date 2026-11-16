@@ -1,132 +1,192 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { PLANS, TOUR_ORDER } from './plans.js';
-import { NORTH_UV, SITE_TITLE } from './site.js';
-import { buildModel, WALL_H } from './build.js';
+import { NORTH_UV, SITE_TITLE, SITE_LOCATION } from './site.js';
+import { buildModel, CEIL } from './build.js';
+import { makeMaterials } from './materials.js';
 import { inRect, rectDist } from './nav.js';
+import { validate, toHTML, toMarkdown, summarise } from './verify.js';
+import { sunPosition, istDate } from './sun.js';
+import { ELEVATIONS } from './elevation.js';
 
-const EYE = 5.25;
-const SPEED = 7.5; // ft/s glide speed
+const EYE = 1.6; // m
+const GLIDE = 2.0; // m/s
+const WALK = 1.4; // m/s
+const RADIUS = 0.22; // body radius for collisions
 const $ = (id) => document.getElementById(id);
+const mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 
 // ---------- renderer / scene ----------
 const canvas = $('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 1.75));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMapping = THREE.NeutralToneMapping; // Khronos PBR Neutral: keeps material colours faithful
+renderer.toneMappingExposure = 1.0;
 const labelRenderer = new CSS2DRenderer({ element: $('labels') });
-
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#dce7ef');
-scene.fog = new THREE.Fog('#dce7ef', 400, 1100);
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.45;
+scene.background = new THREE.Color('#cfdce6');
+new RGBELoader().load('textures/sky_2k.hdr', (tex) => {
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  scene.background = tex;
+  scene.environment = tex;
+  applySun();
+});
+const M = makeMaterials(renderer);
+// shiny interior fittings reflect a neutral studio room, not the outdoor sky
+{
+  const roomEnv = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+  for (const k of ['chrome', 'steel', 'porcelain', 'screen']) { M[k].envMap = roomEnv; M[k].envMapIntensity = 0.7; }
+}
 
-const hemi = new THREE.HemisphereLight('#ffffff', '#b9a98e', 1.1);
+const hemi = new THREE.HemisphereLight('#dfe9f2', '#8a7a64', 0.25);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight('#fff6e8', 2.4);
+const sun = new THREE.DirectionalLight('#fff3e0', 4);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
-sun.shadow.bias = -0.0004;
-sun.shadow.normalBias = 0.04;
-Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 300 });
+sun.shadow.bias = -0.0002;
+sun.shadow.normalBias = 0.02;
+sun.shadow.radius = 3;
+Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 120 });
 scene.add(sun, sun.target);
+// a fixed pool of warm interior lights, moved to the downlights nearest the camera
+const pool = Array.from({ length: 6 }, () => {
+  const l = new THREE.PointLight('#ffd7a8', 0, 7, 2);
+  scene.add(l);
+  return l;
+});
 
-const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 3000);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 2000);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.maxPolarAngle = Math.PI * 0.47;
-controls.minDistance = 12;
-controls.maxDistance = 700;
+controls.maxPolarAngle = Math.PI * 0.48;
+controls.minDistance = 3;
+controls.maxDistance = 400;
+
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, 1, 1);
+gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.5, thickness: 1, scale: 1.2, samples: 16, distanceFallOff: 1 });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+gtao.blendIntensity = 1;
+composer.addPass(gtao);
+composer.addPass(new OutputPass());
 
 // ---------- state ----------
-let M = null; // current model
+let MD = null; // current model
 let mode = 'orbit'; // orbit | fly | walk
 const walker = { x: 0, z: 0, y: EYE, yaw: 0, pitch: 0 };
-let anim = null;
-let touring = false;
-let lastOrbit = null;
+let anim = null, touring = false, lastOrbit = null, walkFov = 55;
 const keys = new Set();
-
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const dampAngle = (a, b, k, dt) => a + wrap(b - a) * (1 - Math.exp(-k * dt));
 const yawOf = (dx, dz) => Math.atan2(-dx, -dz);
 const quatOf = (yaw, pitch) => new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+function runAnim(a) { cancelAnim(); return new Promise((res) => { a.resolve = res; anim = a; }); }
+function cancelAnim() { if (!anim) return; const r = anim.resolve; anim = null; r(false); }
 
-function runAnim(a) {
-  cancelAnim();
-  return new Promise((res) => { a.resolve = res; anim = a; });
+// ---------- sun (true position for the site) ----------
+const northWorld = new THREE.Vector2(-NORTH_UV[0], -NORTH_UV[1]).normalize(); // survey north in plan axes (x, z)
+const eastWorld = new THREE.Vector2(-northWorld.y, northWorld.x);
+let sunState = { el: 0.8, az: 2.5 };
+function applySun() {
+  const date = istDate($('sunDate').value, Number($('sunTime').value));
+  const { az, el } = sunPosition(date, SITE_LOCATION.lat, SITE_LOCATION.lon);
+  sunState = { az, el };
+  const h = Math.cos(el);
+  const dir = new THREE.Vector3(
+    h * (Math.cos(az) * northWorld.x + Math.sin(az) * eastWorld.x),
+    Math.sin(el),
+    h * (Math.cos(az) * northWorld.y + Math.sin(az) * eastWorld.y),
+  ).normalize();
+  const c = MD ? [(MD.building[0] + MD.building[2]) / 2, (MD.building[1] + MD.building[3]) / 2] : [6, 7];
+  sun.target.position.set(c[0], 0, c[1]);
+  sun.position.set(c[0] + dir.x * 60, dir.y * 60, c[1] + dir.z * 60);
+  const day = THREE.MathUtils.smoothstep(Math.sin(el), -0.02, 0.18);
+  sun.intensity = 4.2 * THREE.MathUtils.smoothstep(Math.sin(el), 0.0, 0.12);
+  sun.color.setHSL(0.09, 0.6 * (1 - day) + 0.25, 0.75 + 0.2 * day);
+  sun.visible = el > 0;
+  scene.environmentIntensity = 0.08 + 0.62 * day;
+  scene.backgroundIntensity = 0.08 + 0.92 * day;
+  hemi.intensity = 0.05 + 0.25 * day;
+  night = day < 0.3;
+  M.lamp.emissiveIntensity = night ? 6 : 2;
+  M.shade.emissiveIntensity = night ? 1.6 : 0.3;
+  const mins = Number($('sunTime').value);
+  const hh = String(Math.floor(mins / 60)).padStart(2, '0'), mm = String(mins % 60).padStart(2, '0');
+  const deg = (r) => Math.round((r * 180) / Math.PI);
+  $('sunInfo').textContent = `${hh}:${mm} IST · sun ${el > 0 ? `${deg(el)}° high, ${deg(az)}° from N` : 'below horizon (lights on)'}`;
 }
-function cancelAnim() {
-  if (!anim) return;
-  const r = anim.resolve;
-  anim = null;
-  r(false);
-}
+let night = false;
 
 // ---------- plan loading ----------
 function loadPlan(id) {
   stopTour();
   cancelAnim();
   const plan = PLANS.find((p) => p.id === id) || PLANS[1];
-  if (M) {
-    scene.remove(M.root);
-    M.root.traverse((o) => {
+  if (MD) {
+    scene.remove(MD.root);
+    MD.root.traverse((o) => {
       if (o.isMesh) o.geometry.dispose();
+      if (o.getRenderTarget) o.dispose(); // mirrors (Reflector) own a render target
       if (o.isCSS2DObject) o.element.remove();
     });
   }
-  M = buildModel(plan, renderer, (room) => { stopTour(); goToRoom(room); });
-  scene.add(M.root);
-  const [x0, z0, x1, z1] = M.building;
-  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
-  sun.position.set(cx - 60, 110, cz + 45);
-  sun.target.position.set(cx, 0, cz);
+  MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); });
+  scene.add(MD.root);
   history.replaceState(null, '', '#' + plan.id);
   document.querySelectorAll('#plans button').forEach((b) => b.classList.toggle('on', b.dataset.id === plan.id));
   $('planNote').textContent = plan.note;
   renderRoomList();
   setMode('orbit');
   houseView(false);
+  applySun();
+  applyElevation();
   drawMinimap();
+  report = null;
+  const v = getReport();
+  $('verifySummary').textContent = summarise(v);
 }
+let report = null;
+function getReport() { if (!report) report = validate(MD); return report; }
 
 function houseView(animate = true) {
-  const [x0, z0, x1, z1] = M.building;
-  const c = new THREE.Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2 + 3);
-  const D = Math.max(x1 - x0, z1 - z0) * Math.max(1, 1.15 / camera.aspect);
-  const pos = c.clone().add(new THREE.Vector3(-0.35 * D, 1.15 * D, 1.05 * D));
-  return orbitTo(pos, c, animate);
+  const [x0, z0, x1, z1] = MD.building;
+  const c = new THREE.Vector3((x0 + x1) / 2 - 0.6, 0, (z0 + z1) / 2 + 1);
+  const D = Math.max(x1 - x0, z1 - z0) * Math.max(1, 1.1 / camera.aspect);
+  return orbitTo(c.clone().add(new THREE.Vector3(-0.4 * D, 1.15 * D, 1.05 * D)), c, animate);
+}
+function planView() {
+  const [x0, z0, x1, z1] = MD.building;
+  const c = new THREE.Vector3((x0 + x1) / 2 - 0.6, 0, (z0 + z1) / 2 + 1);
+  const D = Math.max(x1 - x0, (z1 - z0) * camera.aspect) * 1.25;
+  return orbitTo(c.clone().add(new THREE.Vector3(0, D * 1.2, 0.01)), c, true);
 }
 function siteView() {
-  const [x0, z0, x1, z1] = M.site.bounds;
+  const [x0, z0, x1, z1] = MD.site.bounds;
   const c = new THREE.Vector3((x0 + x1) / 2, 0, (z0 + z1) / 2);
   const D = Math.max(x1 - x0, z1 - z0) * Math.max(1, 0.9 / camera.aspect);
-  const pos = c.clone().add(new THREE.Vector3(-0.35 * D, 0.95 * D, 0.75 * D));
-  return orbitTo(pos, c, true);
+  return orbitTo(c.clone().add(new THREE.Vector3(-0.35 * D, 0.95 * D, 0.75 * D)), c, true);
 }
 async function orbitTo(pos, target, animate) {
   stopTour();
-  if (mode === 'walk' || mode === 'fly') { await exitWalk(pos, target); return; }
-  if (!animate) {
-    camera.position.copy(pos);
-    controls.target.copy(target);
-    controls.update();
-    return;
-  }
+  if (mode !== 'orbit') { await exitWalk(pos, target); return; }
+  if (!animate) { camera.position.copy(pos); controls.target.copy(target); controls.update(); return; }
   const p0 = camera.position.clone(), t0 = controls.target.clone();
   let t = 0;
-  const dur = 1.4;
   controls.enabled = false;
   await runAnim({ update(dt) {
-    t = Math.min(1, t + dt / dur);
+    t = Math.min(1, t + dt / 1.4);
     const e = ease(t);
     camera.position.lerpVectors(p0, pos, e);
     controls.target.lerpVectors(t0, target, e);
@@ -141,35 +201,30 @@ async function orbitTo(pos, target, animate) {
 function setMode(m) {
   mode = m;
   document.body.dataset.mode = m;
-  const walkish = m !== 'orbit';
+  const inside = m !== 'orbit';
   controls.enabled = m === 'orbit';
-  M.ceilings.visible = walkish;
-  camera.near = walkish ? 0.1 : 1;
-  camera.updateProjectionMatrix();
-  M.markers.visible = m === 'walk';
-  M.labels.visible = !walkish;
-  M.siteLabels.visible = !walkish;
-  M.roof.visible = !walkish && $('chkRoof').checked;
+  MD.ceilings.visible = inside;
+  MD.markers.visible = m === 'walk';
+  MD.labels.visible = !inside;
+  MD.siteLabels.visible = !inside;
+  MD.roof.visible = !inside && ($('chkRoof').checked || elev.on);
   hoverDisc.visible = false;
-  M.rooms.forEach((r) => (r.highlight.visible = false));
+  MD.rooms.forEach((r) => (r.highlight.visible = false));
   $('hint').textContent = m === 'walk'
-    ? 'Click the floor to glide there · drag to look around · W A S D / arrows to walk · Esc for overview'
-    : 'Drag to orbit · scroll to zoom · right-drag to pan · click any room to glide inside';
+    ? 'Click the floor to glide · drag to look · W A S D / arrows to walk · Esc for overview'
+    : 'Drag to orbit · scroll to zoom · right-drag to pan · click a room to step inside';
   updateWhere();
 }
 
 async function enterWalk(x, z, yaw, pitch = 0) {
-  if (mode === 'orbit') {
-    lastOrbit = { pos: camera.position.clone(), target: controls.target.clone() };
-  }
+  if (mode === 'orbit') lastOrbit = { pos: camera.position.clone(), target: controls.target.clone() };
   setMode('fly');
-  const y = M.floorY(x, z) + EYE;
+  const y = MD.floorY(x, z) + EYE;
   const p0 = camera.position.clone(), q0 = camera.quaternion.clone();
   const p1 = new THREE.Vector3(x, y, z), q1 = quatOf(yaw, pitch);
-  const dur = 1.9;
   let t = 0;
   const ok = await runAnim({ fly: true, update(dt) {
-    t = Math.min(1, t + dt / dur);
+    t = Math.min(1, t + dt / 1.9);
     const e = ease(t);
     camera.position.lerpVectors(p0, p1, e);
     camera.quaternion.slerpQuaternions(q0, q1, Math.min(1, e * 1.15));
@@ -179,20 +234,17 @@ async function enterWalk(x, z, yaw, pitch = 0) {
   setMode('walk');
   return ok;
 }
-
 async function exitWalk(pos, target) {
   stopTour();
-  const dest = pos ? { pos, target } : lastOrbit || null;
+  const dest = pos ? { pos, target } : lastOrbit;
   setMode('fly');
   const p0 = camera.position.clone(), q0 = camera.quaternion.clone();
   const tgt = dest ? dest.target : new THREE.Vector3(walker.x, 0, walker.z);
-  const p1 = dest ? dest.pos : tgt.clone().add(new THREE.Vector3(-20, 60, 55));
-  const m = new THREE.Matrix4().lookAt(p1, tgt, new THREE.Vector3(0, 1, 0));
-  const q1 = new THREE.Quaternion().setFromRotationMatrix(m);
+  const p1 = dest ? dest.pos : tgt.clone().add(new THREE.Vector3(-5, 16, 14));
+  const q1 = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(p1, tgt, new THREE.Vector3(0, 1, 0)));
   let t = 0;
-  const dur = 1.7;
   await runAnim({ fly: true, update(dt) {
-    t = Math.min(1, t + dt / dur);
+    t = Math.min(1, t + dt / 1.7);
     const e = ease(t);
     camera.position.lerpVectors(p0, p1, e);
     camera.quaternion.slerpQuaternions(q0, q1, e);
@@ -208,7 +260,7 @@ async function exitWalk(pos, target) {
 function walkPath(pts, finalYaw, finalPitch = 0) {
   let i = 0;
   return runAnim({ update(dt) {
-    let step = SPEED * dt * (keys.has('Shift') ? 1.8 : 1);
+    let step = GLIDE * dt * (keys.has('Shift') ? 2 : 1);
     while (step > 0 && i < pts.length) {
       const [tx, tz] = pts[i];
       const dx = tx - walker.x, dz = tz - walker.z, d = Math.hypot(dx, dz);
@@ -217,9 +269,9 @@ function walkPath(pts, finalYaw, finalPitch = 0) {
     if (i < pts.length) {
       const [tx, tz] = pts[i];
       const dx = tx - walker.x, dz = tz - walker.z;
-      if (Math.hypot(dx, dz) > 0.3) walker.yaw = dampAngle(walker.yaw, yawOf(dx, dz), 4.5, dt);
+      if (Math.hypot(dx, dz) > 0.12) walker.yaw = dampAngle(walker.yaw, yawOf(dx, dz), 4.5, dt);
     }
-    walker.pitch = damp(walker.pitch, -0.04, 3, dt);
+    walker.pitch = damp(walker.pitch, -0.05, 3, dt);
     return i >= pts.length;
   } }).then((ok) => (ok && finalYaw != null ? turnTo(finalYaw, 0.9, finalPitch) : ok));
 }
@@ -239,50 +291,39 @@ function lookAround(dur = 6) {
   let t = 0;
   return runAnim({ update(dt) {
     t = Math.min(dur, t + dt);
-    walker.yaw = y0 + 0.85 * Math.sin((t / dur) * Math.PI * 2);
+    walker.yaw = y0 + 0.8 * Math.sin((t / dur) * Math.PI * 2);
     return t >= dur;
   } });
 }
-
 async function glideTo(x, z, finalYaw = null, finalPitch = 0) {
   if (mode === 'orbit') {
-    const room = M.roomAt(x, z);
     let yaw = finalYaw;
     if (yaw == null) {
+      const room = MD.roomAt(x, z);
       const c = room ? room.center : [x, z];
-      const dx = c[0] - x, dz = c[1] - z;
-      if (Math.hypot(dx, dz) > 2) yaw = yawOf(dx, dz);
-      else {
-        const f = new THREE.Vector3();
-        camera.getWorldDirection(f);
-        yaw = yawOf(f.x, f.z);
-      }
+      if (Math.hypot(c[0] - x, c[1] - z) > 0.6) yaw = yawOf(c[0] - x, c[1] - z);
+      else { const f = new THREE.Vector3(); camera.getWorldDirection(f); yaw = yawOf(f.x, f.z); }
     }
-    const c = M.nav.nearest(x, z);
-    const [nx, nz] = c >= 0 ? M.nav.center(c) : [x, z];
-    const fx = M.nav.ok(x, z) ? x : nx, fz = M.nav.ok(x, z) ? z : nz;
+    let fx = x, fz = z;
+    if (!MD.nav.ok(x, z)) { const c = MD.nav.nearest(x, z); if (c >= 0) [fx, fz] = MD.nav.center(c); }
     return enterWalk(fx, fz, yaw, finalPitch);
   }
   if (mode !== 'walk') return false;
-  const pts = M.nav.path(walker.x, walker.z, x, z);
+  const pts = MD.nav.path(walker.x, walker.z, x, z);
   if (!pts) return false;
   return walkPath(pts, finalYaw, finalPitch);
 }
-
-function goToRoom(room) {
-  return glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
-}
+const goToRoom = (room) => glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
 
 async function startTour() {
   if (touring) { stopTour(); return; }
-  const seq = TOUR_ORDER.map((n) => M.rooms.find((r) => r.name === n)).filter(Boolean);
+  const seq = TOUR_ORDER.map((n) => MD.rooms.find((r) => r.name === n)).filter(Boolean);
   touring = true;
   $('btnTour').classList.add('on');
   $('btnTour').textContent = '■ Stop tour';
   for (const room of seq) {
     if (!touring) break;
-    const ok = await goToRoom(room);
-    if (!ok || !touring) break;
+    if (!(await goToRoom(room)) || !touring) break;
     if (!(await lookAround())) break;
   }
   stopTour();
@@ -301,31 +342,26 @@ const ndc = new THREE.Vector2();
 let pointerDirty = false;
 const hoverDisc = new THREE.Group();
 {
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.72, 48), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.9, depthWrite: false }));
-  const fill = new THREE.Mesh(new THREE.CircleGeometry(0.55, 48), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.18, depthWrite: false }));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.26, 48), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.9, depthWrite: false }));
+  const fill = new THREE.Mesh(new THREE.CircleGeometry(0.2, 48), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.15, depthWrite: false }));
   ring.rotation.x = fill.rotation.x = -Math.PI / 2;
   hoverDisc.add(ring, fill);
-  hoverDisc.renderOrder = 5;
   hoverDisc.visible = false;
   scene.add(hoverDisc);
 }
-
 function pick(clientX, clientY) {
   const r = canvas.getBoundingClientRect();
   ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const targets = [...M.floors, ...M.solids, ...M.furnMeshes];
-  if (M.roof.visible) targets.push(...M.roof.children);
+  const targets = [...MD.floors, ...MD.solids, ...MD.furnMeshes];
   const hits = ray.intersectObjects(targets, false);
-  // From above, wall caps are thin slivers: look past them to the room floor.
   const hit = mode === 'orbit' ? hits.find((h) => !h.object.userData.wall) : hits[0];
-  if (!hit || hit.object.userData.wall || M.roof.children.includes(hit.object)) return null;
+  if (!hit || hit.object.userData.wall) return null;
   const { x, z } = hit.point;
-  const zone = hit.object.userData.floor || M.roomAt(x, z) || null;
+  const zone = hit.object.userData.floor || MD.roomAt(x, z) || (inRect(x, z, MD.plotRect) ? { name: 'Compound', garden: true } : null);
   if (!zone) return null;
-  return { x, z, y: M.floorY(x, z), zone, onFloor: !!hit.object.userData.floor };
+  return { x, z, y: MD.floorY(x, z), zone };
 }
-
 let down = null;
 canvas.addEventListener('pointerdown', (e) => {
   down = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, lx: e.clientX, ly: e.clientY };
@@ -339,8 +375,8 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down) return;
   if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) down.moved = true;
   if (mode === 'walk' && down.moved) {
-    walker.yaw += (e.clientX - down.lx) * 0.0042;
-    walker.pitch = Math.max(-1.2, Math.min(1.2, walker.pitch + (e.clientY - down.ly) * 0.0042));
+    walker.yaw += (e.clientX - down.lx) * 0.0038;
+    walker.pitch = Math.max(-1.2, Math.min(1.2, walker.pitch + (e.clientY - down.ly) * 0.0038));
   }
   down.lx = e.clientX;
   down.ly = e.clientY;
@@ -358,46 +394,35 @@ canvas.addEventListener('pointerleave', () => { hoverDisc.visible = false; point
 canvas.addEventListener('wheel', (e) => {
   if (mode !== 'walk') return;
   e.preventDefault();
-  walkFov = Math.max(35, Math.min(85, walkFov + e.deltaY * 0.03));
+  walkFov = Math.max(30, Math.min(80, walkFov + e.deltaY * 0.03));
 }, { passive: false });
-
 function updateHover() {
   if (!pointerDirty || mode === 'fly' || (down && down.moved)) return;
   const p = pick(pointerDirty.x, pointerDirty.y);
   pointerDirty = false;
-  M.rooms.forEach((r) => (r.highlight.visible = false));
+  MD.rooms.forEach((r) => (r.highlight.visible = false));
   canvas.style.cursor = p ? 'pointer' : '';
   if (!p) { hoverDisc.visible = false; return; }
-  if (mode === 'orbit') {
-    if (p.zone.highlight) p.zone.highlight.visible = true;
-    hoverDisc.visible = false;
-  } else {
-    hoverDisc.visible = true;
-    hoverDisc.position.set(p.x, p.y + 0.04, p.z);
-  }
+  if (mode === 'orbit') { if (p.zone.highlight) p.zone.highlight.visible = true; hoverDisc.visible = false; }
+  else { hoverDisc.visible = true; hoverDisc.position.set(p.x, p.y + 0.012, p.z); }
 }
 
-// ---------- keyboard walking ----------
+// ---------- keyboard walking with collisions ----------
 addEventListener('keydown', (e) => {
   if (e.target.closest && e.target.closest('input,textarea,select,dialog')) return;
   if (e.key === 'Escape') { if (mode === 'walk') exitWalk(); return; }
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  if (['w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'q', 'e'].includes(k) && mode === 'walk') {
+  if (['w', 'a', 's', 'd', 'q', 'e', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k) && mode === 'walk') {
     e.preventDefault();
     if (anim) { stopTour(); cancelAnim(); }
   }
   keys.add(k === 'Shift' ? 'Shift' : k);
 });
-addEventListener('keyup', (e) => {
-  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  keys.delete(k);
-});
+addEventListener('keyup', (e) => keys.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key));
 addEventListener('blur', () => keys.clear());
-
 function canStand(x, z) {
-  if (!M.walkAreas.some((r) => inRect(x, z, r))) return false;
-  if (inRect(x, z, M.stairs)) return false;
-  return !M.colliders.some((c) => rectDist(x, z, c.r) < (c.wall ? 0.45 : 0.05));
+  if (!MD.walkAreas.some((r) => inRect(x, z, r)) || inRect(x, z, MD.stairs)) return false;
+  return !MD.colliders.some((c) => rectDist(x, z, c.r) < (c.wall ? RADIUS : RADIUS * 0.6));
 }
 function keyMove(dt) {
   let f = 0, s = 0, turn = 0;
@@ -408,8 +433,8 @@ function keyMove(dt) {
   if (keys.has('ArrowLeft') || keys.has('q')) turn += 1;
   if (keys.has('ArrowRight') || keys.has('e')) turn -= 1;
   if (!f && !s && !turn) return;
-  walker.yaw += turn * 1.8 * dt;
-  const sp = 6 * dt * (keys.has('Shift') ? 1.8 : 1);
+  walker.yaw += turn * 1.6 * dt;
+  const sp = WALK * dt * (keys.has('Shift') ? 2 : 1);
   const fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
   const dx = (fx * f - fz * s) * sp, dz = (fz * f + fx * s) * sp;
   if (canStand(walker.x + dx, walker.z + dz)) { walker.x += dx; walker.z += dz; }
@@ -417,33 +442,46 @@ function keyMove(dt) {
   else if (canStand(walker.x, walker.z + dz)) walker.z += dz;
 }
 
+// ---------- interior light pool ----------
+function updateLights() {
+  const cur = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z);
+  const px = mode === 'orbit' ? controls.target.x : walker.x, pz = mode === 'orbit' ? controls.target.z : walker.z;
+  const cands = [];
+  for (const r of MD.rooms) for (const [x, z] of r.lights) cands.push({ x, z, d: Math.hypot(x - px, z - pz) - (r === cur ? 100 : 0), out: r.outdoor });
+  cands.sort((a, b) => a.d - b.d);
+  const on = mode !== 'orbit';
+  pool.forEach((l, i) => {
+    const c = cands[i];
+    if (!c || !on) { l.intensity = 0; return; }
+    l.position.set(c.x, CEIL - 0.12, c.z);
+    l.intensity = night ? 6 : 2.6;
+  });
+}
+
 // ---------- UI ----------
 function renderRoomList() {
   const ul = $('rooms');
   ul.innerHTML = '';
   const order = (r) => { const i = TOUR_ORDER.indexOf(r.name); return i < 0 ? 99 : i; };
-  for (const room of [...M.rooms].filter((r) => r.tour).sort((a, b) => order(a) - order(b))) {
+  for (const room of [...MD.rooms].filter((r) => r.tour).sort((a, b) => order(a) - order(b))) {
     const li = document.createElement('li');
     const b = document.createElement('button');
-    b.innerHTML = `<span>${room.name}</span><small>${room.dims}</small>`;
+    b.innerHTML = `<span>${room.name}</span><small>${room.label}</small>`;
     b.addEventListener('click', () => { stopTour(); goToRoom(room); closePanelOnMobile(); });
     room.button = b;
     li.append(b);
     ul.append(li);
   }
 }
-
 let whereRoom = null;
 function updateWhere() {
-  if (!M) return;
-  const room = mode === 'orbit' ? null : M.roomAt(walker.x, walker.z) || (inRect(walker.x, walker.z, M.plotRect) ? { name: 'Compound', dims: '' } : null);
-  const name = room ? room.name : null;
-  if (mode === 'orbit') $('where').innerHTML = `<b>${M.plan.short}</b><span>${SITE_TITLE}</span>`;
-  else if (name !== (whereRoom && whereRoom.name)) $('where').innerHTML = room ? `<b>${room.name}</b><span>${room.dims || ''}</span>` : '';
+  if (!MD) return;
+  const room = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z) || (inRect(walker.x, walker.z, MD.plotRect) ? { name: 'Compound', label: '' } : null);
+  if (mode === 'orbit') $('where').innerHTML = `<b>${MD.plan.short}</b><span>${SITE_TITLE}</span>`;
+  else if ((room && room.name) !== (whereRoom && whereRoom.name)) $('where').innerHTML = room ? `<b>${room.name}</b><span>${room.label || ''}</span>` : '';
   whereRoom = mode === 'orbit' ? null : room;
-  M.rooms.forEach((r) => r.button && r.button.classList.toggle('on', r === whereRoom));
+  MD.rooms.forEach((r) => r.button && r.button.classList.toggle('on', r === whereRoom));
 }
-
 for (const p of PLANS) {
   const b = document.createElement('button');
   b.dataset.id = p.id;
@@ -454,21 +492,64 @@ for (const p of PLANS) {
 }
 $('btnSite').addEventListener('click', () => siteView());
 $('btnHouse').addEventListener('click', () => houseView(true));
-$('btnWalk').addEventListener('click', () => {
-  stopTour();
-  const start = M.rooms.find((r) => r.name === 'Front Balcony') || M.rooms[0];
-  goToRoom(start);
-});
+$('btnPlan').addEventListener('click', () => planView());
+$('btnWalk').addEventListener('click', () => { stopTour(); goToRoom(MD.rooms.find((r) => r.name === 'Front Balcony')); });
 $('btnTour').addEventListener('click', () => startTour());
-$('chkRoof').addEventListener('change', () => { M.roof.visible = mode === 'orbit' && $('chkRoof').checked; });
+$('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbit' && ($('chkRoof').checked || elev.on); });
+
+// elevation ideas (road-facing sides)
+const elev = { on: false, id: 'verandah' };
+for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
+  const b = document.createElement('button');
+  b.dataset.id = e.id;
+  b.textContent = e.name;
+  b.addEventListener('click', () => { elev.id = e.id; elev.on = true; applyElevation(); });
+  $('elevs').append(b);
+}
+$('chkElev').addEventListener('change', () => { elev.on = $('chkElev').checked; applyElevation(); });
+$('btnStreet').addEventListener('click', () => {
+  // eye-level view from the corner of G.P Road and the 21 ft road, looking at both road-facing sides
+  const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);
+  orbitTo(new THREE.Vector3(MD.plotRect[0] - 7, 1.7, MD.plotRect[3] + 7), c, true);
+});
+function applyElevation() {
+  const e = ELEVATIONS.find((q) => q.id === (elev.on ? elev.id : 'none'));
+  for (const [id, g] of Object.entries(MD.elevations)) g.visible = elev.on && id === elev.id;
+  M.paintExt.color.set(e.paint);
+  $('chkElev').checked = elev.on;
+  $('elevs').classList.toggle('off', !elev.on);
+  document.querySelectorAll('#elevs button').forEach((b) => b.classList.toggle('on', b.dataset.id === elev.id));
+  $('elevNote').textContent = elev.on ? ELEVATIONS.find((q) => q.id === elev.id).blurb : 'Showing the house as drawn. Pick an idea above to preview it.';
+  if (mode === 'orbit') MD.roof.visible = $('chkRoof').checked || elev.on;
+}
+$('chkDims').addEventListener('change', () => { MD.dims.visible = $('chkDims').checked; });
+$('chkHQ').addEventListener('change', () => setQuality($('chkHQ').checked));
 $('panelToggle').addEventListener('click', () => document.body.classList.toggle('panel-open'));
 function closePanelOnMobile() { if (innerWidth < 760) document.body.classList.remove('panel-open'); }
+function setQuality(hq) {
+  gtao.enabled = hq;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, hq ? 1.75 : 1));
+  resize();
+}
 
-// original drawings
-const drawings = [
-  ...PLANS.map((p) => ({ id: p.id, name: p.short, src: p.image })),
-  { id: 'site', name: 'Site map', src: 'plans/site-map.jpg' },
-];
+// sun controls
+{
+  const now = new Date(Date.now() + 330 * 60000); // IST
+  $('sunDate').value = now.toISOString().slice(0, 10);
+  $('sunTime').value = String(10 * 60 + 30);
+  $('sunDate').addEventListener('input', applySun);
+  $('sunTime').addEventListener('input', applySun);
+}
+// site location
+{
+  const { lat, lon, dms } = SITE_LOCATION;
+  const a = $('siteLink');
+  a.textContent = dms;
+  a.href = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+}
+
+// drawings
+const drawings = [...PLANS.map((p) => ({ id: p.id, name: p.short, src: p.image })), { id: 'site', name: 'Site map', src: 'plans/site-map.jpg' }];
 for (const d of drawings) {
   const b = document.createElement('button');
   b.textContent = d.name;
@@ -483,74 +564,79 @@ function showDrawing(id) {
   document.querySelectorAll('#drawingTabs button').forEach((b) => b.classList.toggle('on', b.dataset.id === id));
   if (!$('drawing').open) $('drawing').showModal();
 }
-$('btnDrawing').addEventListener('click', () => showDrawing(M.plan.id));
+$('btnDrawing').addEventListener('click', () => showDrawing(MD.plan.id));
 $('drawingClose').addEventListener('click', () => $('drawing').close());
 $('drawing').addEventListener('click', (e) => { if (e.target === $('drawing')) $('drawing').close(); });
+
+// measurement report
+function showReport() {
+  $('reportTitle').textContent = `Measurement validation — ${MD.plan.name}`;
+  $('reportBody').innerHTML = toHTML(getReport());
+  if (!$('report').open) $('report').showModal();
+}
+$('btnReport').addEventListener('click', showReport);
+$('verifySummary').addEventListener('click', showReport);
+$('reportClose').addEventListener('click', () => $('report').close());
+$('reportDownload').addEventListener('click', () => {
+  const blob = new Blob([`# Measurement validation\n\n${toMarkdown(getReport())}`], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `measurement-validation-${MD.plan.id}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+// used to regenerate VALIDATION.md from the live model
+window.measurementReport = () => toMarkdown(getReport());
 
 // ---------- minimap ----------
 const mm = $('minimap');
 const mctx = mm.getContext('2d');
 let mmT = null;
-const finishColor = { tile: '#efe7d6', ktile: '#e2dbcf', bath: '#cfe2e8', wood: '#d9b48d', marble: '#f6f3ee', stone: '#cdc5b8' };
+const finishColor = { tile: '#efe5d3', kitchen: '#e5dccd', bath: '#d4d0c6', wood: '#d6b58f', marble: '#f6f3ee', stone: '#c9c2b6' };
 function drawMinimap() {
   const dpr = Math.min(devicePixelRatio, 2);
   const W = mm.clientWidth, H = mm.clientHeight;
   mm.width = W * dpr; mm.height = H * dpr;
-  const [x0, z0, x1, z1] = M.plotRect;
+  const [x0, z0, x1, z1] = MD.plotRect;
   const pad = 10;
   const sc = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (z1 - z0));
   const ox = (W - (x1 - x0) * sc) / 2 - x0 * sc, oz = (H - (z1 - z0) * sc) / 2 - z0 * sc;
-  mmT = { sc, ox, oz, dpr };
+  mmT = { sc, ox, oz };
   const g = mctx;
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, W, H);
   const rr = (r, fill) => { g.fillStyle = fill; g.fillRect(r[0] * sc + ox, r[1] * sc + oz, (r[2] - r[0]) * sc, (r[3] - r[1]) * sc); };
-  rr(M.plotRect, 'rgba(200,190,170,0.55)');
-  for (const room of M.rooms) for (const r of room.rects) rr(r, room === whereRoom ? '#ffd166' : finishColor[room.finish]);
-  for (const r of M.mini.walls) rr(r, '#3b3a37');
-  for (const r of M.mini.windows) rr(r, '#6fb3d6');
-  // player
+  rr(MD.plotRect, 'rgba(200,190,170,0.5)');
+  for (const room of MD.rooms) for (const r of room.rects) rr(r, room === whereRoom ? '#ffd166' : finishColor[room.finish]);
+  for (const r of MD.mini.walls) rr(r, '#3b3a37');
+  for (const r of MD.mini.windows) rr(r, '#6fb3d6');
   if (mode !== 'orbit') {
     const px = walker.x * sc + ox, pz = walker.z * sc + oz;
-    const fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
-    const a = Math.atan2(fz, fx), spread = 0.6;
+    const a = Math.atan2(-Math.cos(walker.yaw), -Math.sin(walker.yaw));
     g.fillStyle = 'rgba(255,183,3,0.35)';
-    g.beginPath(); g.moveTo(px, pz); g.arc(px, pz, 26, a - spread, a + spread); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(px, pz); g.arc(px, pz, 26, a - 0.55, a + 0.55); g.closePath(); g.fill();
     g.fillStyle = '#ff7b00'; g.strokeStyle = '#fff'; g.lineWidth = 2;
     g.beginPath(); g.arc(px, pz, 5, 0, Math.PI * 2); g.fill(); g.stroke();
   }
-  // north arrow (world north = -u/-v of the survey frame, mapped into plan axes)
-  const nx = -NORTH_UV[0], nz = -NORTH_UV[1];
-  const L = Math.hypot(nx, nz);
-  const cx = W - 22, cy = 22;
-  g.save();
-  g.translate(cx, cy);
-  g.rotate(Math.atan2(nx / L, -nz / L));
+  const cx = W - 20, cy = 20;
+  g.save(); g.translate(cx, cy); g.rotate(Math.atan2(northWorld.x, -northWorld.y));
   g.fillStyle = '#d9362b';
-  g.beginPath(); g.moveTo(0, -12); g.lineTo(6, 8); g.lineTo(0, 4); g.lineTo(-6, 8); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(0, -11); g.lineTo(6, 7); g.lineTo(0, 3); g.lineTo(-6, 7); g.closePath(); g.fill();
   g.restore();
-  g.fillStyle = '#222'; g.font = 'bold 10px system-ui'; g.textAlign = 'center';
-  const nl = 22;
-  g.fillText('N', cx + (nx / L) * nl * 0.9 + 0, cy + (nz / L) * nl * 0.9 + 4);
 }
 mm.addEventListener('click', (e) => {
   if (!mmT || mode === 'fly') return;
   const r = mm.getBoundingClientRect();
   const x = (e.clientX - r.left - mmT.ox) / mmT.sc, z = (e.clientY - r.top - mmT.oz) / mmT.sc;
-  if (!inRect(x, z, M.plotRect)) return;
+  if (!inRect(x, z, MD.plotRect)) return;
   stopTour();
   glideTo(x, z);
 });
-
-// compass HUD (rotates with the camera)
-const northWorld = new THREE.Vector2(-NORTH_UV[0], -NORTH_UV[1]).normalize(); // (x, z)
 function updateCompass() {
   const f = new THREE.Vector3();
   camera.getWorldDirection(f);
-  const fl = Math.hypot(f.x, f.z) || 1;
-  const fx = f.x / fl, fz = f.z / fl;
-  const up = northWorld.x * fx + northWorld.y * fz;
-  const right = northWorld.x * -fz + northWorld.y * fx;
+  const fl = Math.hypot(f.x, f.z) || 1, fx = f.x / fl, fz = f.z / fl;
+  const up = northWorld.x * fx + northWorld.y * fz, right = northWorld.x * -fz + northWorld.y * fx;
   $('compass').style.transform = `rotate(${Math.atan2(right, up)}rad)`;
 }
 
@@ -558,48 +644,45 @@ function updateCompass() {
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
+  composer.setPixelRatio(renderer.getPixelRatio());
+  composer.setSize(w, h);
   labelRenderer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  if (M) drawMinimap();
+  if (MD) drawMinimap();
 }
 addEventListener('resize', resize);
-
 const clock = new THREE.Clock();
-let mmTimer = 0;
+let slowTimer = 0;
 function frame() {
   const dt = Math.min(0.05, clock.getDelta());
-  if (anim) {
-    const a = anim;
-    if (a.update(dt) && anim === a) { anim = null; a.resolve(true); }
-  }
+  if (anim) { const a = anim; if (a.update(dt) && anim === a) { anim = null; a.resolve(true); } }
   if (mode === 'walk') {
     if (!anim) keyMove(dt);
-    walker.y = damp(walker.y, M.floorY(walker.x, walker.z) + EYE, 8, dt);
+    walker.y = damp(walker.y, MD.floorY(walker.x, walker.z) + EYE, 8, dt);
     camera.position.set(walker.x, walker.y, walker.z);
     camera.quaternion.copy(quatOf(walker.yaw, walker.pitch));
   } else if (mode === 'orbit') {
     controls.update();
     const dist = camera.position.distanceTo(controls.target);
-    M.labels.visible = dist < 190;
-    M.siteLabels.visible = dist > 105;
+    MD.labels.visible = dist < 55 && camera.position.y > 5 && !$('chkDims').checked; // street level / dimension overlay: no room tags
+    MD.siteLabels.visible = dist > 45;
   }
-  const fov = mode === 'orbit' ? 55 : walkFov;
-  if (Math.abs(camera.fov - fov) > 0.01) {
-    camera.fov = damp(camera.fov, fov, 3, dt);
-    camera.updateProjectionMatrix();
-  }
+  const fov = mode === 'orbit' ? 45 : walkFov;
+  if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = damp(camera.fov, fov, 3, dt); camera.updateProjectionMatrix(); }
+  for (const r of MD.fans) r.rotation.y += dt * 5;
   updateHover();
   updateCompass();
-  mmTimer += dt;
-  if (mmTimer > 0.1) { mmTimer = 0; updateWhere(); drawMinimap(); }
-  renderer.render(scene, camera);
+  slowTimer += dt;
+  if (slowTimer > 0.15) { slowTimer = 0; updateWhere(); drawMinimap(); updateLights(); }
+  composer.render(dt);
   labelRenderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
 
-let walkFov = 68;
 if (innerWidth < 760) document.body.classList.remove('panel-open');
+$('chkHQ').checked = !mobile;
+gtao.enabled = !mobile;
 resize();
 loadPlan((location.hash || '#p1').slice(1));
 $('loading').remove();

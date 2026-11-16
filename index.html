@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Padma Reddy Residence · 3D Walkthrough</title>
-  <meta name="description" content="Interactive 3D virtual tour of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
+  <meta name="description" content="Dimensionally accurate interactive 3D walkthrough of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
   <link rel="stylesheet" href="style.css" />
   <script type="importmap">
     {
@@ -22,13 +22,14 @@
   <aside id="panel">
     <header>
       <h1>Padma Reddy Residence</h1>
-      <p class="sub">Interactive 3D walkthrough · Yellareddypet</p>
+      <p class="sub">To-scale 3D walkthrough · 1 unit = 1 m</p>
     </header>
 
     <section>
       <h2>Design</h2>
       <div id="plans" class="seg"></div>
       <p id="planNote" class="note"></p>
+      <button id="verifySummary" class="verify" title="Open the measurement validation report"></button>
     </section>
 
     <section>
@@ -36,13 +37,39 @@
       <div class="btns">
         <button id="btnSite">Whole site</button>
         <button id="btnHouse">Dollhouse</button>
+        <button id="btnPlan">Bird's-eye</button>
         <button id="btnWalk" class="primary">Walk in</button>
-        <button id="btnTour">▶ Guided tour</button>
+        <button id="btnTour" class="wide">▶ Guided tour</button>
       </div>
       <div class="row">
-        <label class="chk"><input type="checkbox" id="chkRoof" /> Show roof</label>
+        <label class="chk"><input type="checkbox" id="chkDims" /> Dimensions</label>
+        <label class="chk"><input type="checkbox" id="chkRoof" /> Roof</label>
+        <label class="chk"><input type="checkbox" id="chkHQ" checked /> High quality</label>
+      </div>
+      <div class="row">
+        <button id="btnReport" class="link">Measurement report</button>
         <button id="btnDrawing" class="link">Original drawings</button>
       </div>
+    </section>
+
+    <section>
+      <h2>Elevation · road-facing sides</h2>
+      <div class="row first">
+        <label class="chk"><input type="checkbox" id="chkElev" /> Show elevation design</label>
+        <button id="btnStreet" class="link">Street view</button>
+      </div>
+      <div id="elevs" class="seg wrap"></div>
+      <p id="elevNote" class="note"></p>
+    </section>
+
+    <section>
+      <h2>Sunlight at the site</h2>
+      <div class="sunrow">
+        <input type="date" id="sunDate" />
+        <input type="range" id="sunTime" min="330" max="1230" step="5" />
+      </div>
+      <p id="sunInfo" class="note"></p>
+      <p class="note">Site: <a id="siteLink" target="_blank" rel="noopener"></a></p>
     </section>
 
     <section class="rooms-sec">
@@ -62,7 +89,7 @@
     <div id="hint"></div>
   </div>
   <canvas id="minimap" title="Click to glide there"></canvas>
-  <div id="compassWrap" title="North (from survey map)"><div id="compass"><i></i><span>N</span></div></div>
+  <div id="compassWrap" title="North (from the survey map)"><div id="compass"><i></i><span>N</span></div></div>
 
   <dialog id="drawing">
     <div class="dlg-head">
@@ -70,6 +97,15 @@
       <button id="drawingClose" aria-label="Close">✕</button>
     </div>
     <div class="dlg-body"><img id="drawingImg" alt="" /></div>
+  </dialog>
+
+  <dialog id="report">
+    <div class="dlg-head">
+      <h2 id="reportTitle"></h2>
+      <button id="reportDownload">Download .md</button>
+      <button id="reportClose" aria-label="Close">✕</button>
+    </div>
+    <div id="reportBody" class="report-body"></div>
   </dialog>
 
   <div id="loading">Loading 3D model…</div>
