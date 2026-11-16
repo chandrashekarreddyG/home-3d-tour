@@ -42,8 +42,11 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - Bird's-eye, dollhouse and whole-site views, plus a first-person walk at 1.6 m eye height.
   - Click the floor to glide; routes go through doorways.
   - W A S D to walk, with collision against walls and furniture.
+  - Up the staircase to the **terrace** (+3.18 m): walk up with W, click a tread or the terrace floor, or use
+    **Terrace** in the room list. Walking follows the treads and the landing; on the terrace you stay inside the
+    parapet and clear of the open stair well. The guided tour ends on the terrace.
   - Dimensions overlay.
-  - True-size cues: the walk view uses a 65° lens, about a 24 mm interior-photo lens; a light aerial haze softens
+  - True-size cues: the walk view holds a 70° horizontal field of view at any window shape; a light aerial haze softens
     the far fields; and **People & car** (on by default) adds grey scale figures on the verandah and a 3.85 m
     hatchback on G.P Road in the outside views (1.72 m man, 1.58 m woman, 1.12 m child). Plan-1's slab measures
     50′-0″ × 52′-0″ in the model, including the 2′-0″ cantilever.
@@ -51,6 +54,10 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   - beds, wardrobes, sofas, a modular kitchen with hob and chimney
   - toilets with EWC, vanity, real mirrors and shower glass
   - fans, downlights, curtains, and hinged doors that swing as drawn
+  - TV feature walls: centred in the clear wall between the drawn openings and 400 mm clear of furniture next to it,
+    with a warm-beige panel, an oak fluted band, a floating walnut console and concealed warm LED. The TV is the
+    largest 16:9 size that fits (55″ / 50″ / 43″). Windows on a TV wall get Roman blinds inside the reveal, so no
+    curtain overlaps the panel. In Plan-1's 17′-0″ Great Room wall the 1387 mm gap takes a 1287 mm panel with a 50″ TV.
   - doors and windows use typical Indian sizes at the drawn positions:
     - room doors 900 × 2100 mm, toilet doors 750 × 2100 mm, main / double doors 900–1500 mm (nearest to the drawing)
     - windows 600 / 900 / 1200 / 1500 / 1800 / 2100 mm wide × 1200 mm high on a 900 mm sill

@@ -9,7 +9,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // heights to the centre of the box, metres above finished floor
 export const H = {
   door: 1.1, bedside: 0.8, socket: 0.375, counter: 1.05, fridge: 1.25, chimney: 2.2, ac: 2.3,
-  geyser: 1.95, exhaust: 1.95, tvBack: 1.15, console: 0.62, db: 1.65, vdp: 1.45, bell: 1.35, outdoor: 0.6,
+  geyser: 1.95, exhaust: 1.95, db: 1.65, vdp: 1.45, bell: 1.35, outdoor: 0.6,
 };
 const FROM_FRAME = 0.175; // door board edge from the door opening (rule: 150–200 mm from the frame)
 
@@ -18,7 +18,7 @@ export const RULES = [
   ['Room switchboard at the door', '1.10 m to centre', 'Latch (opening) side, 175 mm from the door opening, never behind the door leaf; one height in every room (1.10–1.20 m; 1.10 m also suits children and seated users). ' + SRC],
   ['Bedside boards (both sides of the bed)', '0.80 m', 'Above the side tables (0.50 m), beside — not behind — the headboard; 2-way main light, fan regulator, USB and 6 A socket (700–900 mm rule).'],
   ['General sockets (sofa side)', '0.375 m', 'Above the skirting (300–450 mm rule), at the end of the sofa where a lamp or charger is used.'],
-  ['TV wall', '1.15 m behind the screen + 0.62 m above the console', 'Power and TV/data hidden behind the 55″ TV; a second board 170 mm above the console top for set-top box / sound bar.'],
+  ['TV wall', 'screen centre (≈ 1.14–1.17 m) + 170 mm above the console', 'On the TV feature panel: power and TV/data hidden behind the screen; a second board 170 mm above the floating console for set-top box / sound bar.'],
   ['Kitchen counter boards', '1.05 m', '200 mm above the 850 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A.'],
   ['Refrigerator', '1.25 m beside the fridge', 'Beside, not behind, the appliance so it can be unplugged without moving it.'],
   ['Chimney', '2.20 m', 'Just above the wall cabinets beside the chimney duct (2100–2200 mm rule).'],
@@ -80,7 +80,7 @@ const SPECIAL = {
 const NORMAL = { n: [0, 1], s: [0, -1], w: [1, 0], e: [-1, 0] };
 const overlap = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
 const heightOf = (name) => [
-  [/Wardrobe/i, 2.4], [/Crockery/i, 2.1], [/Refrigerator/i, 1.82], [/counter/i, 0.87], [/TV console/i, 0.45], [/bed/i, 1.18],
+  [/Wardrobe/i, 2.4], [/Crockery/i, 2.1], [/Refrigerator/i, 1.82], [/counter/i, 0.87], [/TV feature wall/i, 2.4], [/bed/i, 1.18],
   [/Sofa/i, 0.9], [/Vanity/i, 2.05], [/EWC/i, 0.85], [/Dining/i, 0.95], [/planter/i, 1.6], [/Coffee/i, 0.5], [/Diwan/i, 0.75], [/Mandir/i, 2.2],
 ].find(([re]) => re.test(name))?.[1] ?? 1.0;
 
@@ -105,15 +105,11 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
   };
   const at = (f, A, off = 0) => (f.vertical ? [f.fc + f.n[0] * off, A] : [A, f.fc + f.n[1] * off]);
 
-  // obstacles in front of walls: furniture (by height), open door leaves, the TV screen
+  // obstacles in front of walls: furniture (by height; the TV feature wall is tagged so its own boards may sit on
+  // it) and open door leaves
   const obstacles = [];
-  for (const f of furniture) if (f.rect) obstacles.push({ rect: f.rect, y0: 0, y1: heightOf(f.name), name: f.name, room: f.room });
+  for (const f of furniture) if (f.rect) obstacles.push({ rect: f.rect, y0: 0, y1: heightOf(f.name), name: f.name, room: f.room, tv: /TV feature wall/.test(f.name) });
   for (const o of ops) for (const lf of o.leaves || []) obstacles.push({ rect: lf.rect, y0: 0, y1: 2.15, name: 'open door leaf' });
-  for (const fx of fixtures.filter((q) => q.type === 'tv')) {
-    const room = byName(fx.room), f = sideFace(room, fx.side, fx.along);
-    const [x0, z0] = at(f, fx.along - 0.615, 0), [x1, z1] = at(f, fx.along + 0.615, 0.09); // 55″ screen, 1.23 m wide
-    obstacles.push({ rect: [Math.min(x0, x1), Math.min(z0, z1), Math.max(x0, x1), Math.max(z0, z1)], y0: 0.79, y1: 1.51, name: 'TV screen', tv: true });
-  }
 
   const placed = [];
   const misses = [];
@@ -158,7 +154,7 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
   }
   function add(room, board, f, A, y, items, special, why, q = {}) {
     const size = special ? SPECIAL[special] : plateOf(items);
-    const [x, z] = at(f, A, 0);
+    const [x, z] = at(f, A, q.proud || 0); // proud: mounted on a panel in front of the wall (TV feature wall)
     const rec = { id: `E${placed.length + 1}`, room: room.name, serves: room.name, board, face: f, A, y, w: size.w, h: size.h, items, special, why, pos: [x, y, z], mods: size.mods, q };
     placed.push(rec);
     return rec;
@@ -302,9 +298,9 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
       const f = sideFace(room, fx.side, fx.along);
       for (const s of [-1, 1]) place(room, `Bedside board (${s < 0 ? 'left' : 'right'})`, f, fx.along + s * fx.ns, s, H.bedside, TPL.bedside, 'Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket', { max: 0.3, soft: true, ignore: (ob) => /bed/i.test(ob.name) && ob.room === room.name });
     } else if (fx.type === 'tv') {
-      const f = sideFace(room, fx.side, fx.along);
-      place(room, 'TV wall board (behind the TV)', f, fx.along, 1, H.tvBack, TPL.tvBack, 'Hidden behind the screen with TV/data outlets; 25 mm conduit down to the console', { ignore: (ob) => ob.tv, max: 0.2, both: true });
-      place(room, 'TV console board', f, fx.along + 0.4, 1, H.console, TPL.console, '170 mm above the 450 mm console top, between console and screen', { max: 0.3, both: true });
+      const f = sideFace(room, fx.side, fx.along), [, , ch, c0] = fx.tv.console, onPanel = { ignore: (ob) => ob.tv, proud: 0.025 };
+      place(room, 'TV wall board (behind the TV)', f, fx.along, 1, fx.tv.y, TPL.tvBack, `Hidden behind the ${fx.tv.inch}″ screen on the feature panel with TV/data outlets; 25 mm conduit down to the console`, { ...onPanel, max: 0.2, both: true });
+      place(room, 'TV console board', f, fx.along + 0.3, 1, c0 + ch + 0.17, TPL.console, `170 mm above the floating console top (${Math.round((c0 + ch) * 1000)} mm), below the screen`, { ...onPanel, max: 0.3, both: true });
     } else if (fx.type === 'sofa') {
       const backSide = { n: 's', s: 'n', w: 'e', e: 'w' }[fx.facing];
       const along = (fx.a + fx.b) / 2;
@@ -406,7 +402,7 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
   // ---------- verification: every board re-checked against walls, openings, furniture, leaves and the other
   // boards, and its height against the rule band for its type ----------
   const BANDS = [
-    [/Bedside/, 0.7, 0.9], [/Sofa|Dining socket/, 0.3, 0.45], [/TV wall/, 1.1, 1.3], [/console/, 0.6, 0.65], [/counter/, 1.0, 1.1],
+    [/Bedside/, 0.7, 0.9], [/Sofa|Dining socket/, 0.3, 0.45], [/TV wall/, 1.1, 1.3], [/console/, 0.6, 0.8], [/counter/, 1.0, 1.1],
     [/Refrigerator/, 1.2, 2.0], [/Chimney/, 2.1, 2.2], [/Geyser/, 1.8, 2.0], [/Exhaust/, 1.8, 2.1], [/AC/, 2.1, 2.3],
     [/distribution/, 1.5, 1.8], [/door phone/, 1.4, 1.5], [/Bell/, 1.2, 1.5], [/Outdoor/, 0.45, 0.75], [/./, 1.0, 1.2],
   ];

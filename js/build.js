@@ -124,6 +124,12 @@ export function buildModel(plan, M, onLabelClick) {
   const roomAt = (x, z) => rooms.find((r) => r.rects.some((q) => inRect(x, z, q)));
   const roomAtIn = (x, z) => roomAt(x * IN, z * IN);
   const byName = (n) => rooms.find((r) => r.name === n);
+  // walls that carry a TV (from the furniture plan): their windows get Roman blinds inside the reveal instead of
+  // side-stacking curtains, so the TV feature wall between the openings stays clear
+  const tvFaces = plan.furn.filter((f) => f[0] === 'tv').map(([, rn, side]) => {
+    const r = byName(rn).main;
+    return { room: rn, vertical: side === 'w' || side === 'e', face: { n: r[1], s: r[3], w: r[0], e: r[2] }[side] };
+  });
 
   // ---------------- walls & openings ----------------
   const doorways = [];
@@ -299,11 +305,19 @@ export function buildModel(plan, M, onLabelClick) {
           const exPt = vertical ? [cM + extSgn * (tM / 2 + 0.3), mid] : [mid, cM + extSgn * (tM / 2 + 0.3)];
           if (!roomAt(exPt[0], exPt[1])) place(L + 0.3, 0.075, 0.45, M.paintExt, mid, DOOR_H + 0.19, extSgn * (tM / 2 + 0.225));
         }
-        // curtains in habitable rooms
+        // curtains in habitable rooms (Roman blinds on a TV wall)
         if (o.kind === 'w') {
           for (const sgn of [-1, 1]) {
             const r = sideRoom((o.a + o.b) / 2, sgn);
             if (!r || r.outdoor || ['bath', 'kitchen'].includes(r.finish) || r.name === 'Pooja') continue;
+            if (tvFaces.some((t) => t.room === r.name && t.vertical === vertical && Math.abs(t.face - (cM + sgn * (tM / 2))) < 0.02)) {
+              const bl = K.romanBlind(L - 0.06, o.hi - 0.01, o.lo);
+              bl.rotation.y = vertical ? (sgn > 0 ? Math.PI / 2 : -Math.PI / 2) : sgn > 0 ? 0 : Math.PI;
+              const across = cM + sgn * (tM / 2 - 0.035);
+              if (vertical) bl.position.set(across, 0, mid); else bl.position.set(mid, 0, across);
+              root.add(bl);
+              continue;
+            }
             const off = sgn * (tM / 2 + 0.12);
             const rodY = DOOR_H + 0.09;
             const rod = place(L + 0.5, 0.02, 0.02, M.chrome, mid, rodY, off, false);
@@ -425,9 +439,14 @@ export function buildModel(plan, M, onLabelClick) {
     worldUV(m);
     root.add(m);
   }
+  const terraceZone = { name: 'Terrace', label: 'roof · +3.18 m', outdoor: true, level: 'roof' };
+  const stairZone = { name: 'Staircase', label: '18 risers', outdoor: true, level: 'stair' };
+  const upPick = []; // terrace slab + stair treads: clickable while walking upstairs
   for (const r of [building, sideBal, ...subtractRect(frontBal, st)]) {
     const m = K.box(r[2] - r[0], SLAB, r[3] - r[1], M.slab, (r[0] + r[2]) / 2, CEIL + SLAB / 2, (r[1] + r[3]) / 2);
+    m.userData.floor = terraceZone;
     roof.add(m);
+    upPick.push(m);
   }
   // 2′-0″ cantilevered roof slab (sunshade) on the two back sides: the rear (−z) and the east side (+x), at slab
   // level; the parapet stays on the wall line. Clear of the plot line on every plan (≥ 40 mm at the rear of Plan-1/2).
@@ -452,13 +471,14 @@ export function buildModel(plan, M, onLabelClick) {
     const [x0, z0, x1, z1] = st;
     const risers = 18, rise = (CEIL + SLAB) / risers, tread = 0.25, perFlight = risers / 2;
     const zm = (z0 + z1) / 2, runLen = (perFlight - 1) * tread, landing = x1 - x0 - runLen;
+    const step = (m) => { m.userData.floor = stairZone; root.add(m); upPick.push(m); };
     for (let i = 0; i < perFlight - 1; i++) {
       const h1 = (i + 1) * rise;
-      root.add(K.box(tread, h1, zm - z0, M.granite, x0 + (i + 0.5) * tread, h1 / 2, (z0 + zm) / 2));
+      step(K.box(tread, h1, zm - z0, M.granite, x0 + (i + 0.5) * tread, h1 / 2, (z0 + zm) / 2));
       const h2 = (perFlight + i + 1) * rise;
-      root.add(K.box(tread, h2, z1 - zm, M.granite, x0 + runLen - (i + 0.5) * tread, h2 / 2, (zm + z1) / 2));
+      step(K.box(tread, h2, z1 - zm, M.granite, x0 + runLen - (i + 0.5) * tread, h2 / 2, (zm + z1) / 2));
     }
-    root.add(K.box(landing, perFlight * rise, z1 - z0, M.granite, x1 - landing / 2, (perFlight * rise) / 2, (z0 + z1) / 2));
+    step(K.box(landing, perFlight * rise, z1 - z0, M.granite, x1 - landing / 2, (perFlight * rise) / 2, (z0 + z1) / 2));
     root.add(K.box(runLen, 1.0 + perFlight * rise, 0.115, M.paintExt, x0 + runLen / 2, (1.0 + perFlight * rise) / 2, zm));
     // railing on the open (south) side of the upper flight and the landing
     const rail = M.solid('#1f2124', { metalness: 0.6, roughness: 0.4 });
@@ -473,6 +493,45 @@ export function buildModel(plan, M, onLabelClick) {
     mini.walls.push([x0, z0, x1, z1]);
     Object.assign(stairInfo, { risers, rise, tread, width: zm - z0, landing, rect: st });
   }
+
+  // ---------------- levels: ground, staircase and terrace ----------------
+  // Walking follows the treads: the foot of flight 1 is entered from the front balcony, the landing joins the two
+  // flights, and the top of flight 2 steps out onto the terrace (inside the parapet, never over the open well).
+  const TOP = CEIL + SLAB;
+  const levels = (() => {
+    const [sx0, sz0, sx1, sz1] = st, zm = (sz0 + sz1) / 2, run = sx1 - sx0 - stairInfo.landing, half = (stairInfo.risers / 2) * stairInfo.rise;
+    const inner = [-bal.side * IN + 0.115, 0.115, W * IN - 0.115, (D + bal.front) * IN - 0.115]; // inside the parapet
+    const stairY = (x, z) => (x >= sx0 + run ? half : z < zm ? half * Math.max(0, Math.min(1, (x - sx0) / run)) : half + half * Math.max(0, Math.min(1, (sx0 + run - x) / run)));
+    const inSt = (x, z, m = 0) => x > sx0 - m && x < sx1 + m && z > sz0 - m && z < sz1 + m;
+    const onStair = (x, z, r) => x > sx0 - 0.01 && x < sx1 - r && z > sz0 + r && z < sz1 - r && !(x < sx0 + run && Math.abs(z - zm) < 0.06 + r);
+    const onRoof = (x, z, r) => x > inner[0] + r && x < inner[2] - r && z > inner[1] + r && z < inner[3] - r;
+    const up = (x, z) => z > zm + 0.06 && z < sz1; // the flight-2 band, where the stair meets the terrace
+    // where a walker on `level` ends up at (x, z) with body radius r, or null if it can't stand there
+    function at(level, x, z, r = 0) {
+      if (level === 'ground') return inSt(x, z) ? (z < zm && x < sx0 + 0.35 && onStair(x, z, r) ? { level: 'stair', y: stairY(x, z) } : null) : { level: 'ground', y: null };
+      if (level === 'stair') {
+        if (inSt(x, z)) return onStair(x, z, r) ? { level: 'stair', y: stairY(x, z) } : null;
+        if (x <= sx0 && z > sz0 + r && z < zm - 0.06 - r) return { level: 'ground', y: null };
+        if (x <= sx0 && up(x, z) && onRoof(x, z, r)) return { level: 'roof', y: TOP };
+        return null;
+      }
+      if (inSt(x, z, r)) {
+        if (!(up(x, z) && x < sx0 + 0.35 && z > zm + 0.06 + r && onRoof(x, z, r))) return null; // edge of the well
+        return x >= sx0 ? { level: 'stair', y: stairY(x, z) } : { level: 'roof', y: TOP };
+      }
+      return onRoof(x, z, r) ? { level: 'roof', y: TOP } : null;
+    }
+    const y = (level, x, z) => (level === 'roof' ? TOP : level === 'stair' ? stairY(x, z) : null);
+    // waypoints along the stair centre lines
+    const way = { foot: [sx0 - 0.45, (sz0 + zm) / 2], land1: [sx0 + run + stairInfo.landing / 2, (sz0 + zm) / 2], land2: [sx0 + run + stairInfo.landing / 2, (zm + sz1) / 2], top: [sx0 - 0.5, (zm + sz1) / 2] };
+    const roofNav = new NavGrid([inner[0] - 0.5, inner[1] - 0.5, inner[2] + 0.5, inner[3] + 0.5], [inner], [st], [
+      { r: [inner[0] - 0.1, inner[1] - 0.1, inner[2] + 0.1, inner[1]], clear: 0.25 }, { r: [inner[0] - 0.1, inner[3], inner[2] + 0.1, inner[3] + 0.1], clear: 0.25 },
+      { r: [inner[0] - 0.1, inner[1], inner[0], inner[3]], clear: 0.25 }, { r: [inner[2], inner[1], inner[2] + 0.1, inner[3]], clear: 0.25 },
+      { r: st, clear: 0.25 },
+    ]);
+    const centre = [(inner[0] + inner[2]) / 2, (inner[1] + inner[3]) / 2];
+    return { at, y, way, roofNav, inSt, flightOf: (x, z) => (x >= sx0 + run ? 'landing' : z < zm ? 'flight1' : 'flight2'), terrace: { x: centre[0], z: centre[1] }, top: TOP };
+  })();
 
   // ---------------- furniture ----------------
   const poojaSpots = [];
@@ -516,7 +575,9 @@ export function buildModel(plan, M, onLabelClick) {
 
   const wcSpots = {};
   const wardRects = {};
-  const furnList = [...plan.furn].sort((a, b) => ['ward', 'crock'].includes(b[0]) - ['ward', 'crock'].includes(a[0]));
+  // wardrobes / crockery first (beds keep clear of them), TV walls last (they size themselves around the rest)
+  const rank = (t) => (['ward', 'crock'].includes(t) ? 0 : t === 'tv' ? 2 : 1);
+  const furnList = [...plan.furn].sort((a, b) => rank(a[0]) - rank(b[0]));
   for (const it of furnList) {
     const [type, rn] = it;
     const room = byName(rn);
@@ -558,10 +619,28 @@ export function buildModel(plan, M, onLabelClick) {
       const built = K.coffeeTable(it[4], it[5]);
       addItem(room, `Coffee table ${Math.round(it[4] * 1000)}×${Math.round(it[5] * 1000)} mm`, built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.15, false);
     } else if (type === 'tv') {
-      const side = it[2], nrm = NORMAL[side], along = alongAt(side, it[3]);
+      // feature wall centred in the clear wall between the openings either side of the drawn TV position
+      const side = it[2], nrm = NORMAL[side], drawn = alongAt(side, it[3]);
+      const vert = side === 'w' || side === 'e', face = faceOf(room, side, drawn);
+      const span = vert ? [room.main[1], room.main[3]] : [room.main[0], room.main[2]];
+      let lo = span[0], hi = span[1];
+      for (const o of openingsAll) {
+        if (o.vertical !== vert || Math.abs(o.c * IN - face) > (o.t * IN) / 2 + 0.02) continue;
+        if (o.b * IN <= drawn) lo = Math.max(lo, o.b * IN); else if (o.a * IN >= drawn) hi = Math.min(hi, o.a * IN);
+      }
+      // keep 400 mm walking room to any furniture standing in front of this wall (within the panel's 0.8 m zone)
+      const into = NORMAL[side], dEdge = (r) => (vert ? (into[0] > 0 ? r[0] - face : face - r[2]) : (into[1] > 0 ? r[1] - face : face - r[3]));
+      for (const f of report.furniture) {
+        if (!f.rect || f.room !== rn || dEdge(f.rect) > 0.8) continue;
+        const [fa, fb] = vert ? [f.rect[1], f.rect[3]] : [f.rect[0], f.rect[2]];
+        if (fb <= drawn) lo = Math.max(lo, fb + 0.4); else if (fa >= drawn) hi = Math.min(hi, fa - 0.4);
+      }
+      const P = Math.min(2.6, hi - lo - 0.1), along = (lo + hi) / 2;
+      const built = K.tvWall(P);
       const [x, z] = wallsideAt(room, side, along);
-      addItem(room, 'TV console 1200 mm + 55″ TV', K.tvUnit(), nrm, x, z, 0.15);
-      fixtures.push({ type: 'tv', room: rn, side, along });
+      const { inch, w: tw, h: th, console: [cw, cd, ch, c0] } = built.tv;
+      addItem(room, `TV feature wall ${Math.round(P * 1000)} mm (clear wall ${Math.round((hi - lo) * 1000)} mm): ${inch}″ TV ${Math.round(tw * 1000)}×${Math.round(th * 1000)} mm, floating console ${Math.round(cw * 1000)}×${Math.round(cd * 1000)}×${Math.round(ch * 1000)} mm at ${Math.round(c0 * 1000)} mm`, built, nrm, x, z, 0.15);
+      fixtures.push({ type: 'tv', room: rn, side, along, tv: built.tv, gap: [lo, hi], panel: P });
     } else if (type === 'dining') {
       const built = K.dining(it[4]);
       addItem(room, it[4] === 'round4' ? 'Round dining table Ø1000 mm, 4 chairs' : 'Dining table 900×1500 mm, 6 chairs', built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
@@ -817,7 +896,7 @@ export function buildModel(plan, M, onLabelClick) {
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
     plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical, scaleRefs,
-    colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
+    colliders, nav, levels, upPick, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,
   };

@@ -108,15 +108,15 @@ Tolerance: 1 mm.
 | Great Room | Sofa 1062×880 mm | 0.411 m (1′-4¼″) | Coffee table 550×1100 mm | 0.40 m | ✅ |
 | Great Room | Sofa 2412×880 mm | 0.400 m (1′-3¾″) | Coffee table 550×1100 mm | 0.40 m | ✅ |
 | Great Room | Coffee table 550×1100 mm | — | — | — | ✅ |
-| Great Room | TV console 1200 mm + 55″ TV | 3.020 m (9′-10⅞″) | Sofa 1062×880 mm | 0.60 m | ✅ |
 | Great Room | Floor planter | — | — | — | ✅ |
 | Living | Sofa 1062×880 mm | 0.424 m (1′-4⅝″) | Coffee table 550×900 mm | 0.40 m | ✅ |
 | Living | Sofa 2357×880 mm | 0.400 m (1′-3¾″) | Coffee table 550×900 mm | 0.40 m | ✅ |
 | Living | Sofa 1062×880 mm | 0.424 m (1′-4⅝″) | Coffee table 550×900 mm | 0.40 m | ✅ |
 | Living | Coffee table 550×900 mm | — | — | — | ✅ |
-| Living | TV console 1200 mm + 55″ TV | 3.140 m (10′-3⅝″) | Coffee table 550×900 mm | 0.60 m | ✅ |
 | Living | Floor planter | — | — | — | ✅ |
 | Living | Floor planter | — | — | — | ✅ |
+| Great Room | TV feature wall 1494 mm (clear wall 1594 mm): 55″ TV 1218×685 mm, floating console 1444×350×280 mm at 300 mm | 3.065 m (10′-0⅝″) | Sofa 1062×880 mm | 0.60 m | ✅ |
+| Living | TV feature wall 1602 mm (clear wall 1702 mm): 55″ TV 1218×685 mm, floating console 1552×350×280 mm at 300 mm | 3.185 m (10′-5⅜″) | Coffee table 550×900 mm | 0.60 m | ✅ |
 
 ### Door swings (leaf opened 90°): free of furniture
 
@@ -143,7 +143,7 @@ Tolerance: 1 mm.
 | Toilet 1 | ✅ | 17.842 m |
 | Passage | ✅ | 14.316 m |
 | Master Bedroom | ✅ | 17.975 m |
-| Great Room | ✅ | 10.603 m |
+| Great Room | ✅ | 10.581 m |
 | Bedroom 2 | ✅ | 14.941 m |
 | Lobby | ✅ | 10.940 m |
 | Toilet 2 | ✅ | 14.900 m |
@@ -285,11 +285,11 @@ Tolerance: 1 mm.
 | Great Room | Sofa 1061×880 mm | 0.432 m (1′-5″) | Coffee table 550×1100 mm | 0.40 m | ✅ |
 | Great Room | Sofa 2404×880 mm | 0.401 m (1′-3¾″) | Coffee table 550×1100 mm | 0.40 m | ✅ |
 | Great Room | Coffee table 550×1100 mm | — | — | — | ✅ |
-| Great Room | TV console 1200 mm + 55″ TV | 2.357 m (7′-8¾″) | Sofa 1061×880 mm | 0.60 m | ✅ |
 | Great Room | Floor planter | — | — | — | ✅ |
 | Living | Sofa 1179×880 mm | 0.426 m (1′-4¾″) | Coffee table 500×1000 mm | 0.40 m | ✅ |
 | Living | Sofa 1202×880 mm | 0.426 m (1′-4¾″) | Coffee table 500×1000 mm | 0.40 m | ✅ |
 | Living | Coffee table 500×1000 mm | — | — | — | ✅ |
+| Great Room | TV feature wall 1287 mm (clear wall 1387 mm): 50″ TV 1107×623 mm, floating console 1237×350×280 mm at 300 mm | 2.402 m (7′-10½″) | Sofa 1061×880 mm | 0.60 m | ✅ |
 
 ### Door swings (leaf opened 90°): free of furniture
 
@@ -449,13 +449,13 @@ Tolerance: 1 mm.
 | Toilet 3 | Vanity 600×450 mm + mirror | 2.388 m (7′-10″) | Queen bed 1520×1980 mm + side tables | 0.50 m | ✅ |
 | Toilet 3 | Shower glass 914 mm (10 mm toughened, 2.0 m high) | — | — | — | ✅ |
 | Pooja | Mandir 1019×450 mm (idols: Ganesha, Venkateswara, Lakshmi, Shiva lingam) | 0.939 m (3′-1″) | door leaf / glass | 0.75 m | ✅ |
-| Great Room | Diwan 1840×800 mm | 0.429 m (1′-4⅞″) | TV console 1200 mm + 55″ TV | 0.40 m | ✅ |
+| Great Room | Diwan 1840×800 mm | 0.450 m (1′-5¾″) | TV feature wall 1385 mm (clear wall 1485 mm): 55″ TV 1218×685 mm, floating console 1335×350×280 mm at 300 mm | 0.40 m | ✅ |
 | Great Room | Sofa 2424×880 mm | 0.404 m (1′-3⅞″) | Coffee table 550×1100 mm | 0.40 m | ✅ |
 | Great Room | Coffee table 550×1100 mm | — | — | — | ✅ |
-| Great Room | TV console 1200 mm + 55″ TV | 2.818 m (9′-3″) | Coffee table 550×1100 mm | 0.60 m | ✅ |
 | Living | Sofa 1196×880 mm | 0.429 m (1′-4⅞″) | Coffee table 500×1000 mm | 0.40 m | ✅ |
 | Living | Sofa 1227×880 mm | 0.429 m (1′-4⅞″) | Coffee table 500×1000 mm | 0.40 m | ✅ |
 | Living | Coffee table 500×1000 mm | — | — | — | ✅ |
+| Great Room | TV feature wall 1385 mm (clear wall 1485 mm): 55″ TV 1218×685 mm, floating console 1335×350×280 mm at 300 mm | 2.863 m (9′-4¾″) | Coffee table 550×1100 mm | 0.60 m | ✅ |
 
 ### Door swings (leaf opened 90°): free of furniture
 

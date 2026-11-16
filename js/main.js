@@ -101,8 +101,8 @@ let real = false; // realistic view: photographic grade, sharper render, no over
 // ---------- state ----------
 let MD = null; // current model
 let mode = 'orbit'; // orbit | fly | walk
-const walker = { x: 0, z: 0, y: EYE, yaw: 0, pitch: 0 };
-let anim = null, touring = false, lastOrbit = null, walkFov = 65; // eye-level lens ≈ a 24 mm interior photo lens
+const walker = { x: 0, z: 0, y: EYE, yaw: 0, pitch: 0, level: 'ground' }; // level: ground | stair | roof (terrace)
+let anim = null, touring = false, lastOrbit = null, walkHFov = 70; // walk view: 70° horizontal, eye at 1.6 m
 const keys = new Set();
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const damp = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
@@ -255,7 +255,7 @@ async function enterWalk(x, z, yaw, pitch = 0) {
     camera.quaternion.slerpQuaternions(q0, q1, Math.min(1, e * 1.15));
     return t >= 1;
   } });
-  Object.assign(walker, { x, z, y, yaw, pitch });
+  Object.assign(walker, { x, z, y, yaw, pitch, level: 'ground' });
   setMode('walk');
   return ok;
 }
@@ -290,6 +290,8 @@ function walkPath(pts, finalYaw, finalPitch = 0) {
       const [tx, tz] = pts[i];
       const dx = tx - walker.x, dz = tz - walker.z, d = Math.hypot(dx, dz);
       if (d <= step) { walker.x = tx; walker.z = tz; step -= d; i++; } else { walker.x += (dx / d) * step; walker.z += (dz / d) * step; step = 0; }
+      const lv = MD.levels.at(walker.level, walker.x, walker.z, 0); // planned route: just follow it onto the stair / terrace
+      if (lv) walker.level = lv.level;
     }
     if (i < pts.length) {
       const [tx, tz] = pts[i];
@@ -320,25 +322,45 @@ function lookAround(dur = 6) {
     return t >= dur;
   } });
 }
-async function glideTo(x, z, finalYaw = null, finalPitch = 0) {
+// waypoints from the walker to (tx, tz) on level tl, through the stair when the levels differ (null if unreachable)
+function route(tx, tz, tl) {
+  const W = MD.levels.way, L = walker.level, cur = [walker.x, walker.z], t = [tx, tz];
+  const gp = (a, b) => MD.nav.path(a[0], a[1], b[0], b[1]);
+  const rp = (a, b) => MD.levels.roofNav.path(a[0], a[1], b[0], b[1]);
+  const cat = (...parts) => (parts.some((p) => !p) ? null : parts.flat());
+  const up = { flight1: [W.land1, W.land2, W.top], landing: [W.land2, W.top], flight2: [W.top] };
+  const down = { flight1: [W.foot], landing: [W.land1, W.foot], flight2: [W.land2, W.land1, W.foot] };
+  if (L === 'ground') return tl === 'roof' ? cat(gp(cur, W.foot), [W.land1, W.land2, W.top], rp(W.top, t)) : gp(cur, t);
+  if (L === 'roof') return tl === 'roof' ? rp(cur, t) : cat(rp(cur, W.top), [W.land2, W.land1, W.foot], gp(W.foot, t));
+  const f = MD.levels.flightOf(walker.x, walker.z);
+  return tl === 'roof' ? cat(up[f], rp(W.top, t)) : cat(down[f], gp(W.foot, t));
+}
+async function glideTo(x, z, finalYaw = null, finalPitch = 0, level = 'ground') {
   if (mode === 'orbit') {
-    let yaw = finalYaw;
-    if (yaw == null) {
-      const room = MD.roomAt(x, z);
-      const c = room ? room.center : [x, z];
-      if (Math.hypot(c[0] - x, c[1] - z) > 0.6) yaw = yawOf(c[0] - x, c[1] - z);
-      else { const f = new THREE.Vector3(); camera.getWorldDirection(f); yaw = yawOf(f.x, f.z); }
+    if (level !== 'ground') {
+      // in at the foot of the stair, then up
+      const W = MD.levels.way;
+      if (!(await enterWalk(W.foot[0], W.foot[1], yawOf(1, 0), 0))) return false;
+    } else {
+      let yaw = finalYaw;
+      if (yaw == null) {
+        const room = MD.roomAt(x, z);
+        const c = room ? room.center : [x, z];
+        if (Math.hypot(c[0] - x, c[1] - z) > 0.6) yaw = yawOf(c[0] - x, c[1] - z);
+        else { const f = new THREE.Vector3(); camera.getWorldDirection(f); yaw = yawOf(f.x, f.z); }
+      }
+      let fx = x, fz = z;
+      if (!MD.nav.ok(x, z)) { const c = MD.nav.nearest(x, z); if (c >= 0) [fx, fz] = MD.nav.center(c); }
+      return enterWalk(fx, fz, yaw, finalPitch);
     }
-    let fx = x, fz = z;
-    if (!MD.nav.ok(x, z)) { const c = MD.nav.nearest(x, z); if (c >= 0) [fx, fz] = MD.nav.center(c); }
-    return enterWalk(fx, fz, yaw, finalPitch);
   }
   if (mode !== 'walk') return false;
-  const pts = MD.nav.path(walker.x, walker.z, x, z);
+  const pts = route(x, z, level);
   if (!pts) return false;
   return walkPath(pts, finalYaw, finalPitch);
 }
 const goToRoom = (room) => glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
+const goToTerrace = () => glideTo(MD.levels.terrace.x, MD.levels.terrace.z, null, 0, 'roof');
 
 // Telugu voice-over (female Indian neural voice, pre-recorded clips in audio/te/): names each room as the guided tour arrives,
 // over calm generated background music that ducks while the voice speaks.
@@ -372,6 +394,8 @@ async function startTour() {
     sayRoom(room);
     if (!(await lookAround())) break;
   }
+  // last stop: up the staircase to the terrace
+  if (touring && (await goToTerrace()) && touring) { sayRoom({ name: 'Terrace' }); await lookAround(); }
   stopTour();
 }
 function stopTour() {
@@ -402,14 +426,23 @@ function pick(clientX, clientY) {
   const r = canvas.getBoundingClientRect();
   ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const targets = [...MD.floors, ...MD.solids, ...MD.furnMeshes];
+  // treads are always clickable while walking; the terrace slab once you can see it (on the stair or the terrace)
+  const up = mode === 'walk' ? MD.upPick.filter((m) => m.userData.floor.level === 'stair' || MD.roof.visible) : [];
+  const targets = [...MD.floors, ...MD.solids, ...MD.furnMeshes, ...up];
   const hits = ray.intersectObjects(targets, false);
   const hit = mode === 'orbit' ? hits.find((h) => !h.object.userData.wall) : hits[0];
   if (!hit || hit.object.userData.wall) return null;
   const { x, z } = hit.point;
   const zone = hit.object.userData.floor || MD.roomAt(x, z) || (inRect(x, z, MD.plotRect) ? { name: 'Compound', garden: true } : null);
   if (!zone) return null;
-  return { x, z, y: MD.floorY(x, z), zone };
+  const level = zone.level || 'ground';
+  return { x, z, y: level === 'ground' ? MD.floorY(x, z) : hit.point.y, zone, level };
+}
+// clicking a tread: up to the terrace if it is above you, down to the foot if below
+function clickTarget(p) {
+  if (p.level !== 'stair') return [p.x, p.z, p.level];
+  const W = MD.levels.way, goUp = p.y > walkerFloor() + 0.05;
+  return goUp ? [W.top[0] - 0.6, W.top[1], 'roof'] : [W.foot[0] - 0.4, W.foot[1], 'ground'];
 }
 let down = null;
 canvas.addEventListener('pointerdown', (e) => {
@@ -437,13 +470,14 @@ canvas.addEventListener('pointerup', (e) => {
   const p = pick(e.clientX, e.clientY);
   if (!p) return;
   stopTour();
-  glideTo(p.x, p.z);
+  const [tx, tz, tl] = clickTarget(p);
+  glideTo(tx, tz, null, 0, tl);
 });
 canvas.addEventListener('pointerleave', () => { hoverDisc.visible = false; pointerDirty = false; });
 canvas.addEventListener('wheel', (e) => {
   if (mode !== 'walk') return;
   e.preventDefault();
-  walkFov = Math.max(30, Math.min(80, walkFov + e.deltaY * 0.03));
+  walkHFov = Math.max(40, Math.min(100, walkHFov + e.deltaY * 0.04));
 }, { passive: false });
 function updateHover() {
   if (!pointerDirty || mode === 'fly' || (down && down.moved)) return;
@@ -470,9 +504,18 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('keyup', (e) => keys.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key));
 addEventListener('blur', () => keys.clear());
-function canStand(x, z) {
-  if (!MD.walkAreas.some((r) => inRect(x, z, r)) || inRect(x, z, MD.stairs)) return false;
+function canStandGround(x, z) {
+  if (!MD.walkAreas.some((r) => inRect(x, z, r))) return false;
   return !MD.colliders.some((c) => rectDist(x, z, c.r) < (c.wall ? RADIUS : RADIUS * 0.6));
+}
+// next level at (x, z) for the walker, or null: the ground uses the walls and furniture, the stair and terrace
+// their own edges (stair sides, mid wall, open well, parapet)
+function tryMove(x, z) {
+  const L = walker.level;
+  if (L === 'ground' && !MD.levels.inSt(x, z)) return canStandGround(x, z) ? 'ground' : null;
+  const r = MD.levels.at(L, x, z, RADIUS * 0.6);
+  if (!r || (r.level === 'ground' && !canStandGround(x, z))) return null;
+  return r.level;
 }
 function keyMove(dt) {
   let f = 0, s = 0, turn = 0;
@@ -487,10 +530,13 @@ function keyMove(dt) {
   const sp = WALK * dt * (keys.has('Shift') ? 2 : 1);
   const fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
   const dx = (fx * f - fz * s) * sp, dz = (fz * f + fx * s) * sp;
-  if (canStand(walker.x + dx, walker.z + dz)) { walker.x += dx; walker.z += dz; }
-  else if (canStand(walker.x + dx, walker.z)) walker.x += dx;
-  else if (canStand(walker.x, walker.z + dz)) walker.z += dz;
+  for (const [x, z] of [[walker.x + dx, walker.z + dz], [walker.x + dx, walker.z], [walker.x, walker.z + dz]]) {
+    const L = tryMove(x, z);
+    if (L) { walker.x = x; walker.z = z; walker.level = L; break; }
+  }
 }
+// floor height under the walker on its level
+const walkerFloor = () => (walker.level === 'ground' ? MD.floorY(walker.x, walker.z) : MD.levels.y(walker.level, walker.x, walker.z));
 
 // ---------- interior light pool ----------
 const finish = { floor: 'asbuilt', light: 'down', temp: '2700' };
@@ -564,11 +610,19 @@ function renderRoomList() {
     li.append(b);
     ul.append(li);
   }
+  // the terrace: walked to up the staircase
+  const li = document.createElement('li');
+  const b = document.createElement('button');
+  b.innerHTML = `<span>Terrace</span><small>via the staircase · +${MD.levels.top.toFixed(2)} m</small>`;
+  b.addEventListener('click', () => { stopTour(); goToTerrace(); closePanelOnMobile(); });
+  li.append(b);
+  ul.append(li);
 }
 let whereRoom = null;
 function updateWhere() {
   if (!MD) return;
-  const room = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z) || (inRect(walker.x, walker.z, MD.plotRect) ? { name: 'Compound', label: '' } : null);
+  const up = { roof: { name: 'Terrace', label: `roof · +${MD.levels.top.toFixed(2)} m` }, stair: { name: 'Staircase', label: '18 risers to the terrace' } };
+  const room = mode === 'orbit' ? null : up[walker.level] || MD.roomAt(walker.x, walker.z) || (inRect(walker.x, walker.z, MD.plotRect) ? { name: 'Compound', label: '' } : null);
   if (mode === 'orbit') $('where').innerHTML = `<b>${MD.plan.short}</b><span>${SITE_TITLE}</span>`;
   else if ((room && room.name) !== (whereRoom && whereRoom.name)) $('where').innerHTML = room ? `<b>${room.name}</b><span>${room.label || ''}</span>` : '';
   whereRoom = mode === 'orbit' ? null : room;
@@ -820,7 +874,9 @@ function frame() {
   if (anim) { const a = anim; if (a.update(dt) && anim === a) { anim = null; a.resolve(true); } }
   if (mode === 'walk') {
     if (!anim) keyMove(dt);
-    walker.y = damp(walker.y, MD.floorY(walker.x, walker.z) + EYE, 8, dt);
+    walker.y = damp(walker.y, walkerFloor() + EYE, 8, dt);
+    const upstairs = walker.level !== 'ground'; // roof slab + parapet shown on the stair and terrace, hidden below
+    if (MD.roof.visible !== upstairs) MD.roof.visible = upstairs;
     camera.position.set(walker.x, walker.y, walker.z);
     camera.quaternion.copy(quatOf(walker.yaw, walker.pitch));
   } else if (mode === 'orbit') {
@@ -829,7 +885,8 @@ function frame() {
     MD.labels.visible = dist < 55 && camera.position.y > 5 && !$('chkDims').checked; // street level / dimension overlay: no room tags
     MD.siteLabels.visible = dist > 45;
   }
-  const fov = mode === 'orbit' ? 45 : walkFov;
+  // three.js takes a vertical FOV: hold the horizontal one fixed at any window shape
+  const fov = mode === 'orbit' ? 45 : THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(walkHFov / 2)) / camera.aspect));
   if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = damp(camera.fov, fov, 3, dt); camera.updateProjectionMatrix(); }
   for (const r of MD.fans) r.rotation.y += dt * 5;
   updateHover();

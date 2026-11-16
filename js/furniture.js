@@ -22,8 +22,6 @@ export const SIZES = {
   fridge: { w: 0.7, d: 0.72, h: 1.8 },
   wc: { w: 0.38, d: 0.7 },
   vanity: { w: 0.6, d: 0.45, h: 0.8 },
-  tvConsole: { w: 1.2, d: 0.42, h: 0.45 }, // drawn ≈ 1.0–1.2 m
-  tv55: { w: 1.23, h: 0.71 },
   dining6: { w: 0.9, l: 1.5 },
   round4: 1.0,
   chair: { w: 0.45, d: 0.5, seat: 0.46, back: 0.9 },
@@ -157,15 +155,29 @@ export function kit(M) {
     g.add(cyl(0.07, 0.05, 0.12, M.white, w * 0.2, 0.48, 0));
     return { g, foot: [-w / 2, -d / 2, w / 2, d / 2] };
   }
-
-  function tvUnit() {
-    const c = SIZES.tvConsole, t = SIZES.tv55;
+  // Contemporary TV feature wall sized to the clear wall between openings (width P): a warm-beige back panel
+  // (floor to 2.40 m), an oak fluted band above the screen, a floating walnut console (0.35 deep, 0.28 high,
+  // 0.30 off the floor) and concealed warm LED: a wash from the top edge, a halo behind the TV and a glow under
+  // the console. The TV is the largest 16:9 size that leaves ≥ 75 mm of panel each side: 55″, 50″ or 43″.
+  const TVS = [[55, 1.218, 0.685], [50, 1.107, 0.623], [43, 0.952, 0.535]];
+  function tvWall(P) {
+    const [inch, tw, th] = TVS.find(([, w]) => w <= P - 0.15) || TVS[TVS.length - 1];
     const g = new THREE.Group();
-    g.add(box(c.w, c.h - 0.2, c.d, M.walnut, 0, 0.2 + (c.h - 0.2) / 2, c.d / 2));
-    for (let i = -2; i <= 2; i++) g.add(box(0.004, c.h - 0.22, 0.004, M.black, (i * c.w) / 6, 0.2 + (c.h - 0.2) / 2, c.d + 0.002, false));
-    g.add(box(t.w, t.h, 0.03, M.screen, 0, 1.15, 0.05));
-    g.add(box(t.w + 0.01, t.h + 0.01, 0.02, M.black, 0, 1.15, 0.035));
-    return { g, foot: [-c.w / 2, 0, c.w / 2, c.d] };
+    const H = 2.4, t = 0.025, cw = Math.min(P - 0.05, 1.8), cd = 0.35, ch = 0.28, c0 = 0.3;
+    g.add(box(P, H, t, M.laminateBeige, 0, H / 2, t / 2)); // beige back panel
+    for (const s of [-1, 1]) g.add(box(0.02, H, t + 0.006, M.oak, s * (P / 2 - 0.01), H / 2, (t + 0.006) / 2)); // oak edge trims
+    const ty = c0 + ch + 0.25 + th / 2; // screen centre, ≈ seated eye level
+    const band0 = ty + th / 2 + 0.12;
+    const n = Math.floor((P - 0.04) / 0.05);
+    for (let i = 0; i < n; i++) g.add(box(0.04, H - band0, 0.02, M.oak, -((n - 1) * 0.05) / 2 + i * 0.05, (band0 + H) / 2, t + 0.01)); // fluted band
+    g.add(box(P, 0.012, 0.012, M.lamp, 0, H - 0.01, t + 0.03, false)); // top-edge LED wash
+    g.add(box(tw * 0.9, 0.01, 0.01, M.lamp, 0, ty + th / 2 - 0.04, t + 0.02, false)); // halo strip behind the TV
+    g.add(box(tw, th, 0.03, M.screen, 0, ty, t + 0.045));
+    g.add(box(tw + 0.01, th + 0.01, 0.02, M.black, 0, ty, t + 0.03));
+    g.add(box(cw, ch, cd, M.walnut, 0, c0 + ch / 2, t + cd / 2)); // floating console
+    for (const x of [-cw / 6, cw / 6]) g.add(box(0.004, ch - 0.04, 0.004, M.black, x, c0 + ch / 2, t + cd + 0.002, false));
+    g.add(box(cw - 0.06, 0.01, 0.01, M.lamp, 0, c0 - 0.006, t + cd - 0.05, false)); // under-console glow
+    return { g, foot: [-P / 2, 0, P / 2, t + cd], size: [P, t + cd], tv: { inch, w: tw, h: th, y: ty, console: [cw, cd, ch, c0], panel: [P, H] } };
   }
 
   function chair() {
@@ -391,6 +403,16 @@ export function kit(M) {
     m.receiveShadow = true;
     return m;
   }
+  // Roman blind fitted inside a window reveal (keeps the wall either side clear, e.g. on a TV wall): fabric
+  // raised to 60 % with soft folds, on a slim headrail
+  function romanBlind(width, top, bottom) {
+    const g = new THREE.Group();
+    const drop = (top - bottom) * 0.4, folds = 4;
+    g.add(box(width, 0.03, 0.04, M.alu, 0, top - 0.015, 0));
+    g.add(box(width, drop, 0.012, M.curtain, 0, top - 0.03 - drop / 2, 0.004));
+    for (let k = 0; k < folds; k++) g.add(box(width, 0.035, 0.03, M.curtain, 0, top - 0.03 - drop + (k * drop) / folds + 0.02, 0.01));
+    return g;
+  }
 
-  return { bed, wardrobe, crockery, sofa, coffeeTable, tvUnit, dining, plant, diwan, counter, upper, hob, sink, fridge, wc, vanity, showerGlass, showerHead, fan, downlight, curtainPanel, box, cyl };
+  return { bed, wardrobe, crockery, sofa, coffeeTable, tvWall, dining, plant, diwan, counter, upper, hob, sink, fridge, wc, vanity, showerGlass, showerHead, fan, downlight, curtainPanel, romanBlind, box, cyl };
 }
