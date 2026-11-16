@@ -103,16 +103,18 @@ body.panel-open #hud { left: calc(50% + 150px); max-width: calc(100vw - 600px); 
 #compass { position: absolute; inset: 0; }
 #compass i { position: absolute; left: 50%; top: 5px; width: 0; height: 0; margin-left: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid #d9362b; }
 #compass span { position: absolute; left: 0; right: 0; top: 22px; text-align: center; font-weight: 700; font-size: 12px; color: #222; }
-#btnReal {
+#btnReal, #btnWide {
   position: fixed; right: 78px; top: 24px; z-index: 6; height: 34px; padding: 0 14px; border-radius: 99px; cursor: pointer;
   border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: 13px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
 }
-#btnReal:hover { background: var(--accent); color: #1b1b1b; }
+#btnReal:hover, #btnWide:hover, #btnWide.on { background: var(--accent); color: #1b1b1b; }
+#btnWide { right: 238px; }
 /* realistic view: only the scene, the exit button and (when needed) the voice chip */
 body.realistic #panel, body.realistic #panelToggle, body.realistic #minimap, body.realistic #compassWrap,
 body.realistic #labels, body.realistic #where, body.realistic #hint { display: none; }
 body.realistic #btnReal { right: 14px; top: 14px; background: rgba(20, 24, 30, 0.55); }
+body.realistic #btnWide { right: 190px; top: 14px; }
 
 /* ---------- 3D labels ---------- */
 .rlabel {

@@ -23,6 +23,10 @@ import { ELEVATIONS } from './elevation.js';
 import { createMusic } from './music.js';
 
 const EYE = 1.6; // m
+// Spacious view: how interiors are photographed for sale (16 mm lens ≈ 95° horizontal, camera at 1.35 m) so rooms
+// read as open as they feel in person; geometry is untouched. Off = true eye (1.6 m, 70°).
+let spacious = false;
+const eyeH = () => (spacious ? 1.35 : EYE);
 const GLIDE = 2.0; // m/s
 const WALK = 1.4; // m/s
 const RADIUS = 0.22; // body radius for collisions
@@ -244,7 +248,7 @@ function setMode(m) {
 async function enterWalk(x, z, yaw, pitch = 0) {
   if (mode === 'orbit') lastOrbit = { pos: camera.position.clone(), target: controls.target.clone() };
   setMode('fly');
-  const y = MD.floorY(x, z) + EYE;
+  const y = MD.floorY(x, z) + eyeH();
   const p0 = camera.position.clone(), q0 = camera.quaternion.clone();
   const p1 = new THREE.Vector3(x, y, z), q1 = quatOf(yaw, pitch);
   let t = 0;
@@ -722,6 +726,11 @@ function setRealistic(on) {
   setQuality($('chkHQ').checked);
 }
 $('btnReal').addEventListener('click', () => setRealistic(!real));
+$('btnWide').addEventListener('click', () => {
+  spacious = !spacious;
+  $('btnWide').classList.toggle('on', spacious);
+  $('btnWide').textContent = spacious ? '⤢ Spacious view: on' : '⤢ Spacious view';
+});
 
 // sun controls
 {
@@ -874,7 +883,7 @@ function frame() {
   if (anim) { const a = anim; if (a.update(dt) && anim === a) { anim = null; a.resolve(true); } }
   if (mode === 'walk') {
     if (!anim) keyMove(dt);
-    walker.y = damp(walker.y, walkerFloor() + EYE, 8, dt);
+    walker.y = damp(walker.y, walkerFloor() + eyeH(), 8, dt);
     const upstairs = walker.level !== 'ground'; // roof slab + parapet shown on the stair and terrace, hidden below
     if (MD.roof.visible !== upstairs) MD.roof.visible = upstairs;
     camera.position.set(walker.x, walker.y, walker.z);
@@ -886,7 +895,8 @@ function frame() {
     MD.siteLabels.visible = dist > 45;
   }
   // three.js takes a vertical FOV: hold the horizontal one fixed at any window shape
-  const fov = mode === 'orbit' ? 45 : THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(walkHFov / 2)) / camera.aspect));
+  const hf = spacious ? 95 : walkHFov;
+  const fov = mode === 'orbit' ? 45 : THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(hf / 2)) / camera.aspect));
   if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = damp(camera.fov, fov, 3, dt); camera.updateProjectionMatrix(); }
   for (const r of MD.fans) r.rotation.y += dt * 5;
   updateHover();
