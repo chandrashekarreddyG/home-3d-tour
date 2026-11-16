@@ -85,6 +85,53 @@ export function makeMaterials(renderer) {
     terracotta: pbr('terracotta_floor_tiles', { roughness: 0.8 }),
     greyStone: pbr('japanese_stone_wall', { color: '#d9d6d0', roughness: 1 }),
     brick: pbr('brick_wall_02', { color: '#f2a578', roughness: 1 }),
+    // stacked ledgestone: thin horizontal stones in grey-beige, drawn procedurally (600 mm repeat)
+    ledge: (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 512;
+      const g = c.getContext('2d');
+      let seed = 9;
+      const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      const tones = ['#cfc4b4', '#b4a895', '#ddd5c8', '#9c907e', '#c2b6a3', '#e6dfd3'];
+      g.fillStyle = '#5e564c'; g.fillRect(0, 0, 512, 512);
+      for (let y = 0; y < 512;) {
+        const h = 10 + Math.floor(R() * 14);
+        for (let x = -Math.floor(R() * 100); x < 512;) {
+          const w = 40 + Math.floor(R() * 130);
+          g.fillStyle = tones[Math.floor(R() * tones.length)];
+          g.fillRect(x + 1, y + 1, w - 2, h - 2);
+          g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(x + 1, y + 1, w - 2, 2);
+          x += w;
+        }
+        y += h;
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(1 / 0.6, 1 / 0.6);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = aniso;
+      const b = new THREE.CanvasTexture(c);
+      b.wrapS = b.wrapT = THREE.RepeatWrapping;
+      b.repeat.copy(t.repeat);
+      return new THREE.MeshStandardMaterial({ map: t, bumpMap: b, bumpScale: 2.5, roughness: 0.95 });
+    })(),
+    // laser-cut jaali screen: white panel with a repeating petal lattice (alpha-tested holes)
+    jaali: (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const g = c.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, 256, 256);
+      g.fillStyle = '#000';
+      for (const [cx, cy] of [[64, 64], [192, 64], [64, 192], [192, 192], [128, 128], [0, 0], [256, 0], [0, 256], [256, 256]]) {
+        for (let k = 0; k < 4; k++) {
+          g.save(); g.translate(cx, cy); g.rotate((k * Math.PI) / 2 + Math.PI / 4);
+          g.beginPath(); g.ellipse(0, -26, 9, 22, 0, 0, Math.PI * 2); g.fill(); g.restore();
+        }
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      return new THREE.MeshStandardMaterial({ color: '#f6f5f2', alphaMap: t, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.6 });
+    })(),
     // soft additive halo used for wall washers / uplights (opacity follows day / night in main.js)
     glow: (() => {
       const c = document.createElement('canvas');

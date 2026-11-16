@@ -581,6 +581,8 @@ $('btnStreet').addEventListener('click', () => {
 function applyElevation() {
   const e = ELEVATIONS.find((q) => q.id === (elev.on ? elev.id : 'none'));
   for (const [id, g] of Object.entries(MD.elevations)) g.visible = elev.on && id === elev.id;
+  // designs that bring their own boundary replace the plain wall + railing on the two road sides
+  for (const side of ['s', 'w']) MD.compound[side].visible = !(elev.on && e.fence);
   M.paintExt.color.set(e.paint);
   $('chkElev').checked = elev.on;
   $('elevs').classList.toggle('off', !elev.on);

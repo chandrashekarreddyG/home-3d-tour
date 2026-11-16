@@ -95,6 +95,7 @@ export function buildModel(plan, M, onLabelClick) {
   ceilings.visible = roof.visible = dims.visible = markers.visible = false;
 
   const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [], skirts = [];
+  const compound = {}; // boundary wall groups by side: n, s (G.P Road), w (21 ft road), e
   const mini = { walls: [], windows: [] };
   const report = { openings: [], furniture: [], adjustments: [] };
 
@@ -650,9 +651,9 @@ export function buildModel(plan, M, onLabelClick) {
     garden.userData.floor = { name: 'Compound', label: '', outdoor: true, garden: true, rects: [plotRect], tour: false };
     root.add(garden);
     floors.push(garden);
-    // assumed boundary: 3′-0″ solid wall + steel bar railing to 5′-0″ (not shown on the drawings)
+    // assumed boundary: 3′-0″ solid wall + steel bar railing to 5′-0″ (not shown on the drawings).
+    // Each side is its own group so an elevation design can swap in its own boundary on the road sides.
     const Hc = STD.compound * IN, Hs = 0.914, tt = 0.23;
-    const bars = [];
     const sides = {
       n: { a: plotRect[0], b: plotRect[2], fixed: plotRect[1], vertical: false, sgn: 1 },
       s: { a: plotRect[0], b: plotRect[2], fixed: plotRect[3], vertical: false, sgn: -1 },
@@ -661,6 +662,9 @@ export function buildModel(plan, M, onLabelClick) {
     };
     const gateMat = M.solid('#24272b', { metalness: 0.7, roughness: 0.45 });
     for (const [side, d] of Object.entries(sides)) {
+      const cg = (compound[side] = new THREE.Group());
+      root.add(cg);
+      const bars = [];
       const gates = p.gates.filter((g) => g.side === side).map((g) => [g.from * IN, g.to * IN]).sort((u, v) => u[0] - v[0]);
       const fixed = d.fixed + d.sgn * (tt / 2); // wall sits inside the plot line
       let cur = d.a;
@@ -669,9 +673,9 @@ export function buildModel(plan, M, onLabelClick) {
         const m = d.vertical ? K.box(tt, Hs, b - a, M.paintExt, fixed, GROUND + Hs / 2, (a + b) / 2) : K.box(b - a, Hs, tt, M.paintExt, (a + b) / 2, GROUND + Hs / 2, fixed);
         worldUV(m);
         m.userData.wall = true;
-        root.add(m);
+        cg.add(m);
         solids.push(m);
-        root.add(d.vertical ? K.box(0.04, 0.04, b - a, gateMat, fixed, GROUND + Hc - 0.02, (a + b) / 2) : K.box(b - a, 0.04, 0.04, gateMat, (a + b) / 2, GROUND + Hc - 0.02, fixed));
+        cg.add(d.vertical ? K.box(0.04, 0.04, b - a, gateMat, fixed, GROUND + Hc - 0.02, (a + b) / 2) : K.box(b - a, 0.04, 0.04, gateMat, (a + b) / 2, GROUND + Hc - 0.02, fixed));
         for (let s = a + 0.06; s < b; s += 0.12) bars.push(d.vertical ? [fixed, GROUND + Hs + (Hc - Hs) / 2, s, Hc - Hs] : [s, GROUND + Hs + (Hc - Hs) / 2, fixed, Hc - Hs]);
         const fp = d.vertical ? [fixed - tt / 2, a, fixed + tt / 2, b] : [a, fixed - tt / 2, b, fixed + tt / 2];
         colliders.push({ r: fp, clear: 0.22, wall: true });
@@ -679,22 +683,22 @@ export function buildModel(plan, M, onLabelClick) {
       };
       for (const [ga, gb] of gates) {
         seg(cur, ga);
-        for (const pos of [ga, gb]) root.add(d.vertical ? K.box(0.3, Hc + 0.15, 0.3, M.paintExt, fixed, GROUND + (Hc + 0.15) / 2, pos) : K.box(0.3, Hc + 0.15, 0.3, M.paintExt, pos, GROUND + (Hc + 0.15) / 2, fixed));
+        for (const pos of [ga, gb]) cg.add(d.vertical ? K.box(0.3, Hc + 0.15, 0.3, M.paintExt, fixed, GROUND + (Hc + 0.15) / 2, pos) : K.box(0.3, Hc + 0.15, 0.3, M.paintExt, pos, GROUND + (Hc + 0.15) / 2, fixed));
         const gl = (gb - ga) / 2 - 0.2, gy0 = GROUND + 0.08, gh = 1.35;
         for (const [s0, s1] of [[ga + 0.15, ga + 0.15 + gl], [gb - 0.15 - gl, gb - 0.15]]) {
-          for (const y of [gy0 + 0.02, gy0 + gh - 0.02]) root.add(d.vertical ? K.box(0.04, 0.04, gl, gateMat, fixed, y, (s0 + s1) / 2) : K.box(gl, 0.04, 0.04, gateMat, (s0 + s1) / 2, y, fixed));
+          for (const y of [gy0 + 0.02, gy0 + gh - 0.02]) cg.add(d.vertical ? K.box(0.04, 0.04, gl, gateMat, fixed, y, (s0 + s1) / 2) : K.box(gl, 0.04, 0.04, gateMat, (s0 + s1) / 2, y, fixed));
           for (let s = s0 + 0.05; s < s1; s += 0.11) bars.push(d.vertical ? [fixed, gy0 + gh / 2, s, gh] : [s, gy0 + gh / 2, fixed, gh]);
         }
         cur = gb;
       }
       seg(cur, d.b);
+      // railing / gate bars for this side as one instanced mesh (one draw call)
+      const barMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.022, 1, 0.022), gateMat, bars.length);
+      const mtx = new THREE.Matrix4();
+      bars.forEach(([x, y, z, h], i) => barMesh.setMatrixAt(i, mtx.makeScale(1, h, 1).setPosition(x, y, z)));
+      barMesh.castShadow = true;
+      cg.add(barMesh);
     }
-    // all railing / gate bars as one instanced mesh (one draw call)
-    const barMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.022, 1, 0.022), gateMat, bars.length);
-    const mtx = new THREE.Matrix4();
-    bars.forEach(([x, y, z, h], i) => barMesh.setMatrixAt(i, mtx.makeScale(1, h, 1).setPosition(x, y, z)));
-    barMesh.castShadow = true;
-    root.add(barMesh);
   }
 
   // ---------------- site from the survey map ----------------
@@ -741,12 +745,13 @@ export function buildModel(plan, M, onLabelClick) {
     windows: openingsAll.filter((o) => o.outer && o.kind === 'w').map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     openings: openingsAll.filter((o) => o.outer).map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
+    gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
   });
   for (const g of Object.values(elevations)) root.add(g);
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound,
     colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,

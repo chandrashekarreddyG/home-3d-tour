@@ -14,6 +14,8 @@ export const ELEVATIONS = [
   { id: 'ref2', style: 'Reference', name: 'Brick & wood box', blurb: 'Like your 2nd photo: white box frames, an exposed-brick feature wall with wall washers, a tall box with vertical wood cladding and grooved white panels, a black louvre rail on the roof, LED-lit steps, lit planters and paving slabs with grass joints.', paint: '#f6f5f1' },
   { id: 'ref3', style: 'Reference', name: 'Feature frame & grooves', blurb: 'Like your 3rd photo and the Pinterest pin: a tall corner frame lined in teak with warm LED edges, sandstone strip cladding, grey panels with diagonal grooves, a projecting white window box, a black flat canopy, a steel roof railing and a long lit planter.', paint: '#efefec' },
   { id: 'ref4', style: 'Reference', name: 'Wood, brick & fluted box', blurb: 'Like your latest photo: white box frames, horizontal teak cladding on the left wall, an exposed-brick wall round the right window, a white fluted box at the stair end, a grey roof volume with a teak slat screen and a black terrace railing, dark granite steps, and a lawn with a wide slab walkway and round topiaries out to the gate.', paint: '#f4f3ef' },
+  { id: 'ref5', style: 'Reference', name: 'Taupe band & ledgestone', fence: true, blurb: 'Like your 1st photo of this set: a deep taupe roof band with a charcoal soffit, a white L-frame on the left with a taupe panel and a projecting window box, stacked ledgestone piers, a dark wood slat panel, a glass roof balustrade, and a matching boundary with charcoal ledgestone piers, white coping, slotted taupe gates and a paved drive.', paint: '#f2f0ec' },
+  { id: 'ref6', style: 'Reference', name: 'Stone, wood & jaali', blurb: 'Like your 3rd photo of this set: a warm wood-clad verandah wall with wall washers, a grey crazy-stone panel, charcoal projecting window boxes with fins, a flower motif, a tall wooden fin with LED edge, a black corner pillar with a white jaali screen, a grey parapet band with steel railing, steps with handrails, a box hedge and globe garden lights.', paint: '#f6f6f4' },
 ];
 
 export function buildElevations(M, dims) {
@@ -437,6 +439,189 @@ export function buildElevations(M, dims) {
       }
     }
     out.ref4 = g;
+  }
+  // ---------- R5: taupe band & ledgestone (with its own boundary on the two road sides) ----------
+  {
+    const g = new THREE.Group();
+    const taupe = M.paintExt.clone();
+    taupe.color.set('#b3a99c');
+    const dark = M.solid('#4a4541', { roughness: 0.8 });
+    // deep taupe roof band over the verandahs with a charcoal soffit
+    const bx0 = Math.max(-S, mainX - 0.3), bandH = 1.0, by = top + 0.05;
+    g.add(box(W + 0.3 - bx0, bandH, 0.4, taupe, (bx0 + W + 0.3) / 2, by, D + F + 0.2));
+    g.add(box(W + 0.3 - bx0, 0.04, F + 0.4, dark, (bx0 + W + 0.3) / 2, by - bandH / 2 - 0.02, D + (F + 0.4) / 2));
+    g.add(box(W + 0.3 - bx0, 0.02, 0.02, dark, (bx0 + W + 0.3) / 2, by + 0.12, D + F + 0.41));
+    g.add(box(0.4, bandH, D + F + 0.4, taupe, -S - 0.2, by, (D + F + 0.4) / 2));
+    // white L-frame on the left: tall post at the road corner, deep top beam back to the main door
+    g.add(box(0.5, ptop + 0.9 - ground, 0.5, white, -S - 0.25, (ptop + 0.9 + ground) / 2, D + F + 0.2));
+    g.add(box(bx0 + S + 0.5, 0.45, 0.55, white, (bx0 - S - 0.5) / 2, ptop + 0.675, D + F + 0.18));
+    clad(g, 'front', 0, Math.max(0.5, mainX - 0.75), 0, ceil, taupe);
+    for (const x of [0.25, 0.42]) g.add(FACE.front.put(0.06, 0.7, 0.03, dark, x, ceil - 0.55, 0.03));
+    for (const o of windows.filter((q) => !q.vertical && q.c > D / 2 && q.b < mainX)) {
+      const L = o.b - o.a, mid = (o.a + o.b) / 2, h = o.hi - o.lo, d = 0.3, tt = 0.12;
+      g.add(FACE.front.put(L + 2 * tt, tt, d, white, mid, o.hi + tt / 2));
+      g.add(FACE.front.put(L + 2 * tt, tt, d, white, mid, o.lo - tt / 2));
+      g.add(FACE.front.put(tt, h, d, white, o.a - tt / 2, (o.lo + o.hi) / 2));
+      g.add(FACE.front.put(tt, h, d, white, o.b + tt / 2, (o.lo + o.hi) / 2));
+    }
+    // stacked ledgestone piers at the verandah edge
+    for (const x of [mainX + 1.25, stairs[0] - 0.35, W - 0.25]) g.add(box(0.5, ceil, 0.5, M.ledge, x, ceil / 2, D + F - 0.25));
+    g.add(box(0.5, ceil, 0.5, M.ledge, -S + 0.25, ceil / 2, Math.max(0.5, sideZ - 1.4)));
+    // dark wood slat panel on the wall right of the entrance
+    const wx0 = mainX + 1.7, wx1 = Math.min(wx0 + 1.1, stairs[0] - 0.6);
+    for (const [a0, y0, a1, y1] of clad(g, 'front', wx0, wx1, 0, ceil, M.walnut)) {
+      for (let x = a0 + 0.08; x < a1; x += 0.08) g.add(FACE.front.put(0.008, y1 - y0, 0.006, M.black, x, (y0 + y1) / 2, 0.026));
+    }
+    // frameless glass balustrade with a white coping on the roof edge
+    g.add(box(W + S, 0.12, 0.3, white, (W - S) / 2, ptop + 0.06, D + F - 0.05));
+    g.add(box(0.3, 0.12, D + F, white, -S + 0.05, ptop + 0.06, (D + F) / 2));
+    g.add(box(W + S, 0.9, 0.015, M.glass, (W - S) / 2, ptop + 0.57, D + F - 0.05));
+    g.add(box(0.015, 0.9, D + F, M.glass, -S + 0.05, ptop + 0.57, (D + F) / 2));
+    sconce(g, 'front', wx1 + 0.35, 2.2);
+    steps(g, 2.4);
+    // boundary on both road sides: white low wall with a ledgestone strip, charcoal piers, slotted taupe gates
+    const fence = (side) => {
+      const front = side === 's';
+      const fixed = front ? plot[3] - 0.12 : plot[0] + 0.12;
+      const [lo, hi] = front ? [plot[0], plot[2]] : [plot[1], plot[3]];
+      const at = (along, w, h, d, mat, y, off = 0) => (front ? box(w, h, d, mat, along, y, fixed + off) : box(d, h, w, mat, fixed - off, y, along));
+      const gs = (dims.gates || []).filter((q) => q.side === side).map((q) => [q.from, q.to]).sort((u, v) => u[0] - v[0]);
+      const wallSeg = (a, b) => {
+        if (b - a < 0.1) return;
+        const m = (a + b) / 2, L = b - a;
+        g.add(at(m, L, 0.9, 0.24, white, ground + 0.45));
+        g.add(at(m, L - 0.3, 0.32, 0.02, M.ledge, ground + 0.5, 0.13));
+        g.add(at(m, L + 0.04, 0.08, 0.3, white, ground + 0.94));
+        const n = Math.max(1, Math.round(L / 3.5));
+        for (let k = 1; k < n; k++) pier(a + (L * k) / n);
+      };
+      const pier = (along) => {
+        g.add(at(along, 0.45, 1.7, 0.45, dark, ground + 0.85));
+        g.add(at(along, 0.26, 1.2, 0.02, M.ledge, ground + 0.85, 0.235));
+        g.add(at(along, 0.55, 0.12, 0.55, white, ground + 1.76));
+      };
+      let cur = lo;
+      for (const [ga, gb] of gs) {
+        wallSeg(cur, ga);
+        pier(ga); pier(gb);
+        const gw = (gb - ga - 0.5) / 2;
+        for (const s0 of [ga + 0.25, ga + 0.25 + gw]) {
+          g.add(at(s0 + gw / 2, gw - 0.02, 1.55, 0.06, taupe, ground + 0.08 + 0.775, 0.02));
+          for (let y = ground + 0.35; y < ground + 1.5; y += 0.14) {
+            for (let k = 0; k < 3; k++) g.add(at(s0 + 0.12 + k * (gw - 0.24) / 2 + 0, 0.22, 0.035, 0.01, dark, y, 0.055));
+          }
+        }
+        cur = gb;
+      }
+      wallSeg(cur, hi);
+      pier(lo + 0.25); pier(hi - 0.25);
+    };
+    fence('s');
+    fence('w');
+    // paved drive from the front gate to the steps
+    const fg = (dims.gates || []).find((q) => q.side === 's');
+    if (fg) {
+      const drive = new THREE.Mesh(new THREE.PlaneGeometry(fg.to - fg.from, plot[3] - (D + F + 0.6)), M.paving);
+      drive.rotation.x = -Math.PI / 2;
+      drive.position.set((fg.from + fg.to) / 2, ground + 0.015, (plot[3] + D + F + 0.6) / 2);
+      drive.receiveShadow = true;
+      g.add(drive);
+    }
+    out.ref5 = g;
+  }
+  // ---------- R6: stone, wood & jaali ----------
+  {
+    const g = new THREE.Group();
+    const greyBand = M.paintExt.clone();
+    greyBand.color.set('#8e9195');
+    const charcoal = M.solid('#4d5054', { roughness: 0.7 });
+    // warm wood verandah wall round the door, grey crazy-stone panel beside it
+    const woodTo = Math.min(mainX + 1.0, stairs[0] - 1.5);
+    for (const [a0, y0, a1, y1] of clad(g, 'front', 0, woodTo, 0, ceil, M.oak)) {
+      for (let y = y0 + 0.16; y < y1 - 0.02; y += 0.16) g.add(FACE.front.put(a1 - a0, 0.006, 0.006, M.black, (a0 + a1) / 2, y, 0.026));
+    }
+    const stoneTo = Math.min(woodTo + 1.4, stairs[0] - 0.8);
+    clad(g, 'front', woodTo, stoneTo, 0, ceil, M.greyStone);
+    clad(g, 'side', D - 1.6, D, 0, ceil, M.greyStone);
+    sconce(g, 'front', Math.max(0.4, mainX - 1.2), 2.2);
+    sconce(g, 'front', woodTo - 0.35, 2.2);
+    sconce(g, 'front', (woodTo + stoneTo) / 2, 2.2);
+    // charcoal projecting window boxes with three vertical fins
+    for (const o of windows.filter((q) => !q.vertical && q.c > D / 2 && q.a > stoneTo - 0.05)) {
+      const L = o.b - o.a, mid = (o.a + o.b) / 2, h = o.hi - o.lo, d = 0.3, tt = 0.12;
+      g.add(FACE.front.put(L + 2 * tt, tt, d, charcoal, mid, o.hi + tt / 2));
+      g.add(FACE.front.put(L + 2 * tt, tt, d, charcoal, mid, o.lo - tt / 2));
+      g.add(FACE.front.put(tt, h, d, charcoal, o.a - tt / 2, (o.lo + o.hi) / 2));
+      g.add(FACE.front.put(tt, h, d, charcoal, o.b + tt / 2, (o.lo + o.hi) / 2));
+      for (let k = 0; k < 3; k++) g.add(FACE.front.put(0.05, h + 2 * tt, 0.2, charcoal, o.b + tt + 0.1 + k * 0.1, (o.lo + o.hi) / 2));
+    }
+    // five-petal flower motif above the window wall
+    const fcx = (stoneTo + Math.min(stairs[0] - 0.6, W)) / 2, fcy = ceil - 0.55;
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), charcoal);
+      petal.scale.set(0.07, 0.17, 0.015);
+      petal.position.set(fcx + Math.sin(a) * 0.17, fcy + Math.cos(a) * 0.17, D + 0.03);
+      petal.rotation.z = -a;
+      g.add(petal);
+    }
+    // tall wooden fin with an LED edge beside the stair
+    const fx = stairs[0] - 0.4;
+    g.add(box(0.3, ptop + 0.7 - ground, 0.3, M.oak, fx, (ptop + 0.7 + ground) / 2, D + F - 0.15));
+    g.add(box(0.015, ptop + 0.6 - ground, 0.015, M.lamp, fx - 0.16, (ptop + 0.6 + ground) / 2, D + F));
+    // black corner pillar with a white jaali screen on both road faces
+    g.add(box(0.5, ceil, 0.5, M.black, -S + 0.25, ceil / 2, D + F - 0.25));
+    const jf = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 1.8), M.jaali);
+    jf.position.set(-S + 0.25, 1.3, D + F + 0.005);
+    const js = jf.clone();
+    js.rotation.y = -Math.PI / 2;
+    js.position.set(-S - 0.005, 1.3, D + F - 0.25);
+    g.add(jf, js);
+    // grey parapet band with two white lines, steel railing above
+    g.add(box(W + S, parapet, 0.03, greyBand, (W - S) / 2, top + parapet / 2, D + F + 0.015));
+    g.add(box(0.03, parapet, D + F, greyBand, -S - 0.015, top + parapet / 2, (D + F) / 2));
+    for (const y of [top + 0.3, top + 0.55]) {
+      g.add(box(W + S, 0.03, 0.01, white, (W - S) / 2, y, D + F + 0.035));
+      g.add(box(0.01, 0.03, D + F, white, -S - 0.035, y, (D + F) / 2));
+    }
+    for (const y of [ptop + 0.3, ptop + 0.6]) {
+      g.add(box(W + S, 0.04, 0.04, charcoal, (W - S) / 2, y, D + F - 0.06));
+      g.add(box(0.04, 0.04, D + F, charcoal, -S + 0.06, y, (D + F) / 2));
+    }
+    for (let x = -S + 0.06; x <= W; x += 1.2) g.add(box(0.06, 0.6, 0.06, charcoal, x, ptop + 0.3, D + F - 0.06));
+    for (let z = 0.06; z <= D + F; z += 1.2) g.add(box(0.06, 0.6, 0.06, charcoal, -S + 0.06, ptop + 0.3, z));
+    // steps with steel handrails
+    steps(g, 2.0);
+    for (const s of [-1, 1]) {
+      const x = mainX + s * 1.15;
+      for (const z of [D + F - 0.05, D + F + 0.65]) g.add(box(0.04, 0.9, 0.04, steel, x, (z > D + F ? ground : 0) + 0.45, z));
+      const rail = box(0.04, 0.04, Math.hypot(0.7, -ground), steel, x, (0.9 + ground + 0.9) / 2, D + F + 0.3);
+      rail.rotation.x = Math.atan2(-ground, 0.7);
+      g.add(rail);
+    }
+    // box hedge inside the road boundaries (gates kept clear) and globe garden lights
+    const hedgeMat = M.solid('#3d6a2e', { roughness: 0.95 });
+    const gs = (side) => (dims.gates || []).filter((q) => q.side === side).map((q) => [q.from - 0.2, q.to + 0.2]);
+    const hedge = (side) => {
+      const front = side === 's';
+      const [lo, hi] = front ? [plot[0] + 0.35, plot[2] - 0.35] : [plot[1] + 0.35, plot[3] - 0.9];
+      let segs = [[lo, hi]];
+      for (const [a, b] of gs(side)) segs = segs.flatMap(([p, q]) => (b <= p || a >= q ? [[p, q]] : [[p, a], [b, q]].filter(([u, v]) => v - u > 0.4)));
+      for (const [a, b] of segs) g.add(front ? box(b - a, 0.85, 0.5, hedgeMat, (a + b) / 2, ground + 0.425, plot[3] - 0.55) : box(0.5, 0.85, b - a, hedgeMat, plot[0] + 0.55, ground + 0.425, (a + b) / 2));
+    };
+    hedge('s');
+    hedge('w');
+    const globe = M.lamp;
+    for (const [x, z] of [[mainX - 1.6, D + F + 0.5], [mainX + 1.6, D + F + 0.5], [-S - 0.6, D + F + 0.6], [stairs[0] - 0.4, D + F + 0.6]]) {
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16), globe);
+      ball.position.set(x, ground + 0.2, z);
+      g.add(ball);
+      const halo = glowPlane(1.2, 1.2);
+      halo.rotation.x = -Math.PI / 2;
+      halo.position.set(x, ground + 0.03, z);
+      g.add(halo);
+    }
+    out.ref6 = g;
   }
 
   for (const g of Object.values(out)) g.visible = false;
