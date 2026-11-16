@@ -503,10 +503,14 @@ for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   const b = document.createElement('button');
   b.dataset.id = e.id;
   b.textContent = e.name;
-  b.addEventListener('click', () => { elev.id = e.id; elev.on = true; applyElevation(); });
+  b.addEventListener('click', () => { elev.id = e.id; elev.on = true; applyElevation(); showFacade(); });
   $('elevs').append(b);
 }
-$('chkElev').addEventListener('change', () => { elev.on = $('chkElev').checked; applyElevation(); });
+$('chkElev').addEventListener('change', () => { elev.on = $('chkElev').checked; applyElevation(); if (elev.on) showFacade(); });
+// the elevation is on the outside: if you're inside or looking straight down, fly out to the street to see it
+function showFacade() {
+  if (mode !== 'orbit' || camera.position.y > 25) $('btnStreet').click();
+}
 $('btnStreet').addEventListener('click', () => {
   // eye-level view from the corner of G.P Road and the 21 ft road, looking at both road-facing sides
   const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);
