@@ -196,6 +196,7 @@ export function makeMaterials(renderer) {
     porcelain: new THREE.MeshPhysicalMaterial({ color: '#fbfbf8', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 }),
     chrome: solid('#d6d7d8', { metalness: 1, roughness: 0.12, envMapIntensity: 0.35 }), // indoor chrome: don't mirror the outdoor sky
     steel: solid('#c4c7ca', { metalness: 1, roughness: 0.32 }),
+    brass: solid('#b8913f', { metalness: 1, roughness: 0.3 }), // main-door hardware and inlays
     alu: solid('#3d4247', { metalness: 0.8, roughness: 0.35 }),
     black: solid('#16171a', { roughness: 0.35 }),
     screen: new THREE.MeshPhysicalMaterial({ color: '#050608', roughness: 0.05, clearcoat: 1 }),

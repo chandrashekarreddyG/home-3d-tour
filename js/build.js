@@ -324,8 +324,13 @@ export function buildModel(plan, M, onLabelClick) {
       }
       const leafMat = o.kind === 'dt' ? M.white : outer || o.kind === 'dd' ? M.teak : M.oak;
       const clear = L - 2 * FRAME;
-      const leaves = o.kind === 'dd' ? [['a', clear / 2], ['b', clear / 2]] : [[o.swing[0], clear]];
-      const lh = o.hi - FRAME - 0.012, lt = 0.035;
+      // main (outer) entrances: one wide designer leaf in the same opening, hinged at the end nearer a cross wall so
+      // it opens back against that wall; interior double doors (e.g. pooja) stay a pair
+      const mainDoor = outer && o.kind === 'dd';
+      const near = (v) => Math.min(...junctions.map((j) => Math.abs(j - v)), Infinity);
+      const leaves = mainDoor ? [[near(o.a) <= near(o.b) ? 'a' : 'b', clear]] : o.kind === 'dd' ? [['a', clear / 2], ['b', clear / 2]] : [[o.swing[0], clear]];
+      o.single = mainDoor;
+      const lh = o.hi - FRAME - 0.012, lt = mainDoor ? 0.045 : 0.035;
       for (const [hinge, lw] of leaves) {
         const pivot = hinge === 'a' ? aM + FRAME : bM - FRAME;
         const inward = hinge === 'a' ? 1 : -1; // along-wall direction from hinge into the opening
@@ -335,9 +340,26 @@ export function buildModel(plan, M, onLabelClick) {
         leaf.position.set(0, 0.012 + lh / 2, sw * (lw / 2));
         leaf.castShadow = leaf.receiveShadow = true;
         g.add(leaf);
-        for (const s of [-1, 1]) {
-          const h = K.box(0.02, 0.02, 0.13, M.chrome, s * (lt / 2 + 0.03), 1.0, sw * (lw - 0.08));
-          g.add(h, K.box(0.03, 0.06, 0.006, M.chrome, s * (lt / 2 + 0.005), 1.0, sw * (lw - 0.08)));
+        if (mainDoor) {
+          // teak leaf: horizontal V-grooves over the hinge-side two-thirds, a full-height brass inlay, a plain latch
+          // panel with a 1.2 m brass pull bar and a matte-black smart lock, and a brass kick line (both faces)
+          const zAt = (f) => sw * (lw * f);
+          const fieldW = lw * 0.66, y0 = 0.32, y1 = lh - 0.28;
+          for (const s of [-1, 1]) {
+            const fx = s * (lt / 2 + 0.0015);
+            for (let y = y0; y <= y1 + 1e-6; y += 0.12) g.add(K.box(0.004, 0.008, fieldW - 0.1, M.walnut, fx, y, zAt(0.05) + sw * (fieldW - 0.1) / 2, false));
+            g.add(K.box(0.005, lh - 0.3, 0.014, M.brass, fx, 0.012 + lh / 2, zAt(0.7), false));
+            g.add(K.box(0.005, 0.012, lw - 0.08, M.brass, fx, 0.16, sw * (lw / 2), false));
+            const hz = zAt(1) - sw * 0.13, bar = 1.2;
+            g.add(K.cyl(0.013, 0.013, bar, M.brass, s * (lt / 2 + 0.055), 1.05, hz, 16));
+            for (const dy of [-bar / 2 + 0.08, bar / 2 - 0.08]) g.add(K.box(0.055, 0.02, 0.02, M.brass, s * (lt / 2 + 0.028), 1.05 + dy, hz));
+            g.add(K.box(0.012, 0.3, 0.07, M.black, s * (lt / 2 + 0.006), 1.15, zAt(1) - sw * 0.05));
+          }
+        } else {
+          for (const s of [-1, 1]) {
+            const h = K.box(0.02, 0.02, 0.13, M.chrome, s * (lt / 2 + 0.03), 1.0, sw * (lw - 0.08));
+            g.add(h, K.box(0.03, 0.06, 0.006, M.chrome, s * (lt / 2 + 0.005), 1.0, sw * (lw - 0.08)));
+          }
         }
         // leaf stands open at 90°, its back against the hinge jamb; local +z points along the swing
         const ax = pivot + inward * (lt / 2);
