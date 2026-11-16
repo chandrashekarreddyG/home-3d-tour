@@ -899,7 +899,7 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
     el.position.set(a[0] + (b[0] - a[0]) * t, GROUND + 0.2, a[1] + (b[1] - a[1]) * t);
     siteLabels.add(el);
   }
-  // trees (neem-sized: ~6–9 m) on the open plots and across the road
+  // trees (neem-sized: ~6–9 m) on the open Thirumal plot and across the road (none on G. Thirupathi Reddy's plot)
   let seed = 4242;
   const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const inPoly = (x, z, pts) => {
@@ -911,7 +911,7 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
     return c;
   };
   const spots = [];
-  for (const id of ['thirupathi', 'thirumal']) {
+  for (const id of ['thirumal']) {
     const poly = PARCELS.find((q) => q.id === id).poly.map(Wp);
     const xs = poly.map((q) => q[0]), zs = poly.map((q) => q[1]);
     for (let k = 0; k < 6; k++) for (let tries = 0; tries < 40; tries++) {
