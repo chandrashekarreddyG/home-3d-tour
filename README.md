@@ -42,6 +42,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
   - Kerala, minimal: Tiled verandah, Laterite & teak, Twin gables, Continuous eave
   - Modern, subtle colours: Floating frame, Oak slats, Stone & glass, Pergola & planters
+  - Inspired by the owner's reference photos: Stone band & wood soffit, Brick & wood box, Feature frame & grooves
+    (cut-stone and brick cladding cut around the real openings, up/down wall washers, lit planters, granite entrance
+    steps, paving slabs with grass joints). "Front view" and "Corner view" buttons frame the road-facing sides.
 - **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, Indian
   marble, black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &

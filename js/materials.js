@@ -7,7 +7,7 @@ const SIZE = {
   plastered_wall_04: 3.2, oak_veneer_01: 1.83, walnut_veneer: 1.8, teak_veneer: 1.0, rough_linen: 0.271,
   granite_tile: 2.3, granite_tile_04: 2.0, sparse_grass: 2.0, large_grey_tiles: 3.0, asphalt_02: 3.0,
   dry_ground_01: 4.0, red_laterite_soil_stones: 2.0, velour_velvet: 0.28, clay_roof_tiles_02: 2.5, red_sandstone_wall: 2.0,
-  terrazzo_tiles: 2.0, terracotta_floor_tiles: 2.08,
+  terrazzo_tiles: 2.0, terracotta_floor_tiles: 2.08, japanese_stone_wall: 1.9, brick_wall_02: 2.0,
 };
 
 export function makeMaterials(renderer) {
@@ -83,6 +83,43 @@ export function makeMaterials(renderer) {
     granitePolished: pbr('granite_tile', { roughness: 0.12, envMapIntensity: 1.5 }),
     terrazzo: pbr('terrazzo_tiles', { color: '#efe9df', roughness: 0.5 }),
     terracotta: pbr('terracotta_floor_tiles', { roughness: 0.8 }),
+    greyStone: pbr('japanese_stone_wall', { color: '#d9d6d0', roughness: 1 }),
+    brick: pbr('brick_wall_02', { color: '#f2a578', roughness: 1 }),
+    // soft additive halo used for wall washers / uplights (opacity follows day / night in main.js)
+    glow: (() => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(255,255,255,1)');
+      grad.addColorStop(0.35, 'rgba(255,255,255,0.45)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 128, 128);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshBasicMaterial({ map: t, color: '#ffd9a8', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    })(),
+    // wall-washer beam: bright at the fixture (bottom edge of the texture), spreading and fading upward
+    glowFan: (() => {
+      const c = document.createElement('canvas');
+      c.width = 128; c.height = 256;
+      const g = c.getContext('2d');
+      const img = g.createImageData(128, 256);
+      for (let y = 0; y < 256; y++) for (let x = 0; x < 128; x++) {
+        const t = 1 - y / 255; // 0 at the bottom (fixture) → 1 at the top
+        const half = 0.08 + 0.42 * Math.pow(t, 0.7); // beam half-width (fraction of the texture)
+        const dx = Math.abs(x / 127 - 0.5) / half;
+        const a = Math.max(0, 1 - dx * dx) * Math.pow(1 - t, 1.6);
+        const i = (y * 128 + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+        img.data[i + 3] = Math.round(255 * a);
+      }
+      g.putImageData(img, 0, 0);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshBasicMaterial({ map: t, color: '#ffd9a8', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    })(),
     roofTile: pbr('clay_roof_tiles_02', { roughness: 0.85 }),
     laterite: pbr('red_sandstone_wall', { color: '#d9906c', roughness: 1 }),
     wood: pbr('laminate_floor_02', { roughness: 0.9 }),

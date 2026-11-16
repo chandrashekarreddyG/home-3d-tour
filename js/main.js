@@ -123,6 +123,8 @@ function applySun() {
   night = day < 0.3;
   M.lamp.emissiveIntensity = night ? 6 : 2;
   M.shade.emissiveIntensity = night ? 1.6 : 0.3;
+  M.glow.opacity = night ? 0.85 : 0.12; // wall-washer halos only read after dark
+  M.glowFan.opacity = night ? 0.8 : 0.08;
   const mins = Number($('sunTime').value);
   const hh = String(Math.floor(mins / 60)).padStart(2, '0'), mm = String(mins % 60).padStart(2, '0');
   const deg = (r) => Math.round((r * 180) / Math.PI);
@@ -480,6 +482,8 @@ function applyLighting() {
   const col = LIGHT_TEMPS.find((t) => t.id === finish.temp).color;
   M.lamp.emissive.set(col);
   M.shade.emissive.set(col);
+  M.glow.color.set(col);
+  M.glowFan.color.set(col);
   pool.forEach((l) => l.color.set(col));
   document.querySelectorAll('#lights button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.light));
   document.querySelectorAll('#temps button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.temp));
@@ -547,7 +551,7 @@ for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
     const h = document.createElement('span');
     h.className = 'seg-label';
-    h.textContent = e.style === 'Kerala' ? 'Kerala · minimal' : 'Modern · subtle colours';
+    h.textContent = { Kerala: 'Kerala · minimal', Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos' }[e.style];
     $('elevs').append(h);
     lastStyle = e.style;
   }
@@ -562,6 +566,13 @@ $('chkElev').addEventListener('change', () => { elev.on = $('chkElev').checked; 
 function showFacade() {
   if (mode !== 'orbit' || camera.position.y > 25) $('btnStreet').click();
 }
+$('btnFront').addEventListener('click', () => {
+  // square-on view of the G.P Road facade from across the road, slightly raised so the compound wall doesn't hide the plinth
+  const x0 = MD.site ? MD.walkAreas.reduce((a, r) => Math.min(a, r[0]), 0) : 0;
+  const cx = (Math.max(x0, MD.plotRect[0]) + MD.building[2]) / 2;
+  const shift = document.body.classList.contains('panel-open') && innerWidth > 760 ? 1.6 : 0; // keep the house clear of the side panel
+  orbitTo(new THREE.Vector3(cx - shift, 3.0, MD.plotRect[3] + 9.5), new THREE.Vector3(cx - shift, 2.2, MD.building[3]), true);
+});
 $('btnStreet').addEventListener('click', () => {
   // eye-level view from the corner of G.P Road and the 21 ft road, looking at both road-facing sides
   const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);

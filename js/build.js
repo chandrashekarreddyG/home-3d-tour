@@ -650,7 +650,9 @@ export function buildModel(plan, M, onLabelClick) {
     garden.userData.floor = { name: 'Compound', label: '', outdoor: true, garden: true, rects: [plotRect], tour: false };
     root.add(garden);
     floors.push(garden);
-    const Hc = STD.compound * IN, tt = 0.23;
+    // assumed boundary: 3′-0″ solid wall + steel bar railing to 5′-0″ (not shown on the drawings)
+    const Hc = STD.compound * IN, Hs = 0.914, tt = 0.23;
+    const bars = [];
     const sides = {
       n: { a: plotRect[0], b: plotRect[2], fixed: plotRect[1], vertical: false, sgn: 1 },
       s: { a: plotRect[0], b: plotRect[2], fixed: plotRect[3], vertical: false, sgn: -1 },
@@ -664,11 +666,13 @@ export function buildModel(plan, M, onLabelClick) {
       let cur = d.a;
       const seg = (a, b) => {
         if (b - a < 0.05) return;
-        const m = d.vertical ? K.box(tt, Hc, b - a, M.paintExt, fixed, GROUND + Hc / 2, (a + b) / 2) : K.box(b - a, Hc, tt, M.paintExt, (a + b) / 2, GROUND + Hc / 2, fixed);
+        const m = d.vertical ? K.box(tt, Hs, b - a, M.paintExt, fixed, GROUND + Hs / 2, (a + b) / 2) : K.box(b - a, Hs, tt, M.paintExt, (a + b) / 2, GROUND + Hs / 2, fixed);
         worldUV(m);
         m.userData.wall = true;
         root.add(m);
         solids.push(m);
+        root.add(d.vertical ? K.box(0.04, 0.04, b - a, gateMat, fixed, GROUND + Hc - 0.02, (a + b) / 2) : K.box(b - a, 0.04, 0.04, gateMat, (a + b) / 2, GROUND + Hc - 0.02, fixed));
+        for (let s = a + 0.06; s < b; s += 0.12) bars.push(d.vertical ? [fixed, GROUND + Hs + (Hc - Hs) / 2, s, Hc - Hs] : [s, GROUND + Hs + (Hc - Hs) / 2, fixed, Hc - Hs]);
         const fp = d.vertical ? [fixed - tt / 2, a, fixed + tt / 2, b] : [a, fixed - tt / 2, b, fixed + tt / 2];
         colliders.push({ r: fp, clear: 0.22, wall: true });
         mini.walls.push(fp);
@@ -676,13 +680,21 @@ export function buildModel(plan, M, onLabelClick) {
       for (const [ga, gb] of gates) {
         seg(cur, ga);
         for (const pos of [ga, gb]) root.add(d.vertical ? K.box(0.3, Hc + 0.15, 0.3, M.paintExt, fixed, GROUND + (Hc + 0.15) / 2, pos) : K.box(0.3, Hc + 0.15, 0.3, M.paintExt, pos, GROUND + (Hc + 0.15) / 2, fixed));
-        const gl = (gb - ga) / 2 - 0.2;
-        const leaf = d.vertical ? K.box(0.04, 1.35, gl, gateMat, fixed + d.sgn * 0.3, GROUND + 0.75, ga + 0.15 + gl / 2) : K.box(gl, 1.35, 0.04, gateMat, ga + 0.15 + gl / 2, GROUND + 0.75, fixed + d.sgn * 0.3);
-        root.add(leaf);
+        const gl = (gb - ga) / 2 - 0.2, gy0 = GROUND + 0.08, gh = 1.35;
+        for (const [s0, s1] of [[ga + 0.15, ga + 0.15 + gl], [gb - 0.15 - gl, gb - 0.15]]) {
+          for (const y of [gy0 + 0.02, gy0 + gh - 0.02]) root.add(d.vertical ? K.box(0.04, 0.04, gl, gateMat, fixed, y, (s0 + s1) / 2) : K.box(gl, 0.04, 0.04, gateMat, (s0 + s1) / 2, y, fixed));
+          for (let s = s0 + 0.05; s < s1; s += 0.11) bars.push(d.vertical ? [fixed, gy0 + gh / 2, s, gh] : [s, gy0 + gh / 2, fixed, gh]);
+        }
         cur = gb;
       }
       seg(cur, d.b);
     }
+    // all railing / gate bars as one instanced mesh (one draw call)
+    const barMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.022, 1, 0.022), gateMat, bars.length);
+    const mtx = new THREE.Matrix4();
+    bars.forEach(([x, y, z, h], i) => barMesh.setMatrixAt(i, mtx.makeScale(1, h, 1).setPosition(x, y, z)));
+    barMesh.castShadow = true;
+    root.add(barMesh);
   }
 
   // ---------------- site from the survey map ----------------
@@ -727,6 +739,8 @@ export function buildModel(plan, M, onLabelClick) {
     W: W * IN, D: D * IN, S: bal.side * IN, F: bal.front * IN, ceil: CEIL, slab: SLAB, parapet: STD.parapet * IN, ground: GROUND,
     mainX: md ? ((md.a + md.b) / 2) * IN : (W * IN) / 3, sideZ: sd ? ((sd.a + sd.b) / 2) * IN : (D * IN) / 2, stairs: st,
     windows: openingsAll.filter((o) => o.outer && o.kind === 'w').map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
+    openings: openingsAll.filter((o) => o.outer).map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
+    plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
   });
   for (const g of Object.values(elevations)) root.add(g);
 
@@ -900,7 +914,7 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
       if (inPoly(pt[0], pt[1], poly)) { spots.push(pt); break; }
     }
   }
-  for (let k = 0; k < 12; k++) spots.push(Wp([-60 + k * 16 + R() * 6, -30 - R() * 14]));
+  for (let k = 0; k < 12; k++) spots.push(Wp([-60 + k * 16 + R() * 6, -52 - R() * 14])); // well back from the far kerb so street views stay clear
   const trunk = M.walnut, leafMats = [M.solid('#56803c', { roughness: 0.85 }), M.solid('#668f45', { roughness: 0.85 }), M.solid('#4a7234', { roughness: 0.85 })];
   spots.forEach(([x, z], k) => {
     const s = 0.8 + R() * 0.5;
