@@ -145,9 +145,9 @@ export function validate(model) {
 
   const heights = [
     ['Floor to ceiling', CEIL, `${ftIn(CEIL)} — not on drawing; standard 10′-0″`],
-    ['Door / arch / window head (lintel)', DOOR_H, `${ftIn(DOOR_H)} — not on drawing; standard 7′-0″`],
-    ['Window sill', STD.sill * IN, `${ftIn(STD.sill * IN)} — not on drawing; standard 3′-0″`],
-    ['Ventilator sill', STD.ventSill * IN, `${ftIn(STD.ventSill * IN)} — 24″ × 18″ ventilator`],
+    ['Door / arch / window head (lintel)', DOOR_H, `${ftIn(DOOR_H)} — not on drawing; standard 2100 mm`],
+    ['Window sill', STD.sill * IN, `${ftIn(STD.sill * IN)} — not on drawing; standard 900 mm (1200 mm high windows)`],
+    ['Ventilator sill', STD.ventSill * IN, `${ftIn(STD.ventSill * IN)} — 600 × 450 mm ventilator under the lintel`],
     ['RCC slab', STD.slab * IN, '5″ — assumed'],
     ['Plinth above ground', STD.plinth * IN, '1′-6″ — assumed'],
     ['Stair riser / tread', model.stairInfo.rise, `${(model.stairInfo.rise * 1000).toFixed(0)} mm × ${(model.stairInfo.tread * 1000).toFixed(0)} mm, 18 risers, flights ${model.stairInfo.width.toFixed(3)} m wide — flights drawn, risers assumed`],
@@ -156,9 +156,9 @@ export function validate(model) {
 
   const assumptions = [
     'Door and window POSITIONS are not dimensioned on the drawings; their centres are scaled from the drawing (fitted to the dimensioned outer faces, so expect ±1–2″).',
-    `Door widths are standard sizes: room doors 3′-0″, toilet doors 2′-6″, double doors the nearest of ${STD.doubleSizes.map((v) => v + '″').join(', ')} to the drawing. Windows are scaled widths rounded to 3″. Ventilators are 2′-0″ × 1′-6″.`,
+    `Door and window widths are typical Indian sizes: room doors 900 mm, toilet doors 750 mm, main / double doors the nearest of ${STD.doubleSizes.map((v) => Math.round(v * 25.4)).join(', ')} mm to the drawing, all 2100 mm high. Windows are the nearest of ${STD.windowSizes.map((v) => Math.round(v * 25.4)).join(', ')} mm to the scaled drawing width, 1200 mm high on a 900 mm sill. Ventilators are 600 × 450 mm.`,
     `Furniture positions follow the drawing symbols, but every piece uses a standard real size (e.g. queen bed ${SIZES.queen.w} × ${SIZES.queen.l} m, sofa depth ${SIZES.sofaDepth} m, counters ${SIZES.counterDepth} × ${SIZES.counterH} m, wardrobes ${SIZES.wardrobeDepth} m deep). The drawing symbols are not drawn to furniture scale.`,
-    'There are no columns or beams on the drawings, so none are modelled. Beams sit inside the 9″ / 4½″ walls above the 7′ lintel line, and the balconies are a cantilevered slab.',
+    'There are no columns or beams on the drawings, so none are modelled. Beams sit inside the 9″ / 4½″ walls above the 2100 mm lintel line, and the balconies are a cantilevered slab.',
     plan.plot.gatesFromDrawing ? 'Gate positions are scaled from the drawing.' : 'Plan-1 and Plan-2 show no compound gates, so the gates are assumed in front of the main door and the side door.',
   ];
   const deviations = [

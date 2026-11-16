@@ -14,7 +14,7 @@ import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
 
 export const CEIL = STD.ceiling * IN; // 3.048 m
-export const DOOR_H = STD.doorHead * IN; // 2.134 m
+export const DOOR_H = STD.doorHead * IN; // 2.100 m
 export const GROUND = -STD.plinth * IN; // −0.457 m
 const SLAB = STD.slab * IN;
 const SITE_W_FT = 56 + 1 / 12; // Padma Reddy frontage 56′-1″
@@ -148,18 +148,30 @@ export function buildModel(plan, M, onLabelClick) {
       else if (kind === 'dt') w = STD.doorToilet;
       else if (kind === 'dd') w = STD.doubleSizes.reduce((a, b) => (Math.abs(b - dw) < Math.abs(a - dw) ? b : a));
       else if (kind === 'v') w = STD.ventW;
-      else if (kind === 'w') w = Math.round(dw / STD.windowRound) * STD.windowRound;
+      else if (kind === 'w') w = STD.windowSizes.reduce((a, b) => (Math.abs(b - dw) < Math.abs(a - dw) ? b : a));
       else w = Math.round(dw);
       return { kind, swing, drawCenter: dc, drawWidth: dw, a: dc - w / 2, b: dc + w / 2 };
     }).sort((p, q) => p.a - q.a);
-    // keep a 3″ pier between neighbours; doors keep their size, windows give way
+    // keep a 3″ pier between neighbours; doors keep their size and place, a window slides away (keeping its
+    // standard width) when the next opening on that side leaves room, otherwise it is trimmed
     for (let i = 1; i < res.length; i++) {
       const p = res[i - 1], q = res[i];
       if (q.a < p.b + 3) {
         const win = q.kind === 'w' || q.kind === 'v' ? q : p.kind === 'w' || p.kind === 'v' ? p : q;
         const cut = p.b + 3 - q.a;
-        if (win === q) q.a += cut; else p.b -= cut;
-        report.adjustments.push(`${plan.short}: window next to a ${win === q ? p.kind : q.kind} on wall #${wi + 1} trimmed by ${cut.toFixed(1)}″ to keep a 3″ pier.`);
+        const next = win === q ? res[i + 1] : res[i - 2];
+        const room = win === q ? (next ? next.a - 3 : Infinity) - q.b : p.a - (next ? next.b + 3 : -Infinity);
+        if (room >= cut && cut <= 4) {
+          if (win === q) { q.a += cut; q.b += cut; } else { p.a -= cut; p.b -= cut; }
+          report.adjustments.push(`${plan.short}: window next to a ${win === q ? p.kind : q.kind} on wall #${wi + 1} moved ${cut.toFixed(1)}″ along the wall to keep a 3″ pier (standard width kept).`);
+        } else {
+          // no room to slide: drop to the largest standard width that fits, kept clear of the neighbour
+          const fit = (win.b - win.a) - cut;
+          const std = win.kind === 'w' ? [...STD.windowSizes].reverse().find((s) => s <= fit + 1e-6) : null;
+          const nw = std ?? fit;
+          if (win === q) q.a = q.b - nw; else p.b = p.a + nw;
+          report.adjustments.push(`${plan.short}: window next to a ${win === q ? p.kind : q.kind} on wall #${wi + 1} reduced to ${Math.round(nw * 25.4)} mm${std ? ' (next standard size)' : ''} to keep a 3″ pier.`);
+        }
       }
     }
     // keep openings clear of the wall's end returns

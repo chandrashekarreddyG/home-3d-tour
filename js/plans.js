@@ -209,18 +209,22 @@ export const PLANS = [
 ];
 
 // Standard sizes and heights used where the drawings give no dimension (inches unless noted).
+// Openings use typical Indian sizes, set in millimetres (mm / 25.4 = inches): doors 2100 mm high; room doors 900,
+// toilet doors 750, main / double doors 900–1500; windows 600–2100 wide × 1200 high on a 900 mm sill;
+// ventilators 600 × 450 under the 2100 mm lintel.
+const MM = (mm) => mm / 25.4;
 export const STD = {
   ceiling: 120, // floor to ceiling 10′-0″ (3.048 m)
   slab: 5, // RCC roof slab 5″
   plinth: 18, // finished floor 1′-6″ above ground
-  doorHead: 84, // doors, arches and window heads at 7′-0″
-  sill: 36, // window sill 3′-0″
-  ventSill: 66, // ventilator sill 5′-6″ (24″ × 18″)
-  ventW: 24,
-  door: 36, // room door clear opening 3′-0″
-  doorToilet: 30, // toilet door 2′-6″
-  doubleSizes: [36, 42, 48, 54, 60], // double doors: nearest to the scaled drawing
-  windowRound: 3, // window widths: scaled from drawing, rounded to 3″
+  doorHead: MM(2100), // doors, arches and window heads (lintel) 2100 mm
+  sill: MM(900), // window sill 900 mm → 1200 mm high windows
+  ventSill: MM(1650), // ventilator 600 × 450 mm, top at the 2100 mm lintel
+  ventW: MM(600),
+  door: MM(900), // room doors 900 × 2100 mm
+  doorToilet: MM(750), // toilet doors 750 × 2100 mm
+  doubleSizes: [900, 1000, 1050, 1200, 1500].map(MM), // main / double doors: nearest standard to the drawing
+  windowSizes: [600, 900, 1200, 1500, 1800, 2100].map(MM), // window widths: nearest standard to the drawing
   parapet: 36,
   compound: 60,
   column: 9,

@@ -51,6 +51,11 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   - beds, wardrobes, sofas, a modular kitchen with hob and chimney
   - toilets with EWC, vanity, real mirrors and shower glass
   - fans, downlights, curtains, and hinged doors that swing as drawn
+  - doors and windows use typical Indian sizes at the drawn positions:
+    - room doors 900 × 2100 mm, toilet doors 750 × 2100 mm, main / double doors 900–1500 mm (nearest to the drawing)
+    - windows 600 / 900 / 1200 / 1500 / 1800 / 2100 mm wide × 1200 mm high on a 900 mm sill
+    - ventilators 600 × 450 mm under the 2100 mm lintel
+    - a window that would crowd a door slides up to 4″ along the wall, or drops to the next standard width
   - main entrances (G.P Road and 21 ft road): one wide designer teak door in the drawn opening, with horizontal
     V-grooves, a full-height brass inlay, a 1.2 m brass pull bar and a smart lock. It hinges on the end with the
     shorter pier, so the latch side keeps the wider pier for the entrance switchboard.
