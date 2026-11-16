@@ -57,8 +57,8 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
     steps, paving slabs with grass joints). Every design screens the open staircase on its road face and west side
     (stone, slats, louvres or fluting to match), keeping the stair foot and roof exit open. On the 21 ft road side,
     every design also gets a matching tall screened tower closing the rear end of the side verandah (with an LED edge
-    and a cap), plus a lit entrance portal over the side door with a timber soffit, a screen fascia and granite
-    steps towards the side gate. The "Front view", "Side view" and "Corner view" buttons frame the road-facing sides.
+    and a cap), plus soffit downlights at the side door and granite steps towards the side gate. The "Front view",
+    "Side view" and "Corner view" buttons frame the road-facing sides.
   - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in
