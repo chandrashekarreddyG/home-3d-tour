@@ -41,7 +41,8 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
   - Modern, subtle colours: Floating frame, Oak slats, Stone & glass, Pergola & planters
-  - Inspired by the owner's reference photos: Stone band & wood soffit, Brick & wood box, Feature frame & grooves
+  - Inspired by the owner's reference photos: Stone band & wood soffit, Brick & wood box, Feature frame & grooves,
+    Wood, brick & fluted box
     (cut-stone and brick cladding cut around the real openings, up/down wall washers, lit planters, granite entrance
     steps, paving slabs with grass joints). "Front view" and "Corner view" buttons frame the road-facing sides.
 - **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, Indian

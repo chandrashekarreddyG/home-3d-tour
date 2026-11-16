@@ -13,6 +13,7 @@ export const ELEVATIONS = [
   { id: 'ref1', style: 'Reference', name: 'Stone band & wood soffit', blurb: 'Like your 1st photo: white walls and square verandah pillars, a grey cut-stone parapet band in a white frame, a tall white box frame with a lit wooden soffit, a grey stone wall, teak louvred windows, up/down wall lights, a lit planter, granite steps and paving slabs with grass joints.', paint: '#f2f0eb' },
   { id: 'ref2', style: 'Reference', name: 'Brick & wood box', blurb: 'Like your 2nd photo: white box frames, an exposed-brick feature wall with wall washers, a tall box with vertical wood cladding and grooved white panels, a black louvre rail on the roof, LED-lit steps, lit planters and paving slabs with grass joints.', paint: '#f6f5f1' },
   { id: 'ref3', style: 'Reference', name: 'Feature frame & grooves', blurb: 'Like your 3rd photo and the Pinterest pin: a tall corner frame lined in teak with warm LED edges, sandstone strip cladding, grey panels with diagonal grooves, a projecting white window box, a black flat canopy, a steel roof railing and a long lit planter.', paint: '#efefec' },
+  { id: 'ref4', style: 'Reference', name: 'Wood, brick & fluted box', blurb: 'Like your latest photo: white box frames, horizontal teak cladding on the left wall, an exposed-brick wall round the right window, a white fluted box at the stair end, a grey roof volume with a teak slat screen and a black terrace railing, dark granite steps, and a lawn with a wide slab walkway and round topiaries out to the gate.', paint: '#f4f3ef' },
 ];
 
 export function buildElevations(M, dims) {
@@ -155,6 +156,7 @@ export function buildElevations(M, dims) {
       });
     }
     for (const [a0, b0, a1, b1] of rects) g.add(FACE[face].put(a1 - a0, b1 - b0, t, mat, (a0 + a1) / 2, (b0 + b1) / 2));
+    return rects;
   };
   const glowPlane = (w, h, mat = M.glow) => new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
   // up/down wall washer with its beams on the wall; slides sideways (or is dropped) to stay off doors and windows
@@ -162,12 +164,12 @@ export function buildElevations(M, dims) {
     const hits = (a) => openings.filter(FACE[face].open).some((o) => a > o.a - 0.15 && a < o.b + 0.15);
     const spot = [0, 0.3, -0.3, 0.6, -0.6].map((d) => along + d).find((a) => !hits(a));
     if (spot == null) return;
-    g.add(FACE[face].put(0.07, 0.2, 0.09, M.black, spot, y));
+    g.add(FACE[face].put(0.07, 0.2, 0.09, M.black, spot, y, 0.03)); // mounted proud of any 25 mm cladding
     for (const s of [1, -1]) {
       const p = glowPlane(0.7, 1.1, M.glowFan);
       p.rotation.z = s > 0 ? 0 : Math.PI; // beam spreads away from the fixture
-      if (face === 'front') p.position.set(spot, y + s * 0.6, D + 0.004);
-      else { p.rotation.y = -Math.PI / 2; p.position.set(-0.004, y + s * 0.6, spot); }
+      if (face === 'front') p.position.set(spot, y + s * 0.6, D + 0.032);
+      else { p.rotation.y = -Math.PI / 2; p.position.set(-0.032, y + s * 0.6, spot); }
       g.add(p);
     }
   };
@@ -375,6 +377,66 @@ export function buildElevations(M, dims) {
     steps(g, 2.2);
     pavers(g);
     out.ref3 = g;
+  }
+  // ---------- R4: wood, brick & fluted box ----------
+  {
+    const g = new THREE.Group();
+    const t = 0.3;
+    const grey = M.paintExt.clone();
+    grey.color.set('#8c9092');
+    const line = M.solid('#3b2a1e');
+    // white porch frame (top band + corner post + side band)
+    g.add(box(W + S + 2 * t, t + 0.1, t, white, (W - S) / 2, top - 0.05, D + F + t / 2));
+    g.add(box(t, top + 0.15 - ground, t, white, -S - t / 2, (top + 0.15 + ground) / 2, D + F + t / 2));
+    g.add(box(t, t + 0.1, D + F + t, white, -S - t / 2, top - 0.05, (D + F) / 2));
+    // horizontal teak plank cladding left of the main door, and on the side wall near the road corner
+    const plank = (face, from, to) => {
+      for (const [a0, y0, a1, y1] of clad(g, face, from, to, 0, ceil, M.teak)) {
+        for (let y = y0 + 0.15; y < y1 - 0.02; y += 0.15) g.add(FACE[face].put(a1 - a0, 0.008, 0.006, line, (a0 + a1) / 2, y, 0.026));
+      }
+    };
+    plank('front', 0, Math.max(0.6, mainX - 0.75));
+    plank('side', D - 2.4, D);
+    // exposed brick round the main window to the right of the door
+    clad(g, 'front', mainX + 0.9, stairs[0] - 0.25, 0, ceil, M.brick);
+    // tall white fluted box at the stair end (vertical ribs), standing at the verandah edge
+    const bx0 = stairs[0] - 0.1, bx1 = W + 0.15, bTop = ptop + 0.9;
+    g.add(box(bx1 - bx0, bTop - top, 0.12, white, (bx0 + bx1) / 2, (top + bTop) / 2, D + F + 0.06));
+    g.add(box(0.12, bTop - ground, 0.3, white, bx1 + 0.06, (bTop + ground) / 2, D + F));
+    for (let x = bx0 + 0.06; x < bx1; x += 0.12) g.add(box(0.05, bTop - top - 0.1, 0.03, white, x, (top + bTop) / 2, D + F + 0.135));
+    // grey raised roof volume with a teak slat screen beside it and a black terrace railing
+    const vx0 = 0.3, vx1 = Math.min(stairs[0] - 1.5, vx0 + 4.2), vz0 = D - 3.2, vz1 = D - 0.25, vH = 2.3;
+    g.add(box(vx1 - vx0, vH, vz1 - vz0, grey, (vx0 + vx1) / 2, top + vH / 2, (vz0 + vz1) / 2));
+    g.add(box(vx1 - vx0 + 0.4, 0.15, vz1 - vz0 + 0.5, white, (vx0 + vx1) / 2, top + vH + 0.075, (vz0 + vz1) / 2 + 0.1));
+    const sx0 = vx1 + 0.1, sx1 = Math.min(stairs[0] - 0.3, sx0 + 1.8);
+    for (let x = sx0; x <= sx1; x += 0.16) g.add(box(0.06, vH, 0.1, M.teak, x, top + vH / 2, vz1 - 0.05));
+    g.add(box(sx1 - sx0 + 0.1, 0.06, 0.12, M.teak, (sx0 + sx1) / 2, top + vH - 0.03, vz1 - 0.05));
+    for (const y of [ptop + 0.35, ptop + 0.75]) g.add(box(bx0 - (-S), 0.035, 0.035, steel, (bx0 - S) / 2, y, D + F - 0.06));
+    for (let x = -S + 0.06; x < bx0; x += 0.12) g.add(box(0.02, 0.78, 0.02, steel, x, ptop + 0.39, D + F - 0.06));
+    sconce(g, 'front', Math.max(0.4, mainX - 1.1), 2.2);
+    sconce(g, 'front', stairs[0] - 0.6, 2.2);
+    // dark granite steps and low planters either side
+    steps(g, 2.8);
+    planterLit(g, 'front', -S + 0.2, mainX - 1.75);
+    planterLit(g, 'front', mainX + 1.75, stairs[0] - 0.3);
+    // lawn with a wide slab walkway from the steps to the front gate, round topiaries along it
+    const zA = D + F + 0.62, zB = plot[3] - 0.3, pw = 2.6;
+    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(plot[2] - plot[0] - 0.5, zB - (D + F)), M.grass);
+    lawn.rotation.x = -Math.PI / 2;
+    lawn.position.set((plot[0] + plot[2]) / 2, ground + 0.012, (D + F + zB) / 2);
+    lawn.receiveShadow = true;
+    g.add(lawn);
+    for (let z = zA; z + 0.45 <= zB; z += 0.57) g.add(box(pw, 0.04, 0.45, M.paving, mainX, ground + 0.032, z + 0.225));
+    const topiary = M.solid('#3f6a2f', { roughness: 0.85 });
+    for (let z = zA + 0.3; z < zB - 0.2; z += 0.9) {
+      for (const s of [-1, 1]) {
+        const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.26, 2), topiary);
+        b.position.set(mainX + s * (pw / 2 + 0.45), ground + 0.26, z);
+        b.castShadow = true;
+        g.add(b);
+      }
+    }
+    out.ref4 = g;
   }
 
   for (const g of Object.values(out)) g.visible = false;
