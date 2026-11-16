@@ -570,7 +570,7 @@ $('btnTour').addEventListener('click', () => startTour());
 $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbit' && ($('chkRoof').checked || elev.on); });
 
 // elevation ideas (road-facing sides)
-const elev = { on: true, id: 'frame' }; // landing page shows the Floating frame design
+const elev = { on: true, id: 'frameglass' }; // landing page shows Floating frame · glass parapet
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {

@@ -389,6 +389,13 @@ export function buildModel(plan, M, onLabelClick) {
     const m = K.box(r[2] - r[0], SLAB, r[3] - r[1], M.slab, (r[0] + r[2]) / 2, CEIL + SLAB / 2, (r[1] + r[3]) / 2);
     roof.add(m);
   }
+  // 2′-0″ cantilevered roof slab (sunshade) on the two back sides: the rear (−z) and the east side (+x), at slab
+  // level; the parapet stays on the wall line. Clear of the plot line on every plan (≥ 40 mm at the rear of Plan-1/2).
+  {
+    const c = 24 * IN, [x0, z0, x1, z1] = [-bal.side * IN, 0, W * IN, (D + bal.front) * IN];
+    roof.add(K.box(x1 + c - x0, SLAB, c, M.slab, (x0 + x1 + c) / 2, CEIL + SLAB / 2, z0 - c / 2)); // rear, round the corner
+    roof.add(K.box(c, SLAB, z1 - z0, M.slab, x1 + c / 2, CEIL + SLAB / 2, (z0 + z1) / 2)); // east
+  }
   {
     const pt = 0.115, ph = STD.parapet * IN, y = CEIL + SLAB + ph / 2;
     const [x0, z0, x1, z1] = [-bal.side * IN, 0, W * IN, (D + bal.front) * IN];

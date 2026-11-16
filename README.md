@@ -26,7 +26,7 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 
 ## Features
 
-- The landing page opens on the street corner with the roof and the Floating frame elevation. After about 4 s the
+- The landing page opens on the street corner with the roof and the Floating frame · glass parapet elevation. After about 4 s the
   guided walk-in tour starts, unless the visitor has already clicked, scrolled or pressed a key.
 - A female Telugu voice-over names each room as the guided tour arrives. The clips are in `audio/te/`, made with
   Microsoft's te-IN Shruti neural voice, a natural Indian Telugu accent
@@ -48,6 +48,7 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   North comes from the survey map.
 - Pooja room has no window, and the mandir faces the entrance.
 - Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
+- A 2′-0″ cantilevered roof slab (sunshade) runs along the two back sides, the rear and the east side, at slab level.
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
   - Modern, subtle colours: Floating frame, Floating frame · glass parapet (the same design with frameless glass
     replacing the parapet on both road-facing sides), Oak slats, Stone & glass, Pergola & planters
