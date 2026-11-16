@@ -1,7 +1,7 @@
 // Calm background music for the guided tour, generated live with Web Audio (no files, no licence): a slow pad of
 // soft major-seventh chords with an occasional pentatonic bell, through a gentle low-pass and a synthetic reverb.
 // It sits well under the voice-over and ducks further while a room name is being spoken.
-const LEVEL = 0.5; // master level: ~17 dB under the voice clips, ~27 dB under while ducked
+const LEVEL = 0.32; // master level: ~16 dB under the voice clips, ~26 dB under while ducked
 const DUCKED = 0.3; // fraction of LEVEL kept while the voice speaks
 const BAR = 8; // seconds per chord
 const CHORDS = [[48, 55, 59, 64], [45, 52, 55, 60], [41, 48, 52, 57], [43, 50, 55, 62]]; // Cmaj7 Am7 Fmaj7 G(add9), MIDI

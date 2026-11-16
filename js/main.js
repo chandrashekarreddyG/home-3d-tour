@@ -321,7 +321,7 @@ async function glideTo(x, z, finalYaw = null, finalPitch = 0) {
 }
 const goToRoom = (room) => glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
 
-// Telugu voice-over (female, pre-recorded clips in audio/te/): names each room as the guided tour arrives,
+// Telugu voice-over (female Indian neural voice, pre-recorded clips in audio/te/): names each room as the guided tour arrives,
 // over calm generated background music that ducks while the voice speaks.
 // Browsers block sound until the visitor touches the page, so a chip offers to switch it on.
 const voice = new Audio();
@@ -330,7 +330,7 @@ const music = createMusic();
 voice.addEventListener('play', () => music.duck(true));
 for (const ev of ['ended', 'pause']) voice.addEventListener(ev, () => music.duck(false));
 function sayRoom(room) {
-  voice.src = `./audio/te/${room.name.toLowerCase().replace(/\s+/g, '-')}.m4a`;
+  voice.src = `./audio/te/${room.name.toLowerCase().replace(/\s+/g, '-')}.mp3`;
   voice.play().then(() => { $('voice').hidden = music.running(); }, () => { $('voice').hidden = !touring; });
 }
 $('voice').addEventListener('click', () => {
