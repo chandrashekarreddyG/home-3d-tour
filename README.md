@@ -59,14 +59,10 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
     every design also gets a matching tall screened tower closing the rear end of the side verandah (with an LED edge
     and a cap), plus a lit entrance portal over the side door with a timber soffit, a screen fascia and granite
     steps towards the side gate. The "Front view", "Side view" and "Corner view" buttons frame the road-facing sides.
-  - Devotional emblems are modelled in 3D in every design (`js/emblems.js`):
-    - The stair tower rises 1.4 m above the parapet and carries an Om medallion: the Om at the centre of a spiral
-      of tapering arcs, either black on cream or gold on dark to suit the design. The Om outline comes from Noto
-      Sans Devanagari (OFL) and is stored in `js/omglyph.js`.
-    - The side-entrance portal on the 21 ft road carries a gold-bordered plaque with the Shanku (pearl conch with a
-      gold crown, spiral and scrolls), the Tirunamam (white U with a red srichurnam and jewels) and the Sudarshana
-      Chakra (gold ring, flame spokes, ruby finials).
-    - Both emblems have a soft halo behind them that glows after dark.
+  - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
+    the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
+    with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in
+    `js/omglyph.js`.
 - **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, Indian
   marble, black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &

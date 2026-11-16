@@ -3,7 +3,7 @@
 // any wall, door, window or room.
 import * as THREE from 'three';
 import { boxGeo } from './materials.js';
-import { omMedallion, vaishnavaPlaque } from './emblems.js';
+import { omMedallion } from './emblems.js';
 
 export const ELEVATIONS = [
   { id: 'none', name: 'As drawn', blurb: 'Plain plastered elevation (no added features).', paint: '#e8d8bd' },
@@ -94,10 +94,9 @@ export function buildElevations(M, dims) {
   // 21 ft road side, the counterpart of the stair screen: a tall screened tower closing the rear end of the side
   // verandah (blank wall up to the first window; it hides the utility / wash corner and bookends the side with the
   // stair tower at the far corner), and a lit entrance portal over the side door with steps down to the side gate.
-  // The portal carries a gold Shanku · Namam · Chakra plaque across its full width, above the door.
   const sideOpen = openings.filter((o) => o.vertical && o.c < W / 2).sort((p, q) => p.a - q.a);
   const towerEnd = Math.min(2.6, (sideOpen.length ? sideOpen[0].a : 2.6) - 0.3);
-  const sideFeature = (g, kind, mat, frame = white, proud = 0.01) => {
+  const sideFeature = (g, kind, mat, frame = white) => {
     const xf = -S - 0.08, yt = ptop + 0.9;
     if (towerEnd > 0.9) {
       screenPanel(g, kind, mat, 'z', 0, towerEnd, ground, yt, xf); // road face
@@ -106,17 +105,12 @@ export function buildElevations(M, dims) {
       g.add(box(0.015, yt - ground - 0.3, 0.015, M.lamp, xf - 0.07, (yt + ground) / 2, towerEnd + 0.01)); // LED edge
     }
     // entrance portal: two posts on the verandah edge, a deep beam back to the wall, timber soffit with a light line
-    const pT = ptop + 0.9, t = 0.3, half = 1.15;
+    const pT = ptop + 0.6, t = 0.3, half = 1.15;
     for (const z of [sideZ - half, sideZ + half]) g.add(box(t, pT - ground, t, frame, -S - t / 2, (pT + ground) / 2, z));
     g.add(box(S + t, t, 2 * half + t, frame, -(S + t) / 2, pT - t / 2, sideZ));
     g.add(box(0.03, 0.4, 2 * half - t, M.teak, -S - t + 0.015, pT - t - 0.2, sideZ));
     g.add(box(0.012, 0.012, 2 * half - t - 0.1, M.lamp, -S - t + 0.05, pT - t - 0.41, sideZ));
     screenPanel(g, kind, mat, 'z', sideZ - half + t / 2, sideZ + half - t / 2, top, pT - t - 0.4, -S - 0.08); // fascia
-    const pl0 = top + 0.05, pl1 = pT - t - 0.45;
-    const plaque = vaishnavaPlaque(2 * half + t, pl1 - pl0, M.glow);
-    plaque.rotation.y = -Math.PI / 2; // faces the 21 ft road (−x)
-    plaque.position.set(-S - t - proud, (pl0 + pl1) / 2, sideZ); // `proud` clears any deep band behind it
-    g.add(plaque);
     for (const z of [sideZ - 0.6, sideZ + 0.6]) {
       g.add(box(0.12, 0.01, 0.12, M.lamp, -S / 2, top - slab - 0.005, z));
       const p = glowPlane(0.7, 1.2);
@@ -619,7 +613,7 @@ export function buildElevations(M, dims) {
       g.add(drive);
     }
     stairScreen(g, 'hslats', taupe, 'gold', by + bandH / 2 + 0.05); // medallion above the deep taupe band
-    sideFeature(g, 'hslats', taupe, dark, 0.12);
+    sideFeature(g, 'hslats', taupe, dark);
     out.ref5 = g;
   }
   // ---------- R6: stone, wood & jaali ----------
