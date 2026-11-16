@@ -35,6 +35,10 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - Calm background music plays during the guided tour. It is generated live with Web Audio in `js/music.js`
   (soft chord pad, pentatonic bells, reverb), so there are no files and no licence. It sits about 16 dB under
   the voice and drops about 10 dB more while a room name is spoken.
+- A **📷 Realistic view** button (top right) gives a photographic render of the same model: AgX filmic grade, soft
+  bloom on lamps, a lens vignette, ambient occlusion and a sharper render. It hides the labels, panel, minimap,
+  compass, walk markers and dimension overlay, while walking, clicking and the tour keep working. Esc or the
+  button exits.
 - Bird's-eye, dollhouse and whole-site views, plus a first-person walk at 1.6 m eye height.
   - Click the floor to glide; routes go through doorways.
   - W A S D to walk, with collision against walls and furniture.

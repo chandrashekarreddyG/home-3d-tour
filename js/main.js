@@ -7,6 +7,9 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { PLANS, TOUR_ORDER } from './plans.js';
 import { NORTH_UV, SITE_TITLE, SITE_LOCATION } from './site.js';
 import { buildModel, CEIL } from './build.js';
@@ -80,7 +83,16 @@ gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.5, thickness: 1, sca
 gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
 gtao.blendIntensity = 1;
 composer.addPass(gtao);
+// realistic view only: soft bloom on lamps and bright glints, and a gentle lens vignette
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.28, 0.45, 0.95);
+const vignette = new ShaderPass(VignetteShader);
+vignette.uniforms.offset.value = 1.0;
+vignette.uniforms.darkness.value = 1.05;
+bloom.enabled = vignette.enabled = false;
+composer.addPass(bloom);
+composer.addPass(vignette);
 composer.addPass(new OutputPass());
+let real = false; // realistic view: photographic grade, sharper render, no overlays
 
 // ---------- state ----------
 let MD = null; // current model
@@ -210,7 +222,7 @@ function setMode(m) {
   const inside = m !== 'orbit';
   controls.enabled = m === 'orbit';
   MD.ceilings.visible = inside;
-  MD.markers.visible = m === 'walk';
+  MD.markers.visible = m === 'walk' && !real;
   MD.labels.visible = !inside;
   MD.siteLabels.visible = !inside;
   MD.roof.visible = !inside && ($('chkRoof').checked || elev.on);
@@ -434,13 +446,14 @@ function updateHover() {
   canvas.style.cursor = p ? 'pointer' : '';
   if (!p) { hoverDisc.visible = false; return; }
   if (mode === 'orbit') { if (p.zone.highlight) p.zone.highlight.visible = true; hoverDisc.visible = false; }
-  else { hoverDisc.visible = true; hoverDisc.position.set(p.x, p.y + 0.012, p.z); }
+  else if (!real) { hoverDisc.visible = true; hoverDisc.position.set(p.x, p.y + 0.012, p.z); }
+  else hoverDisc.visible = false; // realistic view keeps the floor clean (click still glides)
 }
 
 // ---------- keyboard walking with collisions ----------
 addEventListener('keydown', (e) => {
   if (e.target.closest && e.target.closest('input,textarea,select,dialog')) return;
-  if (e.key === 'Escape') { if (mode === 'walk') exitWalk(); return; }
+  if (e.key === 'Escape') { if (mode === 'walk') exitWalk(); else if (real) setRealistic(false); return; }
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (['w', 'a', 's', 'd', 'q', 'e', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k) && mode === 'walk') {
     e.preventDefault();
@@ -628,10 +641,25 @@ $('chkHQ').addEventListener('change', () => setQuality($('chkHQ').checked));
 $('panelToggle').addEventListener('click', () => document.body.classList.toggle('panel-open'));
 function closePanelOnMobile() { if (innerWidth < 760) document.body.classList.remove('panel-open'); }
 function setQuality(hq) {
-  gtao.enabled = hq;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, hq ? 1.75 : 1));
+  gtao.enabled = hq || real;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, real ? 2 : hq ? 1.75 : 1));
   resize();
 }
+// Realistic view: filmic (AgX) grade, bloom, vignette, ambient occlusion and a sharper render; hides labels,
+// panel, minimap, compass, walk markers and the dimension overlay. Same model, measurements and lighting.
+function setRealistic(on) {
+  real = on;
+  document.body.classList.toggle('realistic', on);
+  $('btnReal').textContent = on ? '✕ Exit realistic view' : '📷 Realistic view';
+  bloom.enabled = vignette.enabled = on;
+  renderer.toneMapping = on ? THREE.AgXToneMapping : THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = on ? 1.05 : 1.0;
+  MD.dims.visible = !on && $('chkDims').checked;
+  MD.markers.visible = !on && mode === 'walk';
+  hoverDisc.visible = false;
+  setQuality($('chkHQ').checked);
+}
+$('btnReal').addEventListener('click', () => setRealistic(!real));
 
 // sun controls
 {
