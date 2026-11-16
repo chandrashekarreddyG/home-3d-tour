@@ -39,8 +39,6 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   North comes from the survey map.
 - Pooja room has no window, and the mandir faces the entrance.
 - Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
-- Kerala-style **elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
-  - Tiled verandah
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
   - Kerala, minimal: Tiled verandah, Laterite & teak, Twin gables, Continuous eave
   - Modern, subtle colours: Floating frame, Oak slats, Stone & glass, Pergola & planters
@@ -48,6 +46,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   marble, black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &
   wall washers. Each comes in warm 2700K, neutral 4000K or cool 6500K.
+
+## Develop
+
 Static site with no build step. Three.js r170 is loaded from a CDN.
 
 ```sh
@@ -65,5 +66,6 @@ python3 -m http.server 8000   # open http://localhost:8000
 | `js/nav.js` | walkability grid and A* routing |
 | `js/sun.js` | solar position |
 | `js/main.js` | camera modes, interaction, UI |
+| `js/lighting.js` | lighting designs (downlights, profiles, cove, pendants) |
 
 To regenerate `VALIDATION.md`, run `measurementReport()` in the browser console for each plan.
