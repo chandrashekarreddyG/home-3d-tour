@@ -45,7 +45,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
     Wood, brick & fluted box, Taupe band & ledgestone (with its own designer boundary wall and slotted gates),
     Stone, wood & jaali
     (cut-stone and brick cladding cut around the real openings, up/down wall washers, lit planters, granite entrance
-    steps, paving slabs with grass joints). "Front view" and "Corner view" buttons frame the road-facing sides.
+    steps, paving slabs with grass joints). Every design screens the open staircase on its road face and west side
+    (stone, slats, louvres or fluting to match), keeping the stair foot and roof exit open. "Front view" and
+    "Corner view" buttons frame the road-facing sides.
 - **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, Indian
   marble, black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &

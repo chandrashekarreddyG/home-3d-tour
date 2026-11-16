@@ -56,6 +56,33 @@ export function buildElevations(M, dims) {
       put(t, h, o.b + t / 2, ym);
     }
   };
+  // Screens the open staircase from the roads: across its road face (verandah edge, up past the stair railing)
+  // and its open west side up to the roof slab. The stair foot stays open below a 2.2 m header and the top
+  // landing stays open onto the roof.
+  const stairScreen = (g, kind, mat) => {
+    const x0 = stairs[0] - 0.05, x1 = Math.min(stairs[2] + 0.05, W + 0.15), zf = D + F + 0.08, zm = (stairs[1] + stairs[3]) / 2;
+    const yb = ground, yt = ptop + 0.9;
+    // one screen panel: along = 'x' (faces the road) or 'z' (faces west); [a0, a1] along it, [y0, y1] high
+    const panel = (along, a0, a1, y0, y1, fixed) => {
+      const L = a1 - a0, H = y1 - y0, am = (a0 + a1) / 2, ym = (y0 + y1) / 2;
+      const put = (l, h, d, ax, y, off = 0) => (along === 'x' ? box(l, h, d, mat, ax, y, fixed + off) : box(d, h, l, mat, fixed - off, y, ax));
+      if (kind === 'solid') { g.add(put(L, H, 0.12, am, ym)); return; }
+      if (kind === 'fluted') {
+        g.add(put(L, H, 0.1, am, ym));
+        for (let a = a0 + 0.06; a < a1; a += 0.12) g.add(put(0.05, H - 0.1, 0.03, a, ym, 0.065));
+        return;
+      }
+      // slatted: frame + slats, so light and air still reach the stair
+      g.add(put(L, 0.08, 0.1, am, y1 - 0.04));
+      g.add(put(L, 0.08, 0.1, am, y0 + 0.04));
+      for (const a of [a0 + 0.04, a1 - 0.04]) g.add(put(0.08, H, 0.1, a, ym));
+      if (kind === 'vslats') for (let a = a0 + 0.16; a < a1 - 0.1; a += 0.13) g.add(put(0.05, H - 0.16, 0.1, a, ym));
+      else for (let y = y0 + 0.2; y < y1 - 0.1; y += 0.16) g.add(put(L - 0.16, 0.12, 0.05, am, y));
+    };
+    panel('x', x0, x1, yb, yt, zf); // road face
+    panel('z', zm, zf + 0.05, yb, top, x0); // west side under the upper flight
+    panel('z', stairs[1], zm, 2.2, top, x0); // header over the stair foot
+  };
   // planters / screens must leave the entrance axes and the stair clear
   const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D);
 
@@ -72,6 +99,7 @@ export function buildElevations(M, dims) {
     g.add(box(2.4, ceil - 2.2, 0.02, charcoal, mainX, (ceil + 2.2) / 2, D + 0.011));
     g.add(box(0.02, ceil - 2.2, 2.4, charcoal, -0.011, (ceil + 2.2) / 2, sideZ));
     surround(g, charcoal);
+    stairScreen(g, 'vslats', white);
     out.frame = g;
   }
   // ---------- F: oak slats ----------
@@ -88,6 +116,7 @@ export function buildElevations(M, dims) {
     g.add(box(1.75, 0.05, 0.12, M.oak, -S + 0.85, ceil - 0.045, D + F - 0.06));
     g.add(box(0.12, 0.05, 1.75, M.oak, -S + 0.06, ceil - 0.045, D + F - 0.85));
     surround(g, white, 0.06, 0.05);
+    stairScreen(g, 'vslats', M.oak);
     out.slats = g;
   }
   // ---------- G: stone & glass ----------
@@ -104,6 +133,7 @@ export function buildElevations(M, dims) {
     g.add(box(3.0, 0.1, 1.2, white, mainX, ceil + 0.05, D + F + 0.6));
     g.add(box(2.8, 0.012, 0.03, M.lamp, mainX, ceil - 0.006, D + F + 1.1));
     surround(g, pale, 0.05, 0.04);
+    stairScreen(g, 'solid', M.stone);
     out.stone = g;
   }
   // ---------- H: pergola & planters ----------
@@ -133,6 +163,7 @@ export function buildElevations(M, dims) {
     };
     for (let x = -S + 0.6; x < W - 0.5; x += 1.25) if (clearOf(x, D + F + 0.3)) planter(x, D + F + 0.3, true);
     for (let z = 0.6; z < D + F - 0.5; z += 1.25) if (clearOf(-S - 0.3, z)) planter(-S - 0.3, z, false);
+    stairScreen(g, 'hslats', pale);
     out.pergola = g;
   }
   // ======================= reference-inspired (owner's photos) =======================
@@ -290,6 +321,7 @@ export function buildElevations(M, dims) {
     planterLit(g, 'side', 0.6, sideZ - 1.2);
     steps(g, 2.6);
     pavers(g);
+    stairScreen(g, 'solid', M.greyStone);
     out.ref1 = g;
   }
   // ---------- R2: brick & wood box ----------
@@ -322,6 +354,7 @@ export function buildElevations(M, dims) {
     planterLit(g, 'front', stairs[0] - 0.1, W - 0.1);
     planterLit(g, 'side', D * 0.5, D - 0.2);
     pavers(g);
+    stairScreen(g, 'vslats', M.oak);
     out.ref2 = g;
   }
   // ---------- R3: feature frame & diagonal grooves ----------
@@ -378,6 +411,7 @@ export function buildElevations(M, dims) {
     planterLit(g, 'side', 0.5, sideZ - 1.6);
     steps(g, 2.2);
     pavers(g);
+    stairScreen(g, 'solid', grey);
     out.ref3 = g;
   }
   // ---------- R4: wood, brick & fluted box ----------
@@ -438,6 +472,7 @@ export function buildElevations(M, dims) {
         g.add(b);
       }
     }
+    stairScreen(g, 'fluted', white);
     out.ref4 = g;
   }
   // ---------- R5: taupe band & ledgestone (with its own boundary on the two road sides) ----------
@@ -527,6 +562,7 @@ export function buildElevations(M, dims) {
       drive.receiveShadow = true;
       g.add(drive);
     }
+    stairScreen(g, 'hslats', taupe);
     out.ref5 = g;
   }
   // ---------- R6: stone, wood & jaali ----------
@@ -621,6 +657,7 @@ export function buildElevations(M, dims) {
       halo.position.set(x, ground + 0.03, z);
       g.add(halo);
     }
+    stairScreen(g, 'vslats', M.oak);
     out.ref6 = g;
   }
 
