@@ -5,24 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Padma Reddy Residence · 3D Walkthrough</title>
   <meta name="description" content="Dimensionally accurate interactive 3D walkthrough of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=7" />
   <!-- ?v= forces browsers to fetch fresh copies of every module after an update (bump on each release) -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
         "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "./js/build.js": "./js/build.js?v=5",
-        "./js/elevation.js": "./js/elevation.js?v=5",
-        "./js/furniture.js": "./js/furniture.js?v=5",
-        "./js/mandir.js": "./js/mandir.js?v=5",
-        "./js/materials.js": "./js/materials.js?v=5",
-        "./js/nav.js": "./js/nav.js?v=5",
-        "./js/plans.js": "./js/plans.js?v=5",
-        "./js/site.js": "./js/site.js?v=5",
-        "./js/sun.js": "./js/sun.js?v=5",
-        "./js/units.js": "./js/units.js?v=5",
-        "./js/verify.js": "./js/verify.js?v=5"
+        "./js/build.js": "./js/build.js?v=7",
+        "./js/elevation.js": "./js/elevation.js?v=7",
+        "./js/furniture.js": "./js/furniture.js?v=7",
+        "./js/lighting.js": "./js/lighting.js?v=7",
+        "./js/mandir.js": "./js/mandir.js?v=7",
+        "./js/materials.js": "./js/materials.js?v=7",
+        "./js/nav.js": "./js/nav.js?v=7",
+        "./js/plans.js": "./js/plans.js?v=7",
+        "./js/site.js": "./js/site.js?v=7",
+        "./js/sun.js": "./js/sun.js?v=7",
+        "./js/units.js": "./js/units.js?v=7",
+        "./js/verify.js": "./js/verify.js?v=7"
       }
     }
   </script>
@@ -75,6 +76,15 @@
     </section>
 
     <section>
+      <h2>Interior finishes</h2>
+      <div id="floors" class="seg wrap"></div>
+      <p id="floorNote" class="note"></p>
+      <div id="lights" class="seg wrap"></div>
+      <div id="temps" class="seg wrap"></div>
+      <p id="lightNote" class="note"></p>
+    </section>
+
+    <section>
       <h2>Sunlight at the site</h2>
       <div class="sunrow">
         <input type="date" id="sunDate" />
@@ -121,6 +131,6 @@
   </dialog>
 
   <div id="loading">Loading 3D model…</div>
-  <script type="module" src="js/main.js?v=5"></script>
+  <script type="module" src="js/main.js?v=7"></script>
 </body>
 </html>

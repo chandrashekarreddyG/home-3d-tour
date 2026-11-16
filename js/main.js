@@ -10,7 +10,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { PLANS, TOUR_ORDER } from './plans.js';
 import { NORTH_UV, SITE_TITLE, SITE_LOCATION } from './site.js';
 import { buildModel, CEIL } from './build.js';
-import { makeMaterials } from './materials.js';
+import { makeMaterials, FLOORS, FLOOR_DEFAULT } from './materials.js';
+import { LIGHTS, LIGHT_TEMPS } from './lighting.js';
 import { inRect, rectDist } from './nav.js';
 import { validate, toHTML, toMarkdown, summarise } from './verify.js';
 import { sunPosition, istDate } from './sun.js';
@@ -152,6 +153,8 @@ function loadPlan(id) {
   houseView(false);
   applySun();
   applyElevation();
+  applyFloor();
+  applyLighting();
   drawMinimap();
   report = null;
   const v = getReport();
@@ -443,20 +446,60 @@ function keyMove(dt) {
 }
 
 // ---------- interior light pool ----------
+const finish = { floor: 'asbuilt', light: 'down', temp: '2700' };
+const LIGHT_GAIN = { down: 1, profile: 1, cove: 1.15, pendant: 0.75 };
 function updateLights() {
   const cur = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z);
   const px = mode === 'orbit' ? controls.target.x : walker.x, pz = mode === 'orbit' ? controls.target.z : walker.z;
   const cands = [];
-  for (const r of MD.rooms) for (const [x, z] of r.lights) cands.push({ x, z, d: Math.hypot(x - px, z - pz) - (r === cur ? 100 : 0), out: r.outdoor });
+  for (const r of MD.rooms) for (const [x, y, z] of r.lightPts[finish.light]) cands.push({ x, y, z, d: Math.hypot(x - px, z - pz) - (r === cur ? 100 : 0) });
   cands.sort((a, b) => a.d - b.d);
   const on = mode !== 'orbit';
   pool.forEach((l, i) => {
     const c = cands[i];
     if (!c || !on) { l.intensity = 0; return; }
-    l.position.set(c.x, CEIL - 0.12, c.z);
-    l.intensity = night ? 6 : 2.6;
+    l.position.set(c.x, c.y, c.z);
+    l.intensity = (night ? 6 : 2.6) * LIGHT_GAIN[finish.light];
   });
 }
+
+// ---------- interior finishes: flooring + lighting designs ----------
+function applyFloor() {
+  const f = FLOORS.find((q) => q.id === finish.floor);
+  const key = (k) => f.map[k] || FLOOR_DEFAULT[k];
+  for (const m of MD.floors) {
+    const r = m.userData.floor;
+    if (r && r.finish) m.material = M[key(r.finish)];
+  }
+  for (const s of MD.skirts) s.mesh.material = s.finish === 'wood' && key('wood') === 'wood' ? M.walnut : M[key(s.finish === 'wood' ? 'wood' : s.finish)] || M.tile;
+  document.querySelectorAll('#floors button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.floor));
+  $('floorNote').textContent = f.blurb;
+}
+function applyLighting() {
+  for (const [id, g] of Object.entries(MD.lighting)) g.visible = id === finish.light;
+  const col = LIGHT_TEMPS.find((t) => t.id === finish.temp).color;
+  M.lamp.emissive.set(col);
+  M.shade.emissive.set(col);
+  pool.forEach((l) => l.color.set(col));
+  document.querySelectorAll('#lights button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.light));
+  document.querySelectorAll('#temps button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.temp));
+  $('lightNote').textContent = LIGHTS.find((q) => q.id === finish.light).blurb;
+  updateLights();
+}
+const optionButtons = (el, list, onPick) => {
+  for (const o of list) {
+    const b = document.createElement('button');
+    b.dataset.id = o.id;
+    b.textContent = o.name;
+    b.addEventListener('click', () => onPick(o.id));
+    $(el).append(b);
+  }
+};
+// lighting reads best after sunset: switch the clock to the evening when a design is picked in daylight
+const toEvening = () => { if (!night) { $('sunTime').value = String(19 * 60 + 15); applySun(); } };
+optionButtons('floors', FLOORS, (id) => { finish.floor = id; applyFloor(); });
+optionButtons('lights', LIGHTS, (id) => { finish.light = id; applyLighting(); toEvening(); });
+optionButtons('temps', LIGHT_TEMPS, (id) => { finish.temp = id; applyLighting(); toEvening(); });
 
 // ---------- UI ----------
 function renderRoomList() {
@@ -499,7 +542,15 @@ $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbi
 
 // elevation ideas (road-facing sides)
 const elev = { on: false, id: 'verandah' };
+let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
+  if (e.style !== lastStyle) {
+    const h = document.createElement('span');
+    h.className = 'seg-label';
+    h.textContent = e.style === 'Kerala' ? 'Kerala · minimal' : 'Modern · subtle colours';
+    $('elevs').append(h);
+    lastStyle = e.style;
+  }
   const b = document.createElement('button');
   b.dataset.id = e.id;
   b.textContent = e.name;

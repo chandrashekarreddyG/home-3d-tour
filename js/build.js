@@ -7,6 +7,7 @@ import { boxGeo } from './materials.js';
 import { kit, SIZES } from './furniture.js';
 import { buildMandir, rangoli } from './mandir.js';
 import { buildElevations } from './elevation.js';
+import { buildLighting } from './lighting.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
 
@@ -93,7 +94,7 @@ export function buildModel(plan, M, onLabelClick) {
   root.add(ceilings, roof, labels, siteLabels, dims, markers);
   ceilings.visible = roof.visible = dims.visible = markers.visible = false;
 
-  const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [];
+  const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [], skirts = [];
   const mini = { walls: [], windows: [] };
   const report = { openings: [], furniture: [], adjustments: [] };
 
@@ -222,6 +223,7 @@ export function buildModel(plan, M, onLabelClick) {
           sk.receiveShadow = true;
           worldUV(sk);
           root.add(sk);
+          skirts.push({ mesh: sk, finish: r.finish });
         }
       }
     };
@@ -623,43 +625,21 @@ export function buildModel(plan, M, onLabelClick) {
     }
   }
 
-  // ---------------- ceiling fans, downlights ----------------
+  // ---------------- ceiling fans + lighting designs ----------------
   for (const room of rooms) {
     if (room.outdoor) continue;
-    const r = room.main;
     const habitable = ['wood', 'tile'].includes(room.finish) && room.tour;
-    const [cx, cz] = room.center;
-    if (habitable && area(r) > 6) {
+    if (habitable && area(room.main) > 6) {
       const f = K.fan();
-      f.g.position.set(cx, CEIL, cz);
+      f.g.position.set(room.center[0], CEIL, room.center[1]);
       ceilings.add(f.g);
       fans.push(f.rotor);
     }
-    const sp = room.finish === 'bath' ? 1.0 : 1.35;
-    const nx = Math.max(1, Math.round((r[2] - r[0] - 0.6) / sp)), nz = Math.max(1, Math.round((r[3] - r[1] - 0.6) / sp));
-    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
-      const x = r[0] + ((r[2] - r[0]) * (i + 0.5)) / nx, z = r[1] + ((r[3] - r[1]) * (j + 0.5)) / nz;
-      if (habitable && Math.hypot(x - cx, z - cz) < 0.75) continue;
-      const dl = K.downlight();
-      dl.position.set(x, CEIL, z);
-      ceilings.add(dl);
-      room.lights.push([x, z]);
-    }
-    if (!room.lights.length) room.lights.push([cx, cz]);
   }
-  for (const b of rooms.filter((r) => r.outdoor)) {
-    const r = b.main, horiz = r[2] - r[0] > r[3] - r[1];
-    const n = Math.max(1, Math.round((horiz ? r[2] - r[0] : r[3] - r[1]) / 2.5));
-    for (let i = 0; i < n; i++) {
-      const x = horiz ? r[0] + ((r[2] - r[0]) * (i + 0.5)) / n : (r[0] + r[2]) / 2;
-      const z = horiz ? (r[1] + r[3]) / 2 : r[1] + ((r[3] - r[1]) * (i + 0.5)) / n;
-      if (inRect(x, z, st)) continue;
-      const dl = K.downlight();
-      dl.position.set(x, CEIL, z);
-      ceilings.add(dl);
-      b.lights.push([x, z]);
-    }
-  }
+  const lighting = buildLighting({
+    rooms, furniture: report.furniture, M, K, parent: ceilings, stairs: st, ceil: CEIL,
+    openings: openingsAll.map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN })),
+  });
 
   // ---------------- compound wall, gates, garden ----------------
   const p = plan.plot;
@@ -746,12 +726,13 @@ export function buildModel(plan, M, onLabelClick) {
   const elevations = buildElevations(M, {
     W: W * IN, D: D * IN, S: bal.side * IN, F: bal.front * IN, ceil: CEIL, slab: SLAB, parapet: STD.parapet * IN, ground: GROUND,
     mainX: md ? ((md.a + md.b) / 2) * IN : (W * IN) / 3, sideZ: sd ? ((sd.a + sd.b) / 2) * IN : (D * IN) / 2, stairs: st,
+    windows: openingsAll.filter((o) => o.outer && o.kind === 'w').map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
   });
   for (const g of Object.values(elevations)) root.add(g);
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts,
     colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,
