@@ -320,6 +320,16 @@ async function glideTo(x, z, finalYaw = null, finalPitch = 0) {
 }
 const goToRoom = (room) => glideTo(room.view.x, room.view.z, room.view.yaw, room.view.pitch ?? 0);
 
+// Telugu voice-over (female, pre-recorded clips in audio/te/): names each room as the guided tour arrives.
+// Browsers block sound until the visitor touches the page, so a chip offers to switch it on.
+const voice = new Audio();
+voice.preload = 'auto';
+function sayRoom(room) {
+  voice.src = `./audio/te/${room.name.toLowerCase().replace(/\s+/g, '-')}.m4a`;
+  voice.play().then(() => { $('voice').hidden = true; }, () => { $('voice').hidden = !touring; });
+}
+$('voice').addEventListener('click', () => { $('voice').hidden = true; if (touring && voice.src) voice.play().catch(() => {}); });
+
 async function startTour() {
   if (touring) { stopTour(); return; }
   const seq = TOUR_ORDER.map((n) => MD.rooms.find((r) => r.name === n)).filter(Boolean);
@@ -329,6 +339,7 @@ async function startTour() {
   for (const room of seq) {
     if (!touring) break;
     if (!(await goToRoom(room)) || !touring) break;
+    sayRoom(room);
     if (!(await lookAround())) break;
   }
   stopTour();
@@ -337,6 +348,8 @@ function stopTour() {
   if (!touring) return;
   touring = false;
   cancelAnim();
+  voice.pause();
+  $('voice').hidden = true;
   $('btnTour').classList.remove('on');
   $('btnTour').textContent = '▶ Guided tour';
 }
@@ -545,7 +558,7 @@ $('btnTour').addEventListener('click', () => startTour());
 $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbit' && ($('chkRoof').checked || elev.on); });
 
 // elevation ideas (road-facing sides)
-const elev = { on: false, id: 'frame' };
+const elev = { on: true, id: 'frame' }; // landing page shows the Floating frame design
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
@@ -755,3 +768,16 @@ resize();
 loadPlan((location.hash || '#p1').slice(1));
 $('loading').remove();
 frame();
+// landing: the street corner with the roof and elevation, then the guided walk-in tour starts by itself
+// (unless the visitor has already taken over by clicking, scrolling or using the keyboard)
+{
+  let acted = false;
+  const took = (e) => { if (!(e.target.closest && e.target.closest('#voice'))) acted = true; };
+  const evs = ['pointerdown', 'keydown', 'wheel'];
+  evs.forEach((ev) => addEventListener(ev, took, true));
+  $('btnStreet').click();
+  setTimeout(() => {
+    evs.forEach((ev) => removeEventListener(ev, took, true));
+    if (!acted && !touring && mode === 'orbit') startTour();
+  }, 4500);
+}
