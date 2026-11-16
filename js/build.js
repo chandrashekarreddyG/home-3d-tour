@@ -908,7 +908,7 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
     el.position.set(a[0] + (b[0] - a[0]) * t, GROUND + 0.2, a[1] + (b[1] - a[1]) * t);
     siteLabels.add(el);
   }
-  // trees (neem-sized: ~6–9 m) on the open Thirumal plot and across the road (none on G. Thirupathi Reddy's plot)
+  // trees (neem-sized: ~6–9 m) on the open Thirumal plot only (none on G. Thirupathi Reddy's plot or across G.P Road)
   let seed = 4242;
   const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const inPoly = (x, z, pts) => {
@@ -928,7 +928,6 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
       if (inPoly(pt[0], pt[1], poly)) { spots.push(pt); break; }
     }
   }
-  for (let k = 0; k < 12; k++) spots.push(Wp([-60 + k * 16 + R() * 6, -52 - R() * 14])); // well back from the far kerb so street views stay clear
   const trunk = M.walnut, leafMats = [M.solid('#56803c', { roughness: 0.85 }), M.solid('#668f45', { roughness: 0.85 }), M.solid('#4a7234', { roughness: 0.85 })];
   spots.forEach(([x, z], k) => {
     const s = 0.8 + R() * 0.5;
