@@ -614,6 +614,8 @@ function applyElevation() {
   for (const [id, g] of Object.entries(MD.elevations)) g.visible = elev.on && id === elev.id;
   // designs that bring their own boundary replace the plain wall + railing on the two road sides
   for (const side of ['s', 'w']) MD.compound[side].visible = !(elev.on && e.fence);
+  // designs with a glass parapet replace the plastered parapet on the two road sides
+  for (const side of ['s', 'w']) MD.parapet[side].visible = !(elev.on && e.glassParapet);
   M.paintExt.color.set(e.paint);
   $('chkElev').checked = elev.on;
   $('elevs').classList.toggle('off', !elev.on);

@@ -49,7 +49,8 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - Pooja room has no window, and the mandir faces the entrance.
 - Garden on the 23 SqYds strip along the 21 ft road, kept clear of the side gate.
 - **Elevation ideas** for both road-facing sides, with a toggle to compare against the plain drawing:
-  - Modern, subtle colours: Floating frame, Oak slats, Stone & glass, Pergola & planters
+  - Modern, subtle colours: Floating frame, Floating frame · glass parapet (the same design with frameless glass
+    replacing the parapet on both road-facing sides), Oak slats, Stone & glass, Pergola & planters
   - Inspired by the owner's reference photos: Stone band & wood soffit, Brick & wood box, Feature frame & grooves,
     Wood, brick & fluted box, Taupe band & ledgestone (with its own designer boundary wall and slotted gates),
     Stone, wood & jaali

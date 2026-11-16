@@ -96,6 +96,7 @@ export function buildModel(plan, M, onLabelClick) {
 
   const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [], skirts = [];
   const compound = {}; // boundary wall groups by side: n, s (G.P Road), w (21 ft road), e
+  const parapet = {}; // road-facing roof parapets: s (G.P Road), w (21 ft road); an elevation may swap them for glass
   const mini = { walls: [], windows: [] };
   const report = { openings: [], furniture: [], adjustments: [] };
 
@@ -392,8 +393,9 @@ export function buildModel(plan, M, onLabelClick) {
     const pt = 0.115, ph = STD.parapet * IN, y = CEIL + SLAB + ph / 2;
     const [x0, z0, x1, z1] = [-bal.side * IN, 0, W * IN, (D + bal.front) * IN];
     roof.add(K.box(x1 - x0, ph, pt, M.paintExt, (x0 + x1) / 2, y, z0 + pt / 2));
-    roof.add(K.box(x1 - x0, ph, pt, M.paintExt, (x0 + x1) / 2, y, z1 - pt / 2));
-    roof.add(K.box(pt, ph, z1 - z0, M.paintExt, x0 + pt / 2, y, (z0 + z1) / 2));
+    parapet.s = K.box(x1 - x0, ph, pt, M.paintExt, (x0 + x1) / 2, y, z1 - pt / 2);
+    parapet.w = K.box(pt, ph, z1 - z0, M.paintExt, x0 + pt / 2, y, (z0 + z1) / 2);
+    roof.add(parapet.s, parapet.w);
     roof.add(K.box(pt, ph, z1 - z0, M.paintExt, x1 - pt / 2, y, (z0 + z1) / 2));
   }
 
@@ -751,7 +753,7 @@ export function buildModel(plan, M, onLabelClick) {
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet,
     colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,

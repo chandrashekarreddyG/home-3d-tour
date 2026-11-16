@@ -8,6 +8,7 @@ import { omMedallion, artPanel } from './emblems.js';
 export const ELEVATIONS = [
   { id: 'none', name: 'As drawn', blurb: 'Plain plastered elevation (no added features).', paint: '#e8d8bd' },
   { id: 'frame', style: 'Modern', name: 'Floating frame', blurb: 'Greige walls with a deep white frame wrapping both verandahs, charcoal plaster bands above the two entrances and slim charcoal window surrounds.', paint: '#e6e1d8' },
+  { id: 'frameglass', style: 'Modern', name: 'Floating frame · glass parapet', glassParapet: true, blurb: 'The Floating frame design exactly, with the roof parapet on both road-facing sides (G.P Road and 21 ft road) in frameless toughened glass: a slim white curb, clear panes and a steel top cap.', paint: '#e6e1d8' },
   { id: 'slats', style: 'Modern', name: 'Oak slats', blurb: 'Warm white walls, an oak-clad verandah soffit and slab edge, and vertical oak slat screens at the road corner and beside the stair.', paint: '#f1ede6' },
   { id: 'stone', style: 'Modern', name: 'Stone & glass', blurb: 'Cool white walls, a stone-clad corner pier and plinth, a frameless glass balustrade on the roof edge, and a thin lit canopy over the front steps.', paint: '#ebeae6' },
   { id: 'pergola', style: 'Modern', name: 'Pergola & planters', blurb: 'Soft sage walls, pale grey parapet louvres, a slim black steel roof pergola over the verandah corner, and low concrete planters along the plinth (entrances kept clear).', paint: '#e2e4d9' },
@@ -130,8 +131,8 @@ export function buildElevations(M, dims) {
   // planters / screens must leave the entrance axes, the stair and the side tower clear
   const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D) && !(x < 0 && z < towerEnd + 0.4);
 
-  // ---------- E: floating frame ----------
-  {
+  // ---------- E: floating frame (and the same with a glass parapet on both road sides) ----------
+  const floatingFrame = () => {
     const g = new THREE.Group();
     const t = 0.3, bandH = 0.55, yb = top - bandH / 2 + 0.15;
     g.add(box(W + S + 2 * t, bandH, t, white, (W - S) / 2, yb, D + F + t / 2)); // front band
@@ -145,7 +146,26 @@ export function buildElevations(M, dims) {
     surround(g, charcoal);
     stairScreen(g, 'vslats', white);
     sideFeature(g, 'vslats', white, charcoal);
-    out.frame = g;
+    return g;
+  };
+  out.frame = floatingFrame();
+  {
+    // replaces the plastered parapet on the two road sides (main.js hides those when `glassParapet` is set):
+    // 100 mm white curb on the slab, toughened glass panes (~1.5 m, 12 mm joints) and a steel top cap
+    const g = floatingFrame();
+    const curb = 0.1, pz = D + F - 0.06, px = -S + 0.06;
+    g.add(box(W + S, curb, 0.115, white, (W - S) / 2, top + curb / 2, D + F - 0.0575));
+    g.add(box(0.115, curb, D + F, white, -S + 0.0575, top + curb / 2, (D + F) / 2));
+    const panes = (a0, a1, put) => {
+      const n = Math.max(1, Math.round((a1 - a0) / 1.5)), L = (a1 - a0) / n;
+      for (let i = 0; i < n; i++) put(L - 0.012, a0 + (i + 0.5) * L);
+    };
+    const gh = parapet - curb - 0.03, gy = top + curb + gh / 2;
+    panes(-S, W, (L, a) => g.add(box(L, gh, 0.015, M.glass, a, gy, pz)));
+    panes(0, D + F, (L, a) => g.add(box(0.015, gh, L, M.glass, px, gy, a)));
+    g.add(box(W + S, 0.03, 0.04, steel, (W - S) / 2, ptop - 0.015, pz));
+    g.add(box(0.04, 0.03, D + F, steel, px, ptop - 0.015, (D + F) / 2));
+    out.frameglass = g;
   }
   // ---------- F: oak slats ----------
   {
