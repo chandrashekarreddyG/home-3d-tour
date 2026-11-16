@@ -6,9 +6,10 @@ Room sizes are **measured in the built model**: rays are cast at 2.6 m height fr
 
 Tolerance: 1 mm.
 
+
 ## Ground Floor Plan
 
-10/11 labelled rooms match their drawing size to within 1 mm; Dining differs because the drawing contradicts its own dimension chain (see deviations). Openings: 30/30 measured widths equal the modelled widths. Furniture clearances: 35/35 OK. Door swings: 12/12 clear. Rooms reachable on foot: 15/15.
+10/11 labelled rooms match their drawing size to within 1 mm; Dining differs because the drawing contradicts its own dimension chain (see deviations). Openings: 30/30 measured widths equal the modelled widths. Furniture clearances: 35/35 OK. Door swings: 10/10 clear. Rooms reachable on foot: 15/15.
 
 ### Rooms: clear wall-to-wall size measured in the 3D model (Ground Floor Plan)
 
@@ -121,10 +122,8 @@ Tolerance: 1 mm.
 
 | Door | Type | Leaf | Conflicts | OK |
 | --- | --- | --- | --- | --- |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
+| Side Balcony ↔ Great Room | dd | 0.794 m | none | ✅ |
+| Living ↔ Front Balcony | dd | 1.099 m | none | ✅ |
 | Pooja ↔ Dining | dd | 0.397 m | none | ✅ |
 | Pooja ↔ Dining | dd | 0.397 m | none | ✅ |
 | Toilet 1 ↔ Master Bedroom | dt | 0.642 m | none | ✅ |
@@ -148,7 +147,7 @@ Tolerance: 1 mm.
 | Bedroom 2 | ✅ | 14.941 m |
 | Lobby | ✅ | 10.940 m |
 | Toilet 2 | ✅ | 14.900 m |
-| Living | ✅ | 5.338 m |
+| Living | ✅ | 5.363 m |
 | Bedroom 3 | ✅ | 9.907 m |
 | Toilet 3 | ✅ | 16.921 m |
 | Side Balcony | ✅ | 7.862 m |
@@ -187,7 +186,7 @@ Tolerance: 1 mm.
 
 ## Plan-1 · 2394 sft slab
 
-10/11 labelled rooms match their drawing size to within 1 mm; Great Room differs because the drawing contradicts its own dimension chain (see deviations). Openings: 30/30 measured widths equal the modelled widths. Furniture clearances: 29/30 OK. Door swings: 12/12 clear. Rooms reachable on foot: 16/16.
+10/11 labelled rooms match their drawing size to within 1 mm; Great Room differs because the drawing contradicts its own dimension chain (see deviations). Openings: 30/30 measured widths equal the modelled widths. Furniture clearances: 29/30 OK. Door swings: 10/10 clear. Rooms reachable on foot: 16/16.
 
 ### Rooms: clear wall-to-wall size measured in the 3D model (Plan-1 · 2394 sft slab)
 
@@ -296,10 +295,8 @@ Tolerance: 1 mm.
 
 | Door | Type | Leaf | Conflicts | OK |
 | --- | --- | --- | --- | --- |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
+| Side Balcony ↔ Great Room | dd | 0.794 m | none | ✅ |
+| Living ↔ Front Balcony | dd | 1.099 m | none | ✅ |
 | Toilet 1 ↔ Passage | dt | 0.642 m | none | ✅ |
 | Passage ↔ Master Bedroom | d | 0.794 m | none | ✅ |
 | Great Room ↔ Lobby | d | 0.794 m | none | ✅ |
@@ -318,11 +315,11 @@ Tolerance: 1 mm.
 | Toilet 1 | ✅ | 14.736 m |
 | Passage | ✅ | 13.615 m |
 | Master Bedroom | ✅ | 16.741 m |
-| Great Room | ✅ | 10.136 m |
+| Great Room | ✅ | 10.101 m |
 | Bedroom 2 | ✅ | 15.248 m |
 | Lobby | ✅ | 11.377 m |
 | Toilet 2 | ✅ | 15.336 m |
-| Living | ✅ | 5.031 m |
+| Living | ✅ | 5.029 m |
 | Pooja Lobby | ✅ | 8.833 m |
 | Pooja | ✅ | 9.986 m |
 | Bedroom 3 | ✅ | 10.274 m |
@@ -363,7 +360,7 @@ Tolerance: 1 mm.
 
 ## Plan-2 · 1944 sft slab
 
-10/10 labelled rooms match their drawing size to within 1 mm. Openings: 26/26 measured widths equal the modelled widths. Furniture clearances: 28/28 OK. Door swings: 12/12 clear. Rooms reachable on foot: 14/14.
+10/10 labelled rooms match their drawing size to within 1 mm. Openings: 26/26 measured widths equal the modelled widths. Furniture clearances: 28/28 OK. Door swings: 10/10 clear. Rooms reachable on foot: 14/14.
 
 ### Rooms: clear wall-to-wall size measured in the 3D model (Plan-2 · 1944 sft slab)
 
@@ -464,10 +461,8 @@ Tolerance: 1 mm.
 
 | Door | Type | Leaf | Conflicts | OK |
 | --- | --- | --- | --- | --- |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Side Balcony ↔ Great Room | dd | 0.397 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
-| Living ↔ Front Balcony | dd | 0.550 m | none | ✅ |
+| Side Balcony ↔ Great Room | dd | 0.794 m | none | ✅ |
+| Living ↔ Front Balcony | dd | 1.099 m | none | ✅ |
 | Passage ↔ Master Bedroom | d | 0.794 m | none | ✅ |
 | Toilet 1 ↔ Passage | dt | 0.642 m | none | ✅ |
 | Pooja ↔ Great Room | dd | 0.397 m | none | ✅ |
@@ -490,7 +485,7 @@ Tolerance: 1 mm.
 | Bedroom 2 | ✅ | 10.781 m |
 | Lobby | ✅ | 9.840 m |
 | Toilet 2 | ✅ | 13.455 m |
-| Living | ✅ | 4.851 m |
+| Living | ✅ | 4.901 m |
 | Bedroom 3 | ✅ | 8.127 m |
 | Toilet 3 | ✅ | 15.334 m |
 | Side Balcony | ✅ | 7.091 m |
@@ -525,4 +520,3 @@ Tolerance: 1 mm.
 - Master Bedroom: bed moved 108 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 2: bed moved 129 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 3: bed moved 177 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
-

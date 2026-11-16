@@ -17,6 +17,7 @@ import { makeMaterials, FLOORS, FLOOR_DEFAULT } from './materials.js';
 import { LIGHTS, LIGHT_TEMPS } from './lighting.js';
 import { inRect, rectDist } from './nav.js';
 import { validate, toHTML, toMarkdown, summarise } from './verify.js';
+import { electricalHTML, electricalMarkdown } from './electrical.js';
 import { sunPosition, istDate } from './sun.js';
 import { ELEVATIONS } from './elevation.js';
 import { createMusic } from './music.js';
@@ -170,6 +171,7 @@ function loadPlan(id) {
   applyElevation();
   applyFloor();
   applyLighting();
+  applyElec();
   drawMinimap();
   report = null;
   const v = getReport();
@@ -657,6 +659,7 @@ function setRealistic(on) {
   MD.dims.visible = !on && $('chkDims').checked;
   MD.markers.visible = !on && mode === 'walk';
   hoverDisc.visible = false;
+  applyElec();
   setQuality($('chkHQ').checked);
 }
 $('btnReal').addEventListener('click', () => setRealistic(!real));
@@ -697,25 +700,48 @@ $('btnDrawing').addEventListener('click', () => showDrawing(MD.plan.id));
 $('drawingClose').addEventListener('click', () => $('drawing').close());
 $('drawing').addEventListener('click', (e) => { if (e.target === $('drawing')) $('drawing').close(); });
 
-// measurement report
+// measurement report and electrical schedule share one dialog; Download saves whichever is open
+let reportDoc = null; // { file, md }
 function showReport() {
   $('reportTitle').textContent = `Measurement validation — ${MD.plan.name}`;
   $('reportBody').innerHTML = toHTML(getReport());
+  reportDoc = { file: `measurement-validation-${MD.plan.id}.md`, md: () => `# Measurement validation\n\n${toMarkdown(getReport())}` };
+  if (!$('report').open) $('report').showModal();
+}
+function showElectrical() {
+  $('reportTitle').textContent = `Electrical layout — ${MD.plan.name}`;
+  $('reportBody').innerHTML = electricalHTML(MD.electrical, MD.rooms);
+  reportDoc = { file: `electrical-layout-${MD.plan.id}.md`, md: () => electricalMarkdown(MD.electrical, MD.rooms, MD.plan.name) };
   if (!$('report').open) $('report').showModal();
 }
 $('btnReport').addEventListener('click', showReport);
 $('verifySummary').addEventListener('click', showReport);
+$('btnElec').addEventListener('click', showElectrical);
 $('reportClose').addEventListener('click', () => $('report').close());
 $('reportDownload').addEventListener('click', () => {
-  const blob = new Blob([`# Measurement validation\n\n${toMarkdown(getReport())}`], { type: 'text/markdown' });
+  const blob = new Blob([reportDoc.md()], { type: 'text/markdown' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `measurement-validation-${MD.plan.id}.md`;
+  a.download = reportDoc.file;
   a.click();
   URL.revokeObjectURL(a.href);
 });
+// electrical overlay: amber frames + numbered height tags on every board (boards themselves are always built)
+function applyElec() {
+  const on = $('chkElec').checked && !real;
+  MD.electrical.labels.visible = MD.electrical.marks.visible = on;
+}
+$('chkElec').addEventListener('change', applyElec);
+// tags are HTML and show through walls: when walking, show only the boards of the room you are in
+function updateElecTags() {
+  const L = MD.electrical.labels;
+  if (!L.visible) return;
+  const here = mode === 'orbit' ? null : whereRoom && whereRoom.name;
+  for (const t of L.children) t.visible = mode === 'orbit' || t.userData.room === here;
+}
 // used to regenerate VALIDATION.md from the live model
 window.measurementReport = () => toMarkdown(getReport());
+window.electricalLayout = () => electricalMarkdown(MD.electrical, MD.rooms, MD.plan.name);
 
 // ---------- minimap ----------
 const mm = $('minimap');
@@ -803,7 +829,7 @@ function frame() {
   updateHover();
   updateCompass();
   slowTimer += dt;
-  if (slowTimer > 0.15) { slowTimer = 0; updateWhere(); drawMinimap(); updateLights(); }
+  if (slowTimer > 0.15) { slowTimer = 0; updateWhere(); drawMinimap(); updateLights(); updateElecTags(); }
   composer.render(dt);
   labelRenderer.render(scene, camera);
   requestAnimationFrame(frame);

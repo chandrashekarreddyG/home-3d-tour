@@ -47,6 +47,21 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   - beds, wardrobes, sofas, a modular kitchen with hob and chimney
   - toilets with EWC, vanity, real mirrors and shower glass
   - fans, downlights, curtains, and hinged doors that swing as drawn
+  - main entrances (G.P Road and 21 ft road): one wide designer teak door in the drawn opening, with horizontal
+    V-grooves, a full-height brass inlay, a 1.2 m brass pull bar and a smart lock. It hinges on the end with the
+    shorter pier, so the latch side keeps the wider pier for the entrance switchboard.
+- **Electrical layout** (`js/electrical.js`, full schedule in [ELECTRICAL.md](ELECTRICAL.md)). Every switchboard and
+  power point is placed by rule from the model's doors, windows and furniture, then re-checked against them. Rules:
+  - room boards at 1.10 m on the latch side, 175 mm from the door
+  - bathroom switches outside the door
+  - bedside boards at 0.80 m on both sides of each bed
+  - TV wall and console boards
+  - kitchen counter boards at 1.05 m, clear of the sink and hob
+  - fridge, chimney, geyser, exhaust and split AC points
+  - main DB, video door phone, outdoor sockets and the stair 2-way switch
+
+  Toggle **Electrical** in the View panel to see every board numbered with its height in 3D, or open
+  **Electrical schedule** for the table: where, height, plate, contents, why here, and the check result.
 - PBR materials (CC0 scans from Poly Haven), an HDRI sky, soft sun shadows and ambient occlusion.
 - The sun is placed from the real location using the date and time slider (IST).
   North comes from the survey map.

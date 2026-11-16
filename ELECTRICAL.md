@@ -1,0 +1,407 @@
+# Electrical layout (switchboards and power points)
+
+Generated from the live 3D model by `js/electrical.js`: every board is placed by rule from the doors, windows and furniture of the model and then re-checked. Heights are to the centre of the box above finished floor level. Toggle **Electrical** in the View panel to see each board numbered in 3D; **Electrical schedule** opens this table for the current plan.
+
+## Ground Floor Plan
+
+49 switchboards and points placed by rule; 49/49 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. 1 need a site decision (listed below).
+
+### Switchboards and power points (positions measured in the 3D model)
+
+| # | Room | Board / point | Where | Height (centre, above FFL) | Plate | Contents | Why here | Check |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | Dining | Pooja switches (outside the door) | bottom wall (as drawn), 0.21 m from its left end | 1.10 m | 4M plate (4M used) | pooja light, deity spot light, socket for electric diya | Pooja: latch side of the door to Pooja / Dining, 175 mm from the opening, clear of the open leaf — on the return wall 150 mm from the door wall (door-wall side blocked: wall end or corner) | ✅ |
+| E2 | Master Bedroom | Toilet 1 switches (outside the door) | left wall (as drawn), 0.78 m from its top end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Toilet 1 / Master Bedroom, 175 mm from the opening, clear of the open leaf | ✅ |
+| E3 | Bedroom 2 | Toilet 2 switches (outside the door) | bottom wall (as drawn), 3.85 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 2 / Toilet 2, 175 mm from the opening, clear of the open leaf | ✅ |
+| E4 | Bedroom 3 | Toilet 3 switches (outside the door) | top wall (as drawn), 4.19 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 3 / Toilet 3, 175 mm from the opening, clear of the open leaf — on the return wall 600 mm from the door wall (door-wall side blocked: Wardrobe 1436×600 mm) | ✅ |
+| E5 | Cooking | Cooking door board | right wall (as drawn), 1.62 m from its top end | 1.10 m | 6M plate (5M used) | main light, under-cabinet strip, exhaust fan, fan, fan regulator | beside the arch to Cooking / Dining, 175 mm from the opening — on the other side of the arch | ✅ |
+| E6 | Dining | Dining door board | bottom wall (as drawn), 0.57 m from its left end | 1.10 m | 6M plate (6M used) | main light, pendant over table, fan, fan regulator, 6 A socket | beside the arch to Dining / Great Room, 175 mm from the opening — on the other side of the arch | ✅ |
+| E7 | Passage | Passage door board | bottom wall (as drawn), 1.28 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | latch side of the door to Passage / Great Room, 175 mm from the opening, clear of the open leaf | ✅ |
+| E8 | Master Bedroom | Master Bedroom door board | left wall (as drawn), 2.74 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | beside the arch to Passage / Master Bedroom, 175 mm from the opening — on the other side of the arch | ✅ |
+| E9 | Great Room | Great Room entrance board | bottom wall (as drawn), 2.98 m from its left end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | beside the arch to Great Room / Living, 175 mm from the opening (the Side Balcony / Great Room door has no clear wall beside it) | ✅ |
+| E10 | Great Room | Great Room side-entrance 2-way board | left wall (as drawn), 4.09 m from its top end | 1.10 m | 2M plate (2M used) | main light (2-way), verandah light | latch side of the door to Side Balcony / Great Room, 175 mm from the opening, clear of the open leaf; a compact 2-way board because the full board would not fit beside this door | ✅ |
+| E11 | Great Room | Great Room 2-way board | top wall (as drawn), 6.88 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | 2-way control from the second entrance; latch side of the door to Passage / Great Room, 175 mm from the opening, clear of the open leaf | ✅ |
+| E12 | Bedroom 2 | Bedroom 2 door board | bottom wall (as drawn), 1.80 m from its left end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | beside the arch to Bedroom 2 / Lobby, 175 mm from the opening | ✅ |
+| E13 | Lobby | Lobby door board | bottom wall (as drawn), 0.99 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | latch side of the door to Great Room / Lobby, 175 mm from the opening, clear of the open leaf — on the side wall 944 mm from the door wall, just past the open leaf (latch side blocked: wall end or corner) | ✅ |
+| E14 | Living | Living entrance board | bottom wall (as drawn), 3.79 m from its left end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | latch side of the door to Living / Front Balcony, 175 mm from the opening, clear of the open leaf (moved 750 mm along to clear: window) | ✅ |
+| E15 | Living | Living 2-way board | top wall (as drawn), 2.89 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | 2-way control from the second entrance; beside the arch to Great Room / Living, 175 mm from the opening | ✅ |
+| E16 | Bedroom 3 | Bedroom 3 door board | left wall (as drawn), 1.05 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | latch side of the door to Great Room / Bedroom 3, 175 mm from the opening, clear of the open leaf — on the side wall 944 mm from the door wall, just past the open leaf (latch side blocked: Queen bed 1520×1980 mm + side tables) | ✅ |
+| E17 | Side Balcony | Bell push | right wall (as drawn), 8.70 m from its top end | 1.35 m | 1M plate (1M used) | bell push | Outside the side entrance on the latch side | ✅ |
+| E18 | Side Balcony | Outdoor socket (weatherproof) | right wall (as drawn), 8.69 m from its top end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E19 | Living | Video door phone monitor | bottom wall (as drawn), 4.12 m from its left end | 1.45 m | 220×150 mm | Video door phone monitor | Beside the entrance board, 1.45 m (1400–1500 mm rule) (moved 1100 mm along to clear: window) | ✅ |
+| E20 | Living | Main distribution board (DB) | bottom wall (as drawn), 4.48 m from its left end | 1.65 m | 330×450×100 mm enclosure | Main DB: 2-pole isolator, 30 mA RCCB, MCB per circuit (lights, sockets, kitchen, geysers, each AC) | Inside the main entrance near the entrance board: reachable, dry, not in a bedroom, kitchen or bathroom (moved 1400 mm along to clear: window) | ✅ |
+| E21 | Front Balcony | Video door phone outdoor unit + bell | top wall (as drawn), 5.31 m from its left end | 1.45 m | 100×180 mm | Video door phone outdoor unit with bell push | Outside the main door on the latch side, camera at face height | ✅ |
+| E22 | Front Balcony | Outdoor socket (weatherproof) | top wall (as drawn), 4.72 m from its left end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E23 | Dining | Refrigerator point | right wall (as drawn), 2.83 m from its top end | 1.25 m | 3M plate (3M used) | 16 A switch, 16 A socket (refrigerator) | Beside the fridge, not behind it, on its own 16 A point | ✅ |
+| E24 | Master Bedroom | Bedside board (left) | top wall (as drawn), 0.95 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E25 | Master Bedroom | Bedside board (right) | top wall (as drawn), 3.45 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E26 | Bedroom 2 | Bedside board (left) | top wall (as drawn), 1.26 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E27 | Bedroom 2 | Bedside board (right) | top wall (as drawn), 3.45 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E28 | Bedroom 3 | Bedside board (right) | top wall (as drawn), 3.45 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E29 | Great Room | TV wall board (behind the TV) | left wall (as drawn), 2.08 m from its top end | 1.15 m | 6M plate (6M used) | TV, spare, TV outlet, data outlet | Hidden behind the screen with TV/data outlets; 25 mm conduit down to the console | ✅ |
+| E30 | Great Room | TV console board | left wall (as drawn), 2.43 m from its top end | 0.62 m | 6M plate (5M used) | set-top box, sound bar / router, USB charger | 170 mm above the 450 mm console top, between console and screen | ✅ |
+| E31 | Living | Sofa-side socket | top wall (as drawn), 4.68 m from its left end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E32 | Living | Sofa-side socket | right wall (as drawn), 3.20 m from its top end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E33 | Living | Sofa-side socket | bottom wall (as drawn), 4.68 m from its left end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E34 | Living | TV wall board (behind the TV) | left wall (as drawn), 1.41 m from its top end | 1.15 m | 6M plate (6M used) | TV, spare, TV outlet, data outlet | Hidden behind the screen with TV/data outlets; 25 mm conduit down to the console | ✅ |
+| E35 | Living | TV console board | left wall (as drawn), 1.81 m from its top end | 0.62 m | 6M plate (5M used) | set-top box, sound bar / router, USB charger | 170 mm above the 450 mm console top, between console and screen | ✅ |
+| E36 | Cooking | Kitchen counter board 1 | top wall (as drawn), 0.77 m from its left end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E37 | Cooking | Chimney point | left wall (as drawn), 1.40 m from its top end | 2.20 m | 2M plate (2M used) | chimney socket | Above the wall cabinets beside the chimney duct | ✅ |
+| E38 | Toilet 1 | Exhaust fan point | top wall (as drawn), 1.23 m from its left end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E39 | Toilet 1 | Geyser point | bottom wall (as drawn), 1.31 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E40 | Toilet 2 | Exhaust fan point | right wall (as drawn), 1.23 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E41 | Toilet 2 | Geyser point | left wall (as drawn), 1.31 m from its top end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E42 | Toilet 3 | Exhaust fan point | right wall (as drawn), 2.44 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E43 | Toilet 3 | Geyser point | bottom wall (as drawn), 1.31 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E44 | Master Bedroom | Split AC point | right wall (as drawn), 3.18 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E45 | Great Room | Split AC point | left wall (as drawn), 3.29 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E46 | Bedroom 2 | Split AC point | right wall (as drawn), 2.77 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E47 | Living | Split AC point | left wall (as drawn), 2.38 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E48 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.99 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E49 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 9.74 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
+
+### Coverage by room
+
+| Room | Light / fan switches at | Sockets in the room | Dedicated points |
+| --- | --- | --- | --- |
+| Cooking | E5, E36 | 3 | Chimney point E37 |
+| Pooja | E1 (in Dining) | 0 | — |
+| Dining | E6 | 3 | Refrigerator point E23 |
+| Toilet 1 | E2 (in Master Bedroom) | 1 | Exhaust fan point E38; Geyser point E39 |
+| Passage | E7 | 0 | — |
+| Master Bedroom | E8, E24, E25 | 4 | Split AC point E44 |
+| Great Room | E9, E10, E11, E29, E30 | 6 | Split AC point E45 |
+| Bedroom 2 | E12, E26, E27 | 4 | Split AC point E46 |
+| Lobby | E13 | 0 | — |
+| Toilet 2 | E3 (in Bedroom 2) | 1 | Exhaust fan point E40; Geyser point E41 |
+| Living | E14, E15, E34, E35 | 9 | Video door phone monitor E19; Main distribution board E20; Split AC point E47 |
+| Bedroom 3 | E16, E28 | 3 | Split AC point E48 |
+| Toilet 3 | E4 (in Bedroom 3) | 1 | Exhaust fan point E42; Geyser point E43 |
+| Side Balcony | switched from the adjoining room | 1 | — |
+| Front Balcony | E49 | 1 | Video door phone outdoor unit + bell E21 |
+
+### Count by type
+
+| Board / point | Number |
+| --- | --- |
+| Bedside board | 5 |
+| Split AC point | 5 |
+| Sofa-side socket | 3 |
+| Exhaust fan point | 3 |
+| Geyser point | 3 |
+| Outdoor socket (weatherproof) | 2 |
+| TV wall board (behind the TV) | 2 |
+| TV console board | 2 |
+| Pooja switches (outside the door) | 1 |
+| Toilet 1 switches (outside the door) | 1 |
+| Toilet 2 switches (outside the door) | 1 |
+| Toilet 3 switches (outside the door) | 1 |
+| Cooking door board | 1 |
+| Dining door board | 1 |
+| Passage door board | 1 |
+| Master Bedroom door board | 1 |
+| Great Room entrance board | 1 |
+| Great Room side-entrance 2-way board | 1 |
+| Great Room 2-way board | 1 |
+| Bedroom 2 door board | 1 |
+| Lobby door board | 1 |
+| Living entrance board | 1 |
+| Living 2-way board | 1 |
+| Bedroom 3 door board | 1 |
+| Bell push | 1 |
+| Video door phone monitor | 1 |
+| Main distribution board (DB) | 1 |
+| Video door phone outdoor unit + bell | 1 |
+| Refrigerator point | 1 |
+| Kitchen counter board | 1 |
+| Chimney point | 1 |
+| Staircase 2-way switch (foot) | 1 |
+
+### Rules and heights used
+
+| Item | Height | Rule / source |
+| --- | --- | --- |
+| Room switchboard at the door | 1.10 m to centre | Latch (opening) side, 175 mm from the door opening, never behind the door leaf; one height in every room (1.10–1.20 m; 1.10 m also suits children and seated users). common Indian practice (Aaditya Interior, “Electrical switch and socket heights in India”, 2026), in line with NBC 2016 Pt 8 §2 / IS 732 |
+| Bedside boards (both sides of the bed) | 0.80 m | Above the side tables (0.50 m), beside — not behind — the headboard; 2-way main light, fan regulator, USB and 6 A socket (700–900 mm rule). |
+| General sockets (sofa side) | 0.375 m | Above the skirting (300–450 mm rule), at the end of the sofa where a lamp or charger is used. |
+| TV wall | 1.15 m behind the screen + 0.62 m above the console | Power and TV/data hidden behind the 55″ TV; a second board 170 mm above the console top for set-top box / sound bar. |
+| Kitchen counter boards | 1.05 m | 200 mm above the 850 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A. |
+| Refrigerator | 1.25 m beside the fridge | Beside, not behind, the appliance so it can be unplugged without moving it. |
+| Chimney | 2.20 m | Just above the wall cabinets beside the chimney duct (2100–2200 mm rule). |
+| Bathroom switches | 1.10 m, outside the door | Light, mirror light, exhaust and a 20 A geyser switch with indicator outside the wet room (keep water and switches apart; 30 mA RCCB). |
+| Geyser point | 1.95 m | Inside, beside the shower wall but out of the spray (1800–2000 mm rule). |
+| Exhaust fan point | 1.95 m | Beside the ventilator that takes the exhaust fan. |
+| Split AC point | 2.25 m | On the room’s outer wall where possible (short pipe run), not on the bed-head wall, clear of wardrobes (2100–2300 mm rule). |
+| Main distribution board (DB) | 1.65 m to centre | Inside the main entrance beside the living-room board, reachable without a stool; MCBs per circuit + 30 mA RCCB. |
+| Video door phone | 1.45 m | Outdoor unit with bell push at the main door, monitor inside beside the entrance board (1400–1500 mm rule). |
+| Outdoor sockets / bell | 0.60 m / 1.35 m | Weatherproof box with cover, above mopping splash; bell push at the side entrance. |
+| Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |
+
+### Needs a site decision
+
+- Bedroom 3: Bedside board (left) — no clear wall near the planned spot (blocked: door frame); confirm on site.
+
+## Plan-1 · 2394 sft slab
+
+50 switchboards and points placed by rule; 50/50 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. Every planned point found a clear wall.
+
+### Switchboards and power points (positions measured in the 3D model)
+
+| # | Room | Board / point | Where | Height (centre, above FFL) | Plate | Contents | Why here | Check |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | Passage | Toilet 1 switches (outside the door) | top wall (as drawn), 1.20 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Toilet 1 / Passage, 175 mm from the opening, clear of the open leaf | ✅ |
+| E2 | Bedroom 2 | Toilet 2 switches (outside the door) | bottom wall (as drawn), 3.72 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 2 / Toilet 2, 175 mm from the opening, clear of the open leaf | ✅ |
+| E3 | Pooja Lobby | Pooja switches (outside the door) | right wall (as drawn), 0.74 m from its top end | 1.10 m | 4M plate (4M used) | pooja light, deity spot light, socket for electric diya | Pooja: latch side of the door to Pooja Lobby / Pooja, 175 mm from the opening, clear of the open leaf — on the return wall 150 mm from the door wall (door-wall side blocked: wall end or corner) | ✅ |
+| E4 | Bedroom 3 | Toilet 3 switches (outside the door) | top wall (as drawn), 4.15 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 3 / Toilet 3, 175 mm from the opening, clear of the open leaf — on the return wall 600 mm from the door wall (door-wall side blocked: Wardrobe 1296×600 mm) | ✅ |
+| E5 | Cooking | Cooking door board | right wall (as drawn), 2.01 m from its top end | 1.10 m | 6M plate (5M used) | main light, under-cabinet strip, exhaust fan, fan, fan regulator | beside the arch to Cooking / Dining, 175 mm from the opening — on the other side of the arch | ✅ |
+| E6 | Great Room | Dining door board | top wall (as drawn), 5.87 m from its left end | 1.10 m | 6M plate (6M used) | main light, pendant over table, fan, fan regulator, 6 A socket | beside the arch to Dining / Great Room, 175 mm from the opening — on the Great Room side of the open arch (no wall beside it in Dining) | ✅ |
+| E7 | Passage | Passage door board | left wall (as drawn), 0.99 m from its top end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | beside the arch to Passage / Great Room, 175 mm from the opening — on the return wall 150 mm from the door wall (door-wall side blocked: wall end or corner) | ✅ |
+| E8 | Master Bedroom | Master Bedroom door board | left wall (as drawn), 2.41 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | latch side of the door to Passage / Master Bedroom, 175 mm from the opening, clear of the open leaf | ✅ |
+| E9 | Great Room | Great Room entrance board | bottom wall (as drawn), 2.90 m from its left end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | beside the arch to Great Room / Living, 175 mm from the opening (the Side Balcony / Great Room door has no clear wall beside it) | ✅ |
+| E10 | Great Room | Great Room side-entrance 2-way board | left wall (as drawn), 3.83 m from its top end | 1.10 m | 2M plate (2M used) | main light (2-way), verandah light | latch side of the door to Side Balcony / Great Room, 175 mm from the opening, clear of the open leaf; a compact 2-way board because the full board would not fit beside this door (150 mm from the opening: narrow pier) | ✅ |
+| E11 | Great Room | Great Room 2-way board | top wall (as drawn), 6.22 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | 2-way control from the second entrance; beside the arch to Passage / Great Room, 175 mm from the opening — on the other side of the arch | ✅ |
+| E12 | Bedroom 2 | Bedroom 2 door board | bottom wall (as drawn), 1.48 m from its left end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | beside the arch to Bedroom 2 / Lobby, 175 mm from the opening | ✅ |
+| E13 | Lobby | Lobby door board | left wall (as drawn), 0.15 m from its top end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | latch side of the door to Great Room / Lobby, 175 mm from the opening, clear of the open leaf (150 mm from the opening: narrow pier) | ✅ |
+| E14 | Living | Living entrance board | bottom wall (as drawn), 3.44 m from its left end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | latch side of the door to Living / Front Balcony, 175 mm from the opening, clear of the open leaf (moved 750 mm along to clear: window) | ✅ |
+| E15 | Living | Living 2-way board | top wall (as drawn), 2.82 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | 2-way control from the second entrance; beside the arch to Great Room / Living, 175 mm from the opening | ✅ |
+| E16 | Pooja Lobby | Pooja Lobby door board | right wall (as drawn), 0.19 m from its top end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | beside the arch to Great Room / Pooja Lobby, 175 mm from the opening — on the return wall 150 mm from the door wall (door-wall side blocked: wall end or corner) | ✅ |
+| E17 | Bedroom 3 | Bedroom 3 door board | left wall (as drawn), 1.05 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | latch side of the door to Great Room / Bedroom 3, 175 mm from the opening, clear of the open leaf — on the side wall 944 mm from the door wall, just past the open leaf (latch side blocked: Queen bed 1520×1980 mm + side tables) | ✅ |
+| E18 | Side Balcony | Bell push | right wall (as drawn), 7.87 m from its top end | 1.35 m | 1M plate (1M used) | bell push | Outside the side entrance on the latch side | ✅ |
+| E19 | Side Balcony | Outdoor socket (weatherproof) | right wall (as drawn), 7.86 m from its top end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E20 | Living | Video door phone monitor | right wall (as drawn), 3.25 m from its top end | 1.45 m | 220×150 mm | Video door phone monitor | Beside the entrance board, 1.45 m (1400–1500 mm rule) — on the return wall 150 mm from the door wall (door-wall side blocked: window) | ✅ |
+| E21 | Living | Main distribution board (DB) | right wall (as drawn), 2.89 m from its top end | 1.65 m | 330×450×100 mm enclosure | Main DB: 2-pole isolator, 30 mA RCCB, MCB per circuit (lights, sockets, kitchen, geysers, each AC) | Inside the main entrance near the entrance board: reachable, dry, not in a bedroom, kitchen or bathroom — on the return wall 450 mm from the door wall (door-wall side blocked: window) | ✅ |
+| E22 | Front Balcony | Video door phone outdoor unit + bell | top wall (as drawn), 4.91 m from its left end | 1.45 m | 100×180 mm | Video door phone outdoor unit with bell push | Outside the main door on the latch side, camera at face height | ✅ |
+| E23 | Front Balcony | Outdoor socket (weatherproof) | top wall (as drawn), 4.37 m from its left end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E24 | Master Bedroom | Bedside board (left) | top wall (as drawn), 0.95 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E25 | Master Bedroom | Bedside board (right) | top wall (as drawn), 3.45 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E26 | Bedroom 2 | Bedside board (left) | top wall (as drawn), 1.23 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E27 | Bedroom 2 | Bedside board (right) | top wall (as drawn), 3.42 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E28 | Bedroom 3 | Bedside board (left) | top wall (as drawn), 1.22 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E29 | Bedroom 3 | Bedside board (right) | top wall (as drawn), 3.41 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E30 | Great Room | TV wall board (behind the TV) | left wall (as drawn), 1.84 m from its top end | 1.15 m | 6M plate (6M used) | TV, spare, TV outlet, data outlet | Hidden behind the screen with TV/data outlets; 25 mm conduit down to the console | ✅ |
+| E31 | Great Room | TV console board | left wall (as drawn), 2.14 m from its top end | 0.62 m | 6M plate (5M used) | set-top box, sound bar / router, USB charger | 170 mm above the 450 mm console top, between console and screen | ✅ |
+| E32 | Living | Sofa-side socket | right wall (as drawn), 1.79 m from its top end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E33 | Living | Sofa-side socket | right wall (as drawn), 3.32 m from its top end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E34 | Cooking | Kitchen counter board 1 | left wall (as drawn), 2.18 m from its top end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E35 | Cooking | Kitchen counter board 2 | left wall (as drawn), 0.85 m from its top end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E36 | Cooking | Kitchen counter board 3 | top wall (as drawn), 2.20 m from its left end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E37 | Cooking | Chimney point | left wall (as drawn), 1.82 m from its top end | 2.20 m | 2M plate (2M used) | chimney socket | Above the wall cabinets beside the chimney duct | ✅ |
+| E38 | Toilet 1 | Exhaust fan point | top wall (as drawn), 1.22 m from its left end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E39 | Toilet 1 | Geyser point | top wall (as drawn), 0.24 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | No shower drawn: geyser high on the wall, out of reach of splashes (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E40 | Toilet 2 | Exhaust fan point | right wall (as drawn), 1.16 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E41 | Toilet 2 | Geyser point | left wall (as drawn), 1.19 m from its top end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E42 | Toilet 3 | Exhaust fan point | right wall (as drawn), 2.15 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E43 | Toilet 3 | Geyser point | bottom wall (as drawn), 1.31 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E44 | Dining | Dining socket | left wall (as drawn), 1.87 m from its top end | 0.38 m | 3M plate (3M used) | 6 A socket (hot plate / lamp), USB charger | General socket above the skirting (300–450 mm rule) on a free wall | ✅ |
+| E45 | Master Bedroom | Split AC point | right wall (as drawn), 2.67 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E46 | Great Room | Split AC point | left wall (as drawn), 3.14 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E47 | Bedroom 2 | Split AC point | right wall (as drawn), 2.65 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E48 | Living | Split AC point | left wall (as drawn), 2.30 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E49 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.97 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E50 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 10.09 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
+
+### Coverage by room
+
+| Room | Light / fan switches at | Sockets in the room | Dedicated points |
+| --- | --- | --- | --- |
+| Cooking | E5, E34, E35, E36 | 7 | Chimney point E37 |
+| Dining | E6 (in Great Room) | 1 | — |
+| Toilet 1 | E1 (in Passage) | 1 | Exhaust fan point E38; Geyser point E39 |
+| Passage | E7 | 0 | — |
+| Master Bedroom | E8, E24, E25 | 4 | Split AC point E45 |
+| Great Room | E9, E10, E11, E30, E31 | 7 | Split AC point E46 |
+| Bedroom 2 | E12, E26, E27 | 4 | Split AC point E47 |
+| Lobby | E13 | 0 | — |
+| Toilet 2 | E2 (in Bedroom 2) | 1 | Exhaust fan point E40; Geyser point E41 |
+| Living | E14, E15 | 4 | Video door phone monitor E20; Main distribution board E21; Split AC point E48 |
+| Pooja Lobby | E16 | 1 | — |
+| Pooja | E3 (in Pooja Lobby) | 0 | — |
+| Bedroom 3 | E17, E28, E29 | 4 | Split AC point E49 |
+| Toilet 3 | E4 (in Bedroom 3) | 1 | Exhaust fan point E42; Geyser point E43 |
+| Side Balcony | switched from the adjoining room | 1 | — |
+| Front Balcony | E50 | 1 | Video door phone outdoor unit + bell E22 |
+
+### Count by type
+
+| Board / point | Number |
+| --- | --- |
+| Bedside board | 6 |
+| Split AC point | 5 |
+| Kitchen counter board | 3 |
+| Exhaust fan point | 3 |
+| Geyser point | 3 |
+| Outdoor socket (weatherproof) | 2 |
+| Sofa-side socket | 2 |
+| Toilet 1 switches (outside the door) | 1 |
+| Toilet 2 switches (outside the door) | 1 |
+| Pooja switches (outside the door) | 1 |
+| Toilet 3 switches (outside the door) | 1 |
+| Cooking door board | 1 |
+| Dining door board | 1 |
+| Passage door board | 1 |
+| Master Bedroom door board | 1 |
+| Great Room entrance board | 1 |
+| Great Room side-entrance 2-way board | 1 |
+| Great Room 2-way board | 1 |
+| Bedroom 2 door board | 1 |
+| Lobby door board | 1 |
+| Living entrance board | 1 |
+| Living 2-way board | 1 |
+| Pooja Lobby door board | 1 |
+| Bedroom 3 door board | 1 |
+| Bell push | 1 |
+| Video door phone monitor | 1 |
+| Main distribution board (DB) | 1 |
+| Video door phone outdoor unit + bell | 1 |
+| TV wall board (behind the TV) | 1 |
+| TV console board | 1 |
+| Chimney point | 1 |
+| Dining socket | 1 |
+| Staircase 2-way switch (foot) | 1 |
+
+### Rules and heights used
+
+| Item | Height | Rule / source |
+| --- | --- | --- |
+| Room switchboard at the door | 1.10 m to centre | Latch (opening) side, 175 mm from the door opening, never behind the door leaf; one height in every room (1.10–1.20 m; 1.10 m also suits children and seated users). common Indian practice (Aaditya Interior, “Electrical switch and socket heights in India”, 2026), in line with NBC 2016 Pt 8 §2 / IS 732 |
+| Bedside boards (both sides of the bed) | 0.80 m | Above the side tables (0.50 m), beside — not behind — the headboard; 2-way main light, fan regulator, USB and 6 A socket (700–900 mm rule). |
+| General sockets (sofa side) | 0.375 m | Above the skirting (300–450 mm rule), at the end of the sofa where a lamp or charger is used. |
+| TV wall | 1.15 m behind the screen + 0.62 m above the console | Power and TV/data hidden behind the 55″ TV; a second board 170 mm above the console top for set-top box / sound bar. |
+| Kitchen counter boards | 1.05 m | 200 mm above the 850 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A. |
+| Refrigerator | 1.25 m beside the fridge | Beside, not behind, the appliance so it can be unplugged without moving it. |
+| Chimney | 2.20 m | Just above the wall cabinets beside the chimney duct (2100–2200 mm rule). |
+| Bathroom switches | 1.10 m, outside the door | Light, mirror light, exhaust and a 20 A geyser switch with indicator outside the wet room (keep water and switches apart; 30 mA RCCB). |
+| Geyser point | 1.95 m | Inside, beside the shower wall but out of the spray (1800–2000 mm rule). |
+| Exhaust fan point | 1.95 m | Beside the ventilator that takes the exhaust fan. |
+| Split AC point | 2.25 m | On the room’s outer wall where possible (short pipe run), not on the bed-head wall, clear of wardrobes (2100–2300 mm rule). |
+| Main distribution board (DB) | 1.65 m to centre | Inside the main entrance beside the living-room board, reachable without a stool; MCBs per circuit + 30 mA RCCB. |
+| Video door phone | 1.45 m | Outdoor unit with bell push at the main door, monitor inside beside the entrance board (1400–1500 mm rule). |
+| Outdoor sockets / bell | 0.60 m / 1.35 m | Weatherproof box with cover, above mopping splash; bell push at the side entrance. |
+| Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |
+
+
+## Plan-2 · 1944 sft slab
+
+45 switchboards and points placed by rule; 45/45 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. Every planned point found a clear wall.
+
+### Switchboards and power points (positions measured in the 3D model)
+
+| # | Room | Board / point | Where | Height (centre, above FFL) | Plate | Contents | Why here | Check |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E1 | Passage | Toilet 1 switches (outside the door) | top wall (as drawn), 1.20 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Toilet 1 / Passage, 175 mm from the opening, clear of the open leaf | ✅ |
+| E2 | Great Room | Pooja switches (outside the door) | left wall (as drawn), 0.04 m from its top end | 1.10 m | 4M plate (4M used) | pooja light, deity spot light, socket for electric diya | Pooja: latch side of the door to Pooja / Great Room, 175 mm from the opening, clear of the open leaf | ✅ |
+| E3 | Bedroom 2 | Toilet 2 switches (outside the door) | bottom wall (as drawn), 3.40 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 2 / Toilet 2, 175 mm from the opening, clear of the open leaf | ✅ |
+| E4 | Bedroom 3 | Toilet 3 switches (outside the door) | top wall (as drawn), 4.15 m from its left end | 1.10 m | 6M plate (5M used) | bathroom light, mirror light, exhaust fan, 20 A geyser switch, geyser indicator | Wet room: switches kept outside, latch side of the door to Bedroom 3 / Toilet 3, 175 mm from the opening, clear of the open leaf — on the return wall 600 mm from the door wall (door-wall side blocked: Wardrobe 1269×600 mm) | ✅ |
+| E5 | Cooking | Cooking door board | bottom wall (as drawn), 1.90 m from its left end | 1.10 m | 6M plate (5M used) | main light, under-cabinet strip, exhaust fan, fan, fan regulator | beside the arch to Cooking / Great Room, 175 mm from the opening — on the other side of the arch | ✅ |
+| E6 | Passage | Passage door board | left wall (as drawn), 0.99 m from its top end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | beside the arch to Passage / Great Room, 175 mm from the opening — on the return wall 150 mm from the door wall (door-wall side blocked: wall end or corner) | ✅ |
+| E7 | Master Bedroom | Master Bedroom door board | left wall (as drawn), 2.45 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | latch side of the door to Passage / Master Bedroom, 175 mm from the opening, clear of the open leaf | ✅ |
+| E8 | Great Room | Great Room entrance board | bottom wall (as drawn), 2.41 m from its left end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | beside the arch to Great Room / Living, 175 mm from the opening (the Side Balcony / Great Room door has no clear wall beside it) | ✅ |
+| E9 | Great Room | Great Room 2-way board | top wall (as drawn), 4.88 m from its left end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | 2-way control from the second entrance; beside the arch to Passage / Great Room, 175 mm from the opening | ✅ |
+| E10 | Bedroom 2 | Bedroom 2 door board | bottom wall (as drawn), 1.59 m from its left end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | beside the arch to Bedroom 2 / Lobby, 175 mm from the opening | ✅ |
+| E11 | Lobby | Lobby door board | left wall (as drawn), 0.16 m from its top end | 1.10 m | 2M plate (2M used) | passage light (2-way), night light | latch side of the door to Great Room / Lobby, 175 mm from the opening, clear of the open leaf (150 mm from the opening: narrow pier) | ✅ |
+| E12 | Living | Living entrance board | right wall (as drawn), 3.22 m from its top end | 1.10 m | 10M plate (9M used) | verandah light, gate & compound lights, main light, cove light, accent lights, fan, fan regulator, 6 A socket | latch side of the door to Living / Front Balcony, 175 mm from the opening, clear of the open leaf — on the return wall 150 mm from the door wall (door-wall side blocked: window) | ✅ |
+| E13 | Bedroom 3 | Bedroom 3 door board | left wall (as drawn), 1.05 m from its top end | 1.10 m | 8M plate (7M used) | main light (2-way), cove light, wardrobe / dresser light, fan, fan regulator, 6 A socket | latch side of the door to Great Room / Bedroom 3, 175 mm from the opening, clear of the open leaf — on the side wall 944 mm from the door wall, just past the open leaf (latch side blocked: Queen bed 1520×1980 mm + side tables) | ✅ |
+| E14 | Side Balcony | Bell push | right wall (as drawn), 7.86 m from its top end | 1.35 m | 1M plate (1M used) | bell push | Outside the side entrance on the latch side | ✅ |
+| E15 | Side Balcony | Outdoor socket (weatherproof) | right wall (as drawn), 7.85 m from its top end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E16 | Living | Video door phone monitor | right wall (as drawn), 2.90 m from its top end | 1.45 m | 220×150 mm | Video door phone monitor | Beside the entrance board, 1.45 m (1400–1500 mm rule) — on the return wall 500 mm from the door wall (door-wall side blocked: window) | ✅ |
+| E17 | Living | Main distribution board (DB) | right wall (as drawn), 2.54 m from its top end | 1.65 m | 330×450×100 mm enclosure | Main DB: 2-pole isolator, 30 mA RCCB, MCB per circuit (lights, sockets, kitchen, geysers, each AC) | Inside the main entrance near the entrance board: reachable, dry, not in a bedroom, kitchen or bathroom — on the return wall 800 mm from the door wall (door-wall side blocked: window) | ✅ |
+| E18 | Front Balcony | Video door phone outdoor unit + bell | top wall (as drawn), 4.75 m from its left end | 1.45 m | 100×180 mm | Video door phone outdoor unit with bell push | Outside the main door on the latch side, camera at face height | ✅ |
+| E19 | Front Balcony | Outdoor socket (weatherproof) | top wall (as drawn), 4.06 m from its left end | 0.60 m | IP55 box | Weatherproof 6 A socket with cover (IP55) | Verandah socket for festival lights / cleaning, weatherproof, above mopping splash | ✅ |
+| E20 | Master Bedroom | Bedside board (left) | top wall (as drawn), 0.95 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E21 | Master Bedroom | Bedside board (right) | top wall (as drawn), 3.45 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E22 | Bedroom 2 | Bedside board (left) | top wall (as drawn), 0.65 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E23 | Bedroom 2 | Bedside board (right) | top wall (as drawn), 2.84 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E24 | Bedroom 3 | Bedside board (left) | top wall (as drawn), 1.22 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E25 | Bedroom 3 | Bedside board (right) | top wall (as drawn), 3.41 m from its left end | 0.80 m | 6M plate (6M used) | main light (2-way), reading light, fan regulator, USB charger, 6 A socket | Above the side table, beside the headboard (700–900 mm rule): 2-way light, fan regulator, USB, socket | ✅ |
+| E26 | Great Room | TV wall board (behind the TV) | left wall (as drawn), 1.83 m from its top end | 1.15 m | 6M plate (6M used) | TV, spare, TV outlet, data outlet | Hidden behind the screen with TV/data outlets; 25 mm conduit down to the console | ✅ |
+| E27 | Great Room | TV console board | left wall (as drawn), 2.23 m from its top end | 0.62 m | 6M plate (5M used) | set-top box, sound bar / router, USB charger | 170 mm above the 450 mm console top, between console and screen | ✅ |
+| E28 | Living | Sofa-side socket | right wall (as drawn), 1.56 m from its top end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E29 | Living | Sofa-side socket | right wall (as drawn), 3.10 m from its top end | 0.38 m | 3M plate (3M used) | lamp / charger, USB charger | Beside the sofa arm for a lamp / phone charger (300–450 mm rule) | ✅ |
+| E30 | Cooking | Kitchen counter board 1 | top wall (as drawn), 2.20 m from its left end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E31 | Cooking | Kitchen counter board 2 | left wall (as drawn), 2.18 m from its top end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E32 | Cooking | Kitchen counter board 3 | left wall (as drawn), 0.84 m from its top end | 1.05 m | 6M plate (5M used) | 16 A switch, 16 A socket (mixer, microwave, kettle), 6 A socket | 200 mm above the counter, ≥ 300 mm from the sink edge, not above the hob | ✅ |
+| E33 | Cooking | Chimney point | left wall (as drawn), 1.80 m from its top end | 2.20 m | 2M plate (2M used) | chimney socket | Above the wall cabinets beside the chimney duct | ✅ |
+| E34 | Toilet 1 | Exhaust fan point | top wall (as drawn), 1.22 m from its left end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E35 | Toilet 1 | Geyser point | top wall (as drawn), 0.24 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | No shower drawn: geyser high on the wall, out of reach of splashes (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E36 | Toilet 2 | Exhaust fan point | right wall (as drawn), 1.16 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E37 | Toilet 2 | Geyser point | left wall (as drawn), 1.19 m from its top end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E38 | Toilet 3 | Exhaust fan point | right wall (as drawn), 2.15 m from its top end | 1.95 m | 1M plate (1M used) | exhaust fan connection (switched outside) | Beside the ventilator that houses the exhaust fan | ✅ |
+| E39 | Toilet 3 | Geyser point | bottom wall (as drawn), 1.31 m from its left end | 1.95 m | 2M plate (2M used) | geyser outlet (switched outside) | Beside the shower, above the spray (1800–2000 mm rule); switched outside with indicator | ✅ |
+| E40 | Master Bedroom | Split AC point | right wall (as drawn), 2.67 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E41 | Great Room | Split AC point | left wall (as drawn), 2.47 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E42 | Bedroom 2 | Split AC point | right wall (as drawn), 2.65 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E43 | Living | Split AC point | left wall (as drawn), 2.30 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes | ✅ |
+| E44 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.97 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
+| E45 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 7.33 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
+
+### Coverage by room
+
+| Room | Light / fan switches at | Sockets in the room | Dedicated points |
+| --- | --- | --- | --- |
+| Cooking | E5, E30, E31, E32 | 7 | Chimney point E33 |
+| Toilet 1 | E1 (in Passage) | 1 | Exhaust fan point E34; Geyser point E35 |
+| Passage | E6 | 0 | — |
+| Master Bedroom | E7, E20, E21 | 4 | Split AC point E40 |
+| Pooja | E2 (in Great Room) | 0 | — |
+| Great Room | E8, E9, E26, E27 | 7 | Split AC point E41 |
+| Bedroom 2 | E10, E22, E23 | 4 | Split AC point E42 |
+| Lobby | E11 | 0 | — |
+| Toilet 2 | E3 (in Bedroom 2) | 1 | Exhaust fan point E36; Geyser point E37 |
+| Living | E12 | 4 | Video door phone monitor E16; Main distribution board E17; Split AC point E43 |
+| Bedroom 3 | E13, E24, E25 | 4 | Split AC point E44 |
+| Toilet 3 | E4 (in Bedroom 3) | 1 | Exhaust fan point E38; Geyser point E39 |
+| Side Balcony | switched from the adjoining room | 1 | — |
+| Front Balcony | E45 | 1 | Video door phone outdoor unit + bell E18 |
+
+### Count by type
+
+| Board / point | Number |
+| --- | --- |
+| Bedside board | 6 |
+| Split AC point | 5 |
+| Kitchen counter board | 3 |
+| Exhaust fan point | 3 |
+| Geyser point | 3 |
+| Outdoor socket (weatherproof) | 2 |
+| Sofa-side socket | 2 |
+| Toilet 1 switches (outside the door) | 1 |
+| Pooja switches (outside the door) | 1 |
+| Toilet 2 switches (outside the door) | 1 |
+| Toilet 3 switches (outside the door) | 1 |
+| Cooking door board | 1 |
+| Passage door board | 1 |
+| Master Bedroom door board | 1 |
+| Great Room entrance board | 1 |
+| Great Room 2-way board | 1 |
+| Bedroom 2 door board | 1 |
+| Lobby door board | 1 |
+| Living entrance board | 1 |
+| Bedroom 3 door board | 1 |
+| Bell push | 1 |
+| Video door phone monitor | 1 |
+| Main distribution board (DB) | 1 |
+| Video door phone outdoor unit + bell | 1 |
+| TV wall board (behind the TV) | 1 |
+| TV console board | 1 |
+| Chimney point | 1 |
+| Staircase 2-way switch (foot) | 1 |
+
+### Rules and heights used
+
+| Item | Height | Rule / source |
+| --- | --- | --- |
+| Room switchboard at the door | 1.10 m to centre | Latch (opening) side, 175 mm from the door opening, never behind the door leaf; one height in every room (1.10–1.20 m; 1.10 m also suits children and seated users). common Indian practice (Aaditya Interior, “Electrical switch and socket heights in India”, 2026), in line with NBC 2016 Pt 8 §2 / IS 732 |
+| Bedside boards (both sides of the bed) | 0.80 m | Above the side tables (0.50 m), beside — not behind — the headboard; 2-way main light, fan regulator, USB and 6 A socket (700–900 mm rule). |
+| General sockets (sofa side) | 0.375 m | Above the skirting (300–450 mm rule), at the end of the sofa where a lamp or charger is used. |
+| TV wall | 1.15 m behind the screen + 0.62 m above the console | Power and TV/data hidden behind the 55″ TV; a second board 170 mm above the console top for set-top box / sound bar. |
+| Kitchen counter boards | 1.05 m | 200 mm above the 850 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A. |
+| Refrigerator | 1.25 m beside the fridge | Beside, not behind, the appliance so it can be unplugged without moving it. |
+| Chimney | 2.20 m | Just above the wall cabinets beside the chimney duct (2100–2200 mm rule). |
+| Bathroom switches | 1.10 m, outside the door | Light, mirror light, exhaust and a 20 A geyser switch with indicator outside the wet room (keep water and switches apart; 30 mA RCCB). |
+| Geyser point | 1.95 m | Inside, beside the shower wall but out of the spray (1800–2000 mm rule). |
+| Exhaust fan point | 1.95 m | Beside the ventilator that takes the exhaust fan. |
+| Split AC point | 2.25 m | On the room’s outer wall where possible (short pipe run), not on the bed-head wall, clear of wardrobes (2100–2300 mm rule). |
+| Main distribution board (DB) | 1.65 m to centre | Inside the main entrance beside the living-room board, reachable without a stool; MCBs per circuit + 30 mA RCCB. |
+| Video door phone | 1.45 m | Outdoor unit with bell push at the main door, monitor inside beside the entrance board (1400–1500 mm rule). |
+| Outdoor sockets / bell | 0.60 m / 1.35 m | Weatherproof box with cover, above mopping splash; bell push at the side entrance. |
+| Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |

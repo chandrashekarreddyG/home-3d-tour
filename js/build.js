@@ -8,6 +8,7 @@ import { kit, SIZES } from './furniture.js';
 import { buildMandir, rangoli } from './mandir.js';
 import { buildElevations } from './elevation.js';
 import { buildLighting } from './lighting.js';
+import { buildElectrical } from './electrical.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
 
@@ -95,6 +96,7 @@ export function buildModel(plan, M, onLabelClick) {
   ceilings.visible = roof.visible = dims.visible = markers.visible = false;
 
   const floors = [], solids = [], furnMeshes = [], colliders = [], fans = [], skirts = [];
+  const fixtures = []; // wall-mounted fixture positions (bed heads, TV, kitchen runs, …) for the electrical layout
   const compound = {}; // boundary wall groups by side: n, s (G.P Road), w (21 ft road), e
   const parapet = {}; // road-facing roof parapets: s (G.P Road), w (21 ft road); an elevation may swap them for glass
   const mini = { walls: [], windows: [] };
@@ -324,12 +326,15 @@ export function buildModel(plan, M, onLabelClick) {
       }
       const leafMat = o.kind === 'dt' ? M.white : outer || o.kind === 'dd' ? M.teak : M.oak;
       const clear = L - 2 * FRAME;
-      // main (outer) entrances: one wide designer leaf in the same opening, hinged at the end nearer a cross wall so
-      // it opens back against that wall; interior double doors (e.g. pooja) stay a pair
+      // main (outer) entrances: one wide designer leaf in the same opening. It hinges on the end with the shorter
+      // free pier (to the next cross wall or opening), so the latch side keeps the wider pier for the entrance
+      // switchboard and DB; interior double doors (e.g. pooja) stay a pair
       const mainDoor = outer && o.kind === 'dd';
-      const near = (v) => Math.min(...junctions.map((j) => Math.abs(j - v)), Infinity);
+      const stops = [...junctions, ...res.filter((q) => q.a !== o.a).flatMap((q) => [q.a, q.b])];
+      const near = (v) => Math.min(...stops.map((j) => Math.abs(j - v)), Infinity);
       const leaves = mainDoor ? [[near(o.a) <= near(o.b) ? 'a' : 'b', clear]] : o.kind === 'dd' ? [['a', clear / 2], ['b', clear / 2]] : [[o.swing[0], clear]];
       o.single = mainDoor;
+      o.hinge = mainDoor ? leaves[0][0] : o.kind === 'd' || o.kind === 'dt' ? o.swing[0] : null; // hinge end, a or b
       const lh = o.hi - FRAME - 0.012, lt = mainDoor ? 0.045 : 0.035;
       for (const [hinge, lw] of leaves) {
         const pivot = hinge === 'a' ? aM + FRAME : bM - FRAME;
@@ -519,6 +524,7 @@ export function buildModel(plan, M, onLabelClick) {
       const x = Math.min(hi, Math.max(lo, x0));
       if (Math.abs(x - x0) > 0.005) report.adjustments.push(`${rn}: bed moved ${Math.round(Math.abs(x - x0) * 1000)} mm ${x < x0 ? 'west' : 'east'} of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).`);
       addItem(room, `${it[3] === 'king' ? 'King' : 'Queen'} bed ${it[3] === 'king' ? '1830×1980' : '1520×1980'} mm + side tables`, b, nrm, x, faceOf(room, 'n', x), 0.2);
+      fixtures.push({ type: 'bed', room: rn, side: 'n', along: x, ns: half - SIZES.nightstand.w / 2 });
     } else if (type === 'ward' || type === 'crock') {
       const side = it[2], nrm = NORMAL[side];
       const [a, b] = clampAlong(room, side, alongAt(side, it[3]), alongAt(side, it[4]));
@@ -534,6 +540,7 @@ export function buildModel(plan, M, onLabelClick) {
       const built = K.sofa(b - a);
       const [x, z] = axis === 'z' ? [(a + b) / 2, back] : [back, (a + b) / 2];
       addItem(room, `Sofa ${Math.round((b - a) * 1000)}×880 mm`, built, nrm, x, z, 0.2);
+      fixtures.push({ type: 'sofa', room: rn, axis, back, a, b, facing });
     } else if (type === 'ctable') {
       const built = K.coffeeTable(it[4], it[5]);
       addItem(room, `Coffee table ${Math.round(it[4] * 1000)}×${Math.round(it[5] * 1000)} mm`, built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.15, false);
@@ -541,6 +548,7 @@ export function buildModel(plan, M, onLabelClick) {
       const side = it[2], nrm = NORMAL[side], along = alongAt(side, it[3]);
       const [x, z] = wallsideAt(room, side, along);
       addItem(room, 'TV console 1200 mm + 55″ TV', K.tvUnit(), nrm, x, z, 0.15);
+      fixtures.push({ type: 'tv', room: rn, side, along });
     } else if (type === 'dining') {
       const built = K.dining(it[4]);
       addItem(room, it[4] === 'round4' ? 'Round dining table Ø1000 mm, 4 chairs' : 'Dining table 900×1500 mm, 6 chairs', built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
@@ -553,6 +561,7 @@ export function buildModel(plan, M, onLabelClick) {
       const side = { w: 'e', e: 'w', n: 's', s: 'n' }[it[4]];
       const [x, z] = side === 'e' || side === 'w' ? [faceOf(room, side), cz] : [cx, faceOf(room, side)];
       addItem(room, 'Refrigerator 700×720×1800 mm', K.fridge(), nrm, x, z, 0.15);
+      fixtures.push({ type: 'fridge', room: rn, side, along: side === 'e' || side === 'w' ? cz : cx });
     } else if (type === 'kitchen') {
       const spec = it[2];
       const taken = [];
@@ -569,6 +578,7 @@ export function buildModel(plan, M, onLabelClick) {
         const [x, z] = wallsideAt(room, side, (a + b) / 2);
         const rect = addItem(room, `Kitchen counter ${Math.round((b - a) * 1000)}×600×850 mm`, built, nrm, x, z, 0.15);
         taken.push(rect);
+        fixtures.push({ type: 'counter', room: rn, side, a, b });
       }
       for (const [key, fn, nm] of [['hob', K.hob, 'Hob 750 mm + chimney 900 mm'], ['sink', K.sink, 'Sink 800×500 mm']]) {
         if (!spec[key]) continue;
@@ -579,6 +589,7 @@ export function buildModel(plan, M, onLabelClick) {
         placeLocal(built.g, NORMAL[side], x, z);
         root.add(built.g);
         report.furniture.push({ room: room.name, name: nm, rect: null });
+        fixtures.push({ type: key, room: rn, side, along });
       }
       for (const [side, f, t] of spec.upper || []) {
         let [a, b] = clampAlong(room, side, alongAt(side, f), alongAt(side, t));
@@ -603,7 +614,7 @@ export function buildModel(plan, M, onLabelClick) {
       const [x, z] = wallsideAt(room, side, along);
       const built = type === 'wc' ? K.wc() : K.vanity();
       addItem(room, type === 'wc' ? 'EWC 380×700 mm' : 'Vanity 600×450 mm + mirror', built, nrm, x, z, 0.12);
-      if (type === 'wc') wcSpots[rn] = [x, z];
+      if (type === 'wc') { wcSpots[rn] = [x, z]; fixtures.push({ type: 'wc', room: rn, side, along }); }
     } else if (type === 'glass') {
       const [, , axis, pos, f, t] = it;
       const p = (axis === 'x' ? pxX(pos) : pxZ(pos)) * IN;
@@ -629,6 +640,7 @@ export function buildModel(plan, M, onLabelClick) {
       placeLocal(sh.g, NORMAL[side], sx, sz);
       root.add(sh.g);
       report.furniture.push({ room: room.name, name: `Shower glass ${Math.round(len * 1000)} mm (10 mm toughened, 2.0 m high)`, rect: null });
+      fixtures.push({ type: 'shower', room: rn, side, along });
     } else if (type === 'mandir') {
       const side = it[2], nrm = NORMAL[side];
       const r = room.main;
@@ -672,6 +684,9 @@ export function buildModel(plan, M, onLabelClick) {
     rooms, furniture: report.furniture, M, K, parent: ceilings, stairs: st, ceil: CEIL,
     openings: openingsAll.map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN })),
   });
+  // ---------------- electrical layout: switchboards and points by rule ----------------
+  const electrical = buildElectrical({ rooms, openings: openingsAll, fixtures, furniture: report.furniture, roomAt, IN, stairs: st });
+  root.add(electrical.group, electrical.labels);
 
   // ---------------- compound wall, gates, garden ----------------
   const p = plan.plot;
@@ -782,7 +797,7 @@ export function buildModel(plan, M, onLabelClick) {
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
   return {
-    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet,
+    plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical,
     colliders, nav, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
     floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
     walkAreas,
