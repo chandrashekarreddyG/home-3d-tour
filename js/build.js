@@ -886,11 +886,30 @@ export function buildModel(plan, M, onLabelClick) {
     gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
   });
   for (const g of Object.values(elevations)) root.add(g);
-  // scale references (people on the verandah, a car on G.P Road): shown in the outside views only
-  const scaleRefs = buildScaleRefs(M, {
-    verandah: frontBal, doorX: md ? ((md.a + md.b) / 2) * IN : (W * IN) / 3, stairs: st,
-    roadZ: plotRect[3] + 0.3, roadY: GROUND - 0.06, plotX: plotRect[2] + 2.3, // car parked just past the plot's east corner
-  });
+  // scale reference: a full-size SUV parked on the 21 ft road along Padma Reddy's side, shown in the outside views only.
+  // The road edge facing the plot is survey line B–C (the 23 SqYds strip lies between it and the plot line); the car
+  // stands on the longest stretch of that side not in front of a gate, facing G.P Road, 0.3 m off the road edge.
+  const carSpot = (() => {
+    const toW = ([u, v]) => [plotRect[0] + (SITE_W_FT - u) * FT, plotRect[3] - v * FT];
+    const r21 = ROADS.find((r) => r.id === 'r21').poly, [bx, bz] = toW(r21[0]), [cx, cz] = toW(r21[r21.length - 1]);
+    const free = [];
+    let cur = plotRect[1];
+    for (const [ga, gb] of plan.plot.gates.filter((g) => g.side === 'w').map((g) => [g.from * IN - 1, g.to * IN + 1]).sort((u, v) => u[0] - v[0])) {
+      free.push([cur, ga]);
+      cur = gb;
+    }
+    free.push([cur, plotRect[3]]);
+    const [fa, fb] = free.reduce((best, s) => (s[1] - s[0] > best[1] - best[0] ? s : best));
+    const z = (fa + fb) / 2, t = (z - bz) / (cz - bz);
+    let dx = cx - bx, dz = cz - bz;
+    const len = Math.hypot(dx, dz);
+    if (dz < 0) { dx = -dx; dz = -dz; }
+    dx /= len; dz /= len;
+    const n = dz > 0 ? [-dz, dx] : [dz, -dx]; // away from the plot (west)
+    const off = 0.3 + 1.855 / 2;
+    return { x: bx + (cx - bx) * t + n[0] * off, z: bz + (cz - bz) * t + n[1] * off, y: GROUND - 0.06, heading: Math.atan2(-dz, dx) };
+  })();
+  const scaleRefs = buildScaleRefs(M, { car: carSpot });
   root.add(scaleRefs);
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));

@@ -233,7 +233,7 @@ function setMode(m) {
   controls.enabled = m === 'orbit';
   MD.ceilings.visible = inside;
   MD.markers.visible = m === 'walk' && !real;
-  MD.scaleRefs.visible = m === 'orbit' && $('chkScale').checked; // people and car: outside views only
+  MD.scaleRefs.visible = m === 'orbit' && $('chkScale').checked; // scale car: outside views only
   MD.labels.visible = !inside;
   MD.siteLabels.visible = !inside;
   MD.roof.visible = !inside && ($('chkRoof').checked || elev.on);
