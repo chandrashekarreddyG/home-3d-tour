@@ -139,7 +139,6 @@ export function buildElevations(M, dims) {
     g.add(box(t, bandH, D + F, white, -S - t / 2, yb, (D + F) / 2)); // side band
     g.add(box(t, yb + bandH / 2 - ground, F + t, white, W + t / 2, (yb + bandH / 2 + ground) / 2, D + (F + t) / 2)); // right fin
     g.add(box(S + t, yb + bandH / 2 - ground, t, white, -(S + t) / 2, (yb + bandH / 2 + ground) / 2, -t / 2)); // rear fin of side frame
-    g.add(box(t, yb + bandH / 2 - ground, t, white, -S - t / 2, (yb + bandH / 2 + ground) / 2, D + F + t / 2)); // corner post
     // charcoal plaster band above each road-facing entrance
     g.add(box(2.4, ceil - 2.2, 0.02, charcoal, mainX, (ceil + 2.2) / 2, D + 0.011));
     g.add(box(0.02, ceil - 2.2, 2.4, charcoal, -0.011, (ceil + 2.2) / 2, sideZ));
