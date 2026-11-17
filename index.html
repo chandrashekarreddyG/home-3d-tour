@@ -5,30 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Padma Reddy Residence · 3D Walkthrough</title>
   <meta name="description" content="Dimensionally accurate interactive 3D walkthrough of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
-  <link rel="stylesheet" href="style.css?v=34" />
+  <link rel="stylesheet" href="style.css?v=35" />
   <!-- ?v= forces browsers to fetch fresh copies of every module after an update (bump on each release) -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
         "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "./js/build.js": "./js/build.js?v=34",
-        "./js/electrical.js": "./js/electrical.js?v=34",
-        "./js/elevation.js": "./js/elevation.js?v=34",
-        "./js/emblems.js": "./js/emblems.js?v=34",
-        "./js/furniture.js": "./js/furniture.js?v=34",
-        "./js/lighting.js": "./js/lighting.js?v=34",
-        "./js/mandir.js": "./js/mandir.js?v=34",
-        "./js/materials.js": "./js/materials.js?v=34",
-        "./js/music.js": "./js/music.js?v=34",
-        "./js/nav.js": "./js/nav.js?v=34",
-        "./js/omglyph.js": "./js/omglyph.js?v=34",
-        "./js/plans.js": "./js/plans.js?v=34",
-        "./js/scale.js": "./js/scale.js?v=34",
-        "./js/site.js": "./js/site.js?v=34",
-        "./js/sun.js": "./js/sun.js?v=34",
-        "./js/units.js": "./js/units.js?v=34",
-        "./js/verify.js": "./js/verify.js?v=34"
+        "./js/build.js": "./js/build.js?v=35",
+        "./js/electrical.js": "./js/electrical.js?v=35",
+        "./js/elevation.js": "./js/elevation.js?v=35",
+        "./js/emblems.js": "./js/emblems.js?v=35",
+        "./js/furniture.js": "./js/furniture.js?v=35",
+        "./js/lighting.js": "./js/lighting.js?v=35",
+        "./js/mandir.js": "./js/mandir.js?v=35",
+        "./js/materials.js": "./js/materials.js?v=35",
+        "./js/music.js": "./js/music.js?v=35",
+        "./js/nav.js": "./js/nav.js?v=35",
+        "./js/omglyph.js": "./js/omglyph.js?v=35",
+        "./js/plans.js": "./js/plans.js?v=35",
+        "./js/scale.js": "./js/scale.js?v=35",
+        "./js/site.js": "./js/site.js?v=35",
+        "./js/sun.js": "./js/sun.js?v=35",
+        "./js/units.js": "./js/units.js?v=35",
+        "./js/verify.js": "./js/verify.js?v=35"
       }
     }
   </script>
@@ -64,7 +64,6 @@
         <label class="chk"><input type="checkbox" id="chkRoof" checked /> Roof</label>
         <label class="chk"><input type="checkbox" id="chkHQ" checked /> High quality</label>
         <label class="chk" title="Show every switchboard and power point with its number and height"><input type="checkbox" id="chkElec" /> Electrical</label>
-        <label class="chk" title="A full-size SUV (4.80 × 1.86 × 1.84 m) parked on the 21 ft road, so the house reads at its true size"><input type="checkbox" id="chkScale" checked /> Car for scale</label>
       </div>
       <div class="row">
         <button id="btnReport" class="link">Measurement report</button>
@@ -123,6 +122,7 @@
   <div id="compassWrap" title="North (from the survey map)"><div id="compass"><i></i><span>N</span></div></div>
   <button id="btnReal" title="Photographic render without labels or overlays (Esc to exit)">📷 Realistic view</button>
   <button id="btnWide" title="Wide-angle walk view, as interiors are photographed: 95° lens at 1.35 m camera height (dimensions unchanged)">⤢ Spacious view</button>
+  <button id="btnCar" title="Park a full-size SUV (4.80 m long, 1.84 m tall) on the 21 ft road, for a sense of scale in the outside views">🚗 Car</button>
 
   <dialog id="drawing">
     <div class="dlg-head">
@@ -142,6 +142,6 @@
   </dialog>
 
   <div id="loading">Loading 3D model…</div>
-  <script type="module" src="js/main.js?v=34"></script>
+  <script type="module" src="js/main.js?v=35"></script>
 </body>
 </html>

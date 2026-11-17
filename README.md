@@ -47,7 +47,7 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
     parapet and clear of the open stair well. The guided tour ends on the terrace.
   - Dimensions overlay.
   - True-size cues: the walk view holds a 70° horizontal field of view at any window shape; a light aerial haze softens
-    the far fields; and **Car for scale** (on by default) parks a pearl-white five-door SUV, 4795 mm long and
+    the far fields; and the **🚗 Car** button (top right, off by default) parks a pearl-white five-door SUV, 4795 mm long and
     1.84 m tall (Fortuner class; model: Innerscene "Sage five-door crossover SUV", CC0, `models/suv.glb`), on the
     21 ft road beside the house, clear of the side gate, in the outside views. Plan-1's slab measures
     50′-0″ × 52′-0″ in the model, including the 2′-0″ cantilever.

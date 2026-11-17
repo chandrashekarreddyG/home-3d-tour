@@ -37,13 +37,19 @@ function loadSuv() {
   return model;
 }
 
-// car: { x, z, y, heading } parking spot (heading = rotation about y; the car's front is its local +x)
+// car: { x, z, y, heading } parking spot (heading = rotation about y; the car's front is its local +x).
+// The model is fetched on the first userData.load() call (when the car is switched on), not at build time.
 export function buildScaleRefs({ car }) {
   const g = new THREE.Group();
   const spot = new THREE.Group();
   spot.position.set(car.x, car.y, car.z);
   spot.rotation.y = car.heading;
   g.add(spot);
-  loadSuv().then((fit) => spot.add(fit.clone(true)), (e) => console.warn('scale car not loaded', e));
+  let asked = false;
+  g.userData.load = () => {
+    if (asked) return;
+    asked = true;
+    loadSuv().then((fit) => spot.add(fit.clone(true)), (e) => console.warn('scale car not loaded', e));
+  };
   return g;
 }

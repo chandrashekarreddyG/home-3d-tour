@@ -26,6 +26,7 @@ const EYE = 1.6; // m
 // Spacious view: how interiors are photographed for sale (16 mm lens ≈ 95° horizontal, camera at 1.35 m) so rooms
 // read as open as they feel in person; geometry is untouched. Off = true eye (1.6 m, 70°).
 let spacious = false;
+let carOn = false; // scale car on the 21 ft road, off by default
 const eyeH = () => (spacious ? 1.35 : EYE);
 const GLIDE = 2.0; // m/s
 const WALK = 1.4; // m/s
@@ -233,7 +234,7 @@ function setMode(m) {
   controls.enabled = m === 'orbit';
   MD.ceilings.visible = inside;
   MD.markers.visible = m === 'walk' && !real;
-  MD.scaleRefs.visible = m === 'orbit' && $('chkScale').checked; // scale car: outside views only
+  syncCar();
   MD.labels.visible = !inside;
   MD.siteLabels.visible = !inside;
   MD.roof.visible = !inside && ($('chkRoof').checked || elev.on);
@@ -800,7 +801,17 @@ function applyElec() {
   MD.electrical.labels.visible = MD.electrical.marks.visible = on;
 }
 $('chkElec').addEventListener('change', applyElec);
-$('chkScale').addEventListener('change', () => { MD.scaleRefs.visible = mode === 'orbit' && $('chkScale').checked; });
+// scale car (outside views only): off by default (carOn, top of file); the model downloads when first switched on
+function syncCar() {
+  MD.scaleRefs.visible = mode === 'orbit' && carOn;
+  if (MD.scaleRefs.visible) MD.scaleRefs.userData.load();
+}
+$('btnCar').addEventListener('click', () => {
+  carOn = !carOn;
+  $('btnCar').classList.toggle('on', carOn);
+  $('btnCar').textContent = carOn ? '🚗 Car: on' : '🚗 Car';
+  syncCar();
+});
 // tags are HTML and show through walls: when walking, show only the boards of the room you are in
 function updateElecTags() {
   const L = MD.electrical.labels;
