@@ -909,7 +909,7 @@ export function buildModel(plan, M, onLabelClick) {
     const off = 0.3 + 1.855 / 2;
     return { x: bx + (cx - bx) * t + n[0] * off, z: bz + (cz - bz) * t + n[1] * off, y: GROUND - 0.06, heading: Math.atan2(-dz, dx) };
   })();
-  const scaleRefs = buildScaleRefs(M, { car: carSpot });
+  const scaleRefs = buildScaleRefs({ car: carSpot });
   root.add(scaleRefs);
 
   const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));

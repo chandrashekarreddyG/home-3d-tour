@@ -1,51 +1,49 @@
-// Scale reference: a full-size SUV (4795 × 1855 × 1835 mm, Fortuner class) parked on the 21 ft road beside the house.
-// Without a familiar object nearby the eye reads a correctly sized house as a model; the car gives it its true size
-// without touching any dimension.
+// Scale reference: a full-size five-door SUV parked on the 21 ft road beside the house. Without a familiar object
+// nearby the eye reads a correctly sized house as a model; the car gives it its true size without touching any
+// dimension. Model: Innerscene "Sage five-door crossover SUV" (CC0, real-world scale), meshopt-compressed to
+// models/suv.glb, scaled uniformly to a Fortuner-class 4795 mm length (about 1.82 m tall, 1.86 m body width).
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
-// full-size SUV, local x = length (front at +x), y up, z = width
-function suv(paint, M) {
-  const g = new THREE.Group();
-  const L = 4.795, Wd = 1.855, H = 1.835, wb = 2.745, wr = 0.39, clear = 0.22;
-  const glass = M.solid('#1d2429', { roughness: 0.1, metalness: 0.4 });
-  const box = (w, h, d, mat, x, y, z) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.position.set(x, y, z);
-    m.castShadow = m.receiveShadow = true;
-    g.add(m);
-    return m;
-  };
-  const bodyTop = 1.05;
-  box(L, bodyTop - clear - 0.08, Wd, paint, 0, (bodyTop + clear + 0.08) / 2, 0); // lower body
-  box(L - 0.5, 0.1, Wd - 0.04, M.black, 0, clear + 0.04, 0); // sills / underbody
-  box(3.05, H - 0.05 - bodyTop, Wd - 0.1, paint, -0.35, (H - 0.05 + bodyTop) / 2, 0); // cabin
-  box(3.07, 0.5, Wd - 0.08, glass, -0.33, bodyTop + 0.32, 0); // glasshouse band
-  for (const s of [-1, 1]) box(2.4, 0.03, 0.04, M.black, -0.35, H - 0.015, s * (Wd / 2 - 0.2)); // roof rails
-  box(0.05, 0.3, Wd - 0.35, M.chrome, L / 2, 0.8, 0); // grille
-  for (const s of [-1, 1]) {
-    box(0.12, 0.1, 0.36, M.lamp, L / 2 - 0.05, 0.9, s * (Wd / 2 - 0.25)); // headlamps
-    box(0.06, 0.12, 0.3, M.solid('#8a1010', { roughness: 0.3 }), -L / 2 + 0.02, 0.95, s * (Wd / 2 - 0.2)); // tail lamps
-    for (const x of [wb / 2 + 0.2, -wb / 2 + 0.2]) {
-      const w = new THREE.Mesh(new THREE.CylinderGeometry(wr, wr, 0.27, 28), M.black);
-      w.rotation.x = Math.PI / 2;
-      w.position.set(x, wr, s * (Wd / 2 - 0.1));
-      w.castShadow = true;
-      g.add(w);
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(wr * 0.55, wr * 0.55, 0.28, 20), M.steel);
-      hub.rotation.x = Math.PI / 2;
-      hub.position.copy(w.position);
-      g.add(hub);
-    }
-  }
-  return g;
+const LENGTH = 4.795; // m, bumper to bumper
+let model = null; // one download shared by every plan
+
+function loadSuv() {
+  model ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/suv.glb').then((gltf) => {
+    const car = gltf.scene;
+    car.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = o.receiveShadow = true;
+      const m = o.material;
+      if (m.name === 'paint') {
+        // pearl white, the usual Indian SUV colour, under a clear coat
+        o.material = new THREE.MeshPhysicalMaterial({ color: '#eceeef', roughness: 0.32, metalness: 0.15, clearcoat: 1, clearcoatRoughness: 0.08 });
+      } else if (m.name.startsWith('glass')) {
+        // dark tinted glass without the transmission pass (cheaper and reads correctly from outside)
+        o.material = new THREE.MeshPhysicalMaterial({ color: '#1b2328', roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.82, clearcoat: 1 });
+      }
+    });
+    // ground at y 0, centred on its footprint, front of the car towards local +x (this model's nose is at -x)
+    const box = new THREE.Box3().setFromObject(car), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+    const s = LENGTH / size.x;
+    const fit = new THREE.Group();
+    car.position.set(-c.x, -box.min.y, -c.z);
+    fit.add(car);
+    fit.scale.setScalar(s);
+    fit.rotation.y = Math.PI;
+    return fit;
+  });
+  return model;
 }
 
 // car: { x, z, y, heading } parking spot (heading = rotation about y; the car's front is its local +x)
-export function buildScaleRefs(M, { car }) {
+export function buildScaleRefs({ car }) {
   const g = new THREE.Group();
-  const v = suv(M.solid('#e8e9ea', { metalness: 0.6, roughness: 0.35 }), M);
-  v.position.set(car.x, car.y, car.z);
-  v.rotation.y = car.heading;
-  g.add(v);
+  const spot = new THREE.Group();
+  spot.position.set(car.x, car.y, car.z);
+  spot.rotation.y = car.heading;
+  g.add(spot);
+  loadSuv().then((fit) => spot.add(fit.clone(true)), (e) => console.warn('scale car not loaded', e));
   return g;
 }
