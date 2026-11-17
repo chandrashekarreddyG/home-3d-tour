@@ -169,6 +169,7 @@ function loadPlan(id) {
     });
   }
   MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); });
+  MD.interiorLamps = collectInteriorLamps();
   scene.add(MD.root);
   history.replaceState(null, '', '#' + plan.id);
   document.querySelectorAll('#plans button').forEach((b) => b.classList.toggle('on', b.dataset.id === plan.id));
@@ -544,7 +545,7 @@ function keyMove(dt) {
 const walkerFloor = () => (walker.level === 'ground' ? MD.floorY(walker.x, walker.z) : MD.levels.y(walker.level, walker.x, walker.z));
 
 // ---------- interior light pool ----------
-const finish = { floor: 'white', light: 'down', temp: '2700', paintIn: 'ivory', paintExt: 'design' };
+const finish = { floor: 'white', light: 'down', temp: '2700', paintIn: 'ivory', paintExt: 'design', lightsOn: true };
 const LIGHT_GAIN = { down: 1, profile: 1, cove: 1.15, pendant: 0.75 };
 function updateLights() {
   const cur = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z);
@@ -552,7 +553,7 @@ function updateLights() {
   const cands = [];
   for (const r of MD.rooms) for (const [x, y, z] of r.lightPts[finish.light]) cands.push({ x, y, z, d: Math.hypot(x - px, z - pz) - (r === cur ? 100 : 0) });
   cands.sort((a, b) => a.d - b.d);
-  const on = mode !== 'orbit';
+  const on = mode !== 'orbit' && finish.lightsOn;
   pool.forEach((l, i) => {
     const c = cands[i];
     if (!c || !on) { l.intensity = 0; return; }
@@ -573,6 +574,21 @@ function applyFloor() {
   document.querySelectorAll('#floors button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.floor));
   $('floorNote').textContent = f.blurb;
 }
+// interior lamp meshes (fixtures, shades, wall-washer halos inside the building footprint, collected per plan) so
+// "Lights off" can darken them without touching the verandah, elevation and garden lights that share the materials
+const lampOff = new THREE.MeshStandardMaterial({ color: '#f4f2ec', roughness: 0.4 });
+const shadeOff = new THREE.MeshStandardMaterial({ color: '#efe6d6', roughness: 0.8, side: THREE.DoubleSide });
+function collectInteriorLamps() {
+  const [x0, z0, x1, z1] = MD.building, out = [], box = new THREE.Box3(), c = new THREE.Vector3();
+  const lampMats = new Set([M.lamp, M.shade, M.glow, M.glowFan]);
+  MD.root.updateMatrixWorld(true);
+  MD.root.traverse((o) => {
+    if (!o.isMesh || !lampMats.has(o.material)) return;
+    box.setFromObject(o).getCenter(c);
+    if (c.x > x0 && c.x < x1 && c.z > z0 && c.z < z1 && c.y < CEIL + 0.05) out.push({ mesh: o, mat: o.material });
+  });
+  return out;
+}
 function applyLighting() {
   for (const [id, g] of Object.entries(MD.lighting)) g.visible = id === finish.light;
   const col = LIGHT_TEMPS.find((t) => t.id === finish.temp).color;
@@ -581,9 +597,14 @@ function applyLighting() {
   M.glow.color.set(col);
   M.glowFan.color.set(col);
   pool.forEach((l) => l.color.set(col));
+  for (const { mesh, mat } of MD.interiorLamps) {
+    if (mat === M.glow || mat === M.glowFan) mesh.visible = finish.lightsOn;
+    else mesh.material = finish.lightsOn ? mat : mat === M.shade ? shadeOff : lampOff;
+  }
   document.querySelectorAll('#lights button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.light));
   document.querySelectorAll('#temps button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.temp));
-  $('lightNote').textContent = LIGHTS.find((q) => q.id === finish.light).blurb;
+  document.querySelectorAll('#lightPower button').forEach((b) => b.classList.toggle('on', (b.dataset.id === 'on') === finish.lightsOn));
+  $('lightNote').textContent = finish.lightsOn ? LIGHTS.find((q) => q.id === finish.light).blurb : 'All lights inside the house are switched off; daylight and the outside lights only.';
   updateLights();
 }
 const optionButtons = (el, list, onPick) => {
@@ -616,8 +637,9 @@ function applyPaint() {
 // lighting reads best after sunset: switch the clock to the evening when a design is picked in daylight
 const toEvening = () => { if (!night) { $('sunTime').value = String(19 * 60 + 15); applySun(); } };
 optionButtons('floors', FLOORS, (id) => { finish.floor = id; applyFloor(); });
-optionButtons('lights', LIGHTS, (id) => { finish.light = id; applyLighting(); toEvening(); });
-optionButtons('temps', LIGHT_TEMPS, (id) => { finish.temp = id; applyLighting(); toEvening(); });
+optionButtons('lights', LIGHTS, (id) => { finish.light = id; finish.lightsOn = true; applyLighting(); toEvening(); });
+optionButtons('temps', LIGHT_TEMPS, (id) => { finish.temp = id; finish.lightsOn = true; applyLighting(); toEvening(); });
+document.querySelectorAll('#lightPower button').forEach((b) => b.addEventListener('click', () => { finish.lightsOn = b.dataset.id === 'on'; applyLighting(); }));
 optionButtons('paintsIn', PAINTS_IN, (id) => { finish.paintIn = id; applyPaint(); });
 optionButtons('paintsExt', PAINTS_EXT, (id) => { finish.paintExt = id; applyPaint(); });
 

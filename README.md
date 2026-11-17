@@ -114,7 +114,8 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   white, soft greige, desert sand, sage mist, blush clay and morning mist. Outside: the elevation idea's own colour
   (default), classic white, sandstone, greige, terracotta blush, olive stone and dove grey.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &
-  wall washers. Each comes in warm 2700K, neutral 4000K or cool 6500K.
+  wall washers. Each comes in warm 2700K, neutral 4000K or cool 6500K. **Lights off** switches off every light inside
+  the house (fixtures go dark, halos and room lights off); verandah, elevation and garden lights stay on.
 
 ## Develop
 
