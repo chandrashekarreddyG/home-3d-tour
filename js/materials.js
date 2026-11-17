@@ -79,6 +79,71 @@ export function makeMaterials(renderer) {
     marble: pbr('marble_01', { color: '#fffaf2', roughness: 0.45, envMapIntensity: 1.3 }),
     vitBeige: vitrified(0.6, '#e9dfcf', 'rgba(205,190,168,0.35)', 60),
     vitWhite: vitrified(0.8, '#f4f2ee', 'rgba(215,212,205,0.35)', 30),
+    // white marble-look 600 × 1200 mm matt vitrified (Kajaria "Statuario White" type): near-white body, soft grey
+    // diagonal veins with a hazy halo, 2 mm light-grey joints; the 1.2 m repeat holds two differently veined tiles
+    whiteStatuario: (() => {
+      const N = 1024, g = 3, th = N / 2;
+      const mk = () => { const c = document.createElement('canvas'); c.width = c.height = N; return c; };
+      const cd = mk(), cr = mk();
+      const d = cd.getContext('2d'), r = cr.getContext('2d');
+      let seed = 1207;
+      const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      d.fillStyle = '#cfd0cf'; d.fillRect(0, 0, N, N);
+      r.fillStyle = '#ffffff'; r.fillRect(0, 0, N, N);
+      for (let j = 0; j < 2; j++) {
+        const x = g / 2, y = j * th + g / 2, w = N - g, h = th - g;
+        d.save(); d.beginPath(); d.rect(x, y, w, h); d.clip();
+        d.fillStyle = '#f7f7f5'; d.fillRect(x, y, w, h);
+        // veins: a few jagged, branching cracks (midpoint displacement) of uneven width, each with a hazy halo
+        const crack = (ax, ay, bx, by, rough, depth) => {
+          let pts = [[ax, ay], [bx, by]];
+          for (let it = 0; it < depth; it++) {
+            const nx = [];
+            for (let i = 0; i < pts.length - 1; i++) {
+              const [x1, y1] = pts[i], [x2, y2] = pts[i + 1], L = Math.hypot(x2 - x1, y2 - y1), o = (R() - 0.5) * L * rough;
+              nx.push(pts[i], [(x1 + x2) / 2 - ((y2 - y1) / L) * o, (y1 + y2) / 2 + ((x2 - x1) / L) * o]);
+            }
+            nx.push(pts[pts.length - 1]);
+            pts = nx;
+          }
+          return pts;
+        };
+        const stroke = (pts, width, alpha, blur) => {
+          d.filter = `blur(${blur}px)`;
+          d.lineCap = 'round';
+          for (let i = 0; i < pts.length - 1; i++) {
+            const f = 0.35 + 0.65 * Math.abs(Math.sin((i / pts.length) * Math.PI * (1.5 + R())));
+            d.strokeStyle = `rgba(150,156,164,${(alpha * (0.5 + 0.5 * f)).toFixed(3)})`;
+            d.lineWidth = width * f;
+            d.beginPath(); d.moveTo(...pts[i]); d.lineTo(...pts[i + 1]); d.stroke();
+          }
+        };
+        for (let k = 0; k < 2 + Math.floor(R() * 2); k++) {
+          const y0 = y + h * (0.3 + R() * 0.9), drop = h * (0.6 + R() * 0.7);
+          const main = crack(x - 40, y0, x + w + 40, y0 - drop, 0.25, 7);
+          d.filter = 'blur(18px)'; d.strokeStyle = 'rgba(170,176,186,0.22)'; d.lineWidth = 40 + R() * 50;
+          d.beginPath(); main.forEach((p, i) => (i ? d.lineTo(...p) : d.moveTo(...p))); d.stroke();
+          stroke(main, 2.5 + R() * 3, 0.5, 1.6);
+          for (let b = 0; b < 3; b++) {
+            const [sx, sy] = main[Math.floor(R() * main.length)], ang = -0.5 + (R() - 0.5) * 1.4, len = 80 + R() * 260;
+            stroke(crack(sx, sy, sx + Math.cos(ang) * len, sy + Math.sin(ang) * len, 0.3, 5), 1.2 + R() * 1.4, 0.32, 1.1);
+          }
+        }
+        d.filter = 'none';
+        d.restore();
+        r.fillStyle = 'rgb(125,125,125)'; r.fillRect(x, y, w, h); // matt: roughness ≈ 0.5
+      }
+      const tx = (c, srgb) => {
+        const t = new THREE.CanvasTexture(c);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(1 / 1.2, 1 / 1.2);
+        t.anisotropy = aniso;
+        if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+      };
+      const rough = tx(cr, false);
+      return new THREE.MeshStandardMaterial({ map: tx(cd, true), roughnessMap: rough, roughness: 1, bumpMap: rough, bumpScale: -1.5, envMapIntensity: 1.2 });
+    })(),
     marblePolished: pbr('marble_01', { roughness: 0.18, envMapIntensity: 1.4 }),
     granitePolished: pbr('granite_tile', { roughness: 0.12, envMapIntensity: 1.5 }),
     terrazzo: pbr('terrazzo_tiles', { color: '#efe9df', roughness: 0.5 }),
@@ -225,6 +290,7 @@ export const FLOORS = [
   { id: 'asbuilt', name: 'Beige marble + oak', blurb: 'Beige marble in the living areas and kitchen, oak laminate in the bedrooms.', map: {} },
   { id: 'vit600', name: 'Vitrified 600×600', blurb: 'Warm beige vitrified tiles, 600 × 600 mm with 2 mm joints, in the living areas and kitchen. Oak laminate in the bedrooms.', map: { tile: 'vitBeige', kitchen: 'vitBeige' } },
   { id: 'vit800', name: 'Glossy white 800×800', blurb: 'High-gloss white vitrified tiles, 800 × 800 mm, right through the house including the bedrooms.', map: { tile: 'vitWhite', kitchen: 'vitWhite', wood: 'vitWhite' } },
+  { id: 'white', name: 'White marble-look 600×1200', blurb: 'Matt white marble-look vitrified tiles, 600 × 1200 mm with soft grey veins and 2 mm joints (like Kajaria Statuario White, 60 × 120 cm), right through the house including the bedrooms. Toilets keep anti-skid tiles.', map: { tile: 'whiteStatuario', kitchen: 'whiteStatuario', wood: 'whiteStatuario' } },
   { id: 'marble', name: 'Indian marble', blurb: 'Polished beige Indian marble everywhere except the toilets.', map: { tile: 'marblePolished', kitchen: 'marblePolished', wood: 'marblePolished', marble: 'marblePolished' } },
   { id: 'granite', name: 'Black granite', blurb: 'Polished black granite in the living areas and kitchen. Oak laminate in the bedrooms, flamed grey granite on the verandahs.', map: { tile: 'granitePolished', kitchen: 'granitePolished' } },
   { id: 'terrazzo', name: 'Terrazzo', blurb: 'Warm grey terrazzo right through the house (toilets keep anti-skid tiles).', map: { tile: 'terrazzo', kitchen: 'terrazzo', wood: 'terrazzo' } },
