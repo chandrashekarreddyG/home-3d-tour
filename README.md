@@ -107,9 +107,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   - The 21 ft road side tower rises to the same height and carries a flat painted Shanku · Namam · Chakra panel
     (the owner's line artwork, `textures/emblems/shanku-namam-chakra.png`) in a slim gold frame. It sits above the
     slab bands and has the same soft halo after dark.
-- **Flooring designs**, switchable live: beige marble + oak (as built), vitrified 600×600, glossy white 800×800, white
-  marble-look 600×1200 (matt, soft grey veins, like Kajaria Statuario White 60×120 cm), Indian marble, black granite,
-  terrazzo, red oxide tiles and oak throughout.
+- **Flooring designs**, switchable live. The default is white marble-look 600×1200 (matt, soft grey veins, like Kajaria
+  Statuario White 60×120 cm). The others are beige marble + oak, vitrified 600×600, glossy white 800×800, Indian marble,
+  black granite, terrazzo, red oxide tiles and oak throughout.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &
   wall washers. Each comes in warm 2700K, neutral 4000K or cool 6500K.
 

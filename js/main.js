@@ -544,7 +544,7 @@ function keyMove(dt) {
 const walkerFloor = () => (walker.level === 'ground' ? MD.floorY(walker.x, walker.z) : MD.levels.y(walker.level, walker.x, walker.z));
 
 // ---------- interior light pool ----------
-const finish = { floor: 'asbuilt', light: 'down', temp: '2700' };
+const finish = { floor: 'white', light: 'down', temp: '2700' };
 const LIGHT_GAIN = { down: 1, profile: 1, cove: 1.15, pendant: 0.75 };
 function updateLights() {
   const cur = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z);
