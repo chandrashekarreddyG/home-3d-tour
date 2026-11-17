@@ -46,6 +46,7 @@ body.panel-open #panel { transform: none; }
 .seg.wrap button { flex: 1 1 45%; }
 .seg.off button.on { background: rgba(255, 183, 3, 0.35); color: #fff; }
 .seg-label { flex: 1 1 100%; font-size: 10.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); padding: 4px 4px 0; }
+.swatch { display: inline-block; width: 11px; height: 11px; margin-right: 6px; border-radius: 50%; vertical-align: -1px; border: 1px solid rgba(0, 0, 0, 0.35); }
 .row.first { margin-top: 0; }
 .verify { display: block; width: 100%; margin-top: 8px; text-align: left; border: 1px solid rgba(76, 175, 80, 0.45); background: rgba(76, 175, 80, 0.12); color: #cfe9d0; font-size: 11.5px; line-height: 1.4; padding: 7px 9px; border-radius: 8px; }
 .verify::before { content: '📏 '; }

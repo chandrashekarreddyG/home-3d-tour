@@ -13,7 +13,7 @@ import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { PLANS, TOUR_ORDER } from './plans.js';
 import { NORTH_UV, SITE_TITLE, SITE_LOCATION } from './site.js';
 import { buildModel, CEIL } from './build.js';
-import { makeMaterials, FLOORS, FLOOR_DEFAULT } from './materials.js';
+import { makeMaterials, FLOORS, FLOOR_DEFAULT, PAINTS_IN, PAINTS_EXT } from './materials.js';
 import { LIGHTS, LIGHT_TEMPS } from './lighting.js';
 import { inRect, rectDist } from './nav.js';
 import { validate, toHTML, toMarkdown, summarise } from './verify.js';
@@ -544,7 +544,7 @@ function keyMove(dt) {
 const walkerFloor = () => (walker.level === 'ground' ? MD.floorY(walker.x, walker.z) : MD.levels.y(walker.level, walker.x, walker.z));
 
 // ---------- interior light pool ----------
-const finish = { floor: 'white', light: 'down', temp: '2700' };
+const finish = { floor: 'white', light: 'down', temp: '2700', paintIn: 'ivory', paintExt: 'design' };
 const LIGHT_GAIN = { down: 1, profile: 1, cove: 1.15, pendant: 0.75 };
 function updateLights() {
   const cur = mode === 'orbit' ? null : MD.roomAt(walker.x, walker.z);
@@ -590,16 +590,36 @@ const optionButtons = (el, list, onPick) => {
   for (const o of list) {
     const b = document.createElement('button');
     b.dataset.id = o.id;
-    b.textContent = o.name;
+    if (o.hex !== undefined) {
+      // colour swatch before the name ('design' shows the current elevation colour, set in applyPaint)
+      const sw = document.createElement('i');
+      sw.className = 'swatch';
+      if (o.hex) sw.style.background = o.hex;
+      b.append(sw);
+    }
+    b.append(o.name);
     b.addEventListener('click', () => onPick(o.id));
     $(el).append(b);
   }
 };
+// wall paint: interior walls (M.paint) and exterior plaster (M.paintExt; 'design' = the elevation idea's own colour)
+function applyPaint() {
+  const pin = PAINTS_IN.find((p) => p.id === finish.paintIn), pex = PAINTS_EXT.find((p) => p.id === finish.paintExt);
+  const designHex = ELEVATIONS.find((q) => q.id === (elev.on ? elev.id : 'none')).paint;
+  M.paint.color.set(pin.hex);
+  M.paintExt.color.set(pex.hex || designHex);
+  document.querySelector('#paintsExt button[data-id=design] .swatch').style.background = designHex;
+  document.querySelectorAll('#paintsIn button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.paintIn));
+  document.querySelectorAll('#paintsExt button').forEach((b) => b.classList.toggle('on', b.dataset.id === finish.paintExt));
+  $('paintNote').textContent = `Inside: ${pin.name} (${pin.hex}). ${pin.blurb} Outside: ${pex.name}${pex.hex ? ` (${pex.hex})` : ` (${designHex})`}. ${pex.blurb}`;
+}
 // lighting reads best after sunset: switch the clock to the evening when a design is picked in daylight
 const toEvening = () => { if (!night) { $('sunTime').value = String(19 * 60 + 15); applySun(); } };
 optionButtons('floors', FLOORS, (id) => { finish.floor = id; applyFloor(); });
 optionButtons('lights', LIGHTS, (id) => { finish.light = id; applyLighting(); toEvening(); });
 optionButtons('temps', LIGHT_TEMPS, (id) => { finish.temp = id; applyLighting(); toEvening(); });
+optionButtons('paintsIn', PAINTS_IN, (id) => { finish.paintIn = id; applyPaint(); });
+optionButtons('paintsExt', PAINTS_EXT, (id) => { finish.paintExt = id; applyPaint(); });
 
 // ---------- UI ----------
 function renderRoomList() {
@@ -695,7 +715,7 @@ function applyElevation() {
   for (const side of ['s', 'w']) MD.compound[side].visible = !(elev.on && e.fence);
   // designs with a glass parapet replace the plastered parapet on the two road sides
   for (const side of ['s', 'w']) MD.parapet[side].visible = !(elev.on && e.glassParapet);
-  M.paintExt.color.set(e.paint);
+  applyPaint();
   $('chkElev').checked = elev.on;
   $('elevs').classList.toggle('off', !elev.on);
   document.querySelectorAll('#elevs button').forEach((b) => b.classList.toggle('on', b.dataset.id === elev.id));

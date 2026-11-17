@@ -298,6 +298,28 @@ export const FLOORS = [
   { id: 'wood', name: 'Oak throughout', blurb: 'Oak laminate in the living areas and bedrooms, and 600 × 600 vitrified tiles in the kitchen.', map: { tile: 'wood', kitchen: 'vitBeige' } },
 ];
 
+// Wall paint colours: subtle, rich emulsion shades (approximate sRGB of the paint card, matt finish).
+// Interior: every room wall except toilet tiling. Exterior: plastered walls, parapet, compound wall; 'design' keeps
+// the colour that comes with the chosen elevation idea.
+export const PAINTS_IN = [
+  { id: 'ivory', name: 'Warm ivory', hex: '#f3ece1', blurb: 'Soft creamy white with a warm undertone; brightens every room without glare.' },
+  { id: 'pearl', name: 'Pearl white', hex: '#f5f3ee', blurb: 'Clean neutral white with a hint of grey; crisp with white tiles.' },
+  { id: 'greige', name: 'Soft greige', hex: '#e4ddd2', blurb: 'Grey-beige; calm and modern, pairs with oak and walnut.' },
+  { id: 'sand', name: 'Desert sand', hex: '#e8d9c4', blurb: 'Light warm sand; cosy in living rooms and bedrooms.' },
+  { id: 'sage', name: 'Sage mist', hex: '#dfe3d4', blurb: 'Pale grey-green; restful in bedrooms and the pooja room.' },
+  { id: 'blush', name: 'Blush clay', hex: '#ecdbd0', blurb: 'Muted pink-clay; warm and rich in the evening light.' },
+  { id: 'mist', name: 'Morning mist', hex: '#dee3e5', blurb: 'Pale blue-grey; airy and cool in west-facing rooms.' },
+];
+export const PAINTS_EXT = [
+  { id: 'design', name: 'Design colour', hex: null, blurb: 'The colour that comes with the chosen elevation idea.' },
+  { id: 'white', name: 'Classic white', hex: '#f1efe9', blurb: 'Off-white exterior; crisp against the charcoal and wood accents.' },
+  { id: 'sandstone', name: 'Sandstone', hex: '#e3d2b6', blurb: 'Warm sandstone beige; hides dust and weathers gracefully.' },
+  { id: 'greige', name: 'Greige', hex: '#d9d2c6', blurb: 'Grey-beige; modern and understated.' },
+  { id: 'clay', name: 'Terracotta blush', hex: '#dcbba5', blurb: 'Soft terracotta; a rich, earthy Indian tone.' },
+  { id: 'olive', name: 'Olive stone', hex: '#cfcdb5', blurb: 'Muted olive-grey; blends with the garden.' },
+  { id: 'grey', name: 'Dove grey', hex: '#cdd0cf', blurb: 'Light cool grey; contemporary with white bands.' },
+];
+
 // Box geometry whose UVs are in metres on every face (so textures keep their real scale).
 export function boxGeo(w, h, d) {
   const g = new THREE.BoxGeometry(w, h, d);

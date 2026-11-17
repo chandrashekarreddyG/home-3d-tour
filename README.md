@@ -110,6 +110,9 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 - **Flooring designs**, switchable live. The default is white marble-look 600×1200 (matt, soft grey veins, like Kajaria
   Statuario White 60×120 cm). The others are beige marble + oak, vitrified 600×600, glossy white 800×800, Indian marble,
   black granite, terrazzo, red oxide tiles and oak throughout.
+- **Wall paint**, inside and outside, switchable live in subtle, rich matt shades. Inside: warm ivory (default), pearl
+  white, soft greige, desert sand, sage mist, blush clay and morning mist. Outside: the elevation idea's own colour
+  (default), classic white, sandstone, greige, terracotta blush, olive stone and dove grey.
 - **Lighting designs**: recessed downlights, LED profile lines, cove false ceiling (600 mm × 250 mm drop) and pendants &
   wall washers. Each comes in warm 2700K, neutral 4000K or cool 6500K.
 
