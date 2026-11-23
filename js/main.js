@@ -10,7 +10,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
-import { PLANS, TOUR_ORDER } from './plans.js';
+import { PLANS } from './plans.js';
 import { NORTH_UV, SITE_TITLE, SITE_LOCATION } from './site.js';
 import { buildModel, CEIL } from './build.js';
 import { makeMaterials, FLOORS, FLOOR_DEFAULT, PAINTS_IN, PAINTS_EXT } from './materials.js';
@@ -159,7 +159,7 @@ let night = false;
 function loadPlan(id) {
   stopTour();
   cancelAnim();
-  const plan = PLANS.find((p) => p.id === id) || PLANS[1];
+  const plan = PLANS.find((p) => p.id === id) || PLANS[0]; // old links (#gf, #p2) open Plan-1
   if (MD) {
     scene.remove(MD.root);
     MD.root.traverse((o) => {
@@ -389,7 +389,7 @@ $('voice').addEventListener('click', () => {
 
 async function startTour() {
   if (touring) { stopTour(); return; }
-  const seq = TOUR_ORDER.map((n) => MD.rooms.find((r) => r.name === n)).filter(Boolean);
+  const seq = MD.plan.tour.map((n) => MD.rooms.find((r) => r.name === n)).filter(Boolean);
   touring = true;
   $('btnTour').classList.add('on');
   $('btnTour').textContent = '■ Stop tour';
@@ -647,7 +647,7 @@ optionButtons('paintsExt', PAINTS_EXT, (id) => { finish.paintExt = id; applyPain
 function renderRoomList() {
   const ul = $('rooms');
   ul.innerHTML = '';
-  const order = (r) => { const i = TOUR_ORDER.indexOf(r.name); return i < 0 ? 99 : i; };
+  const order = (r) => { const i = MD.plan.tour.indexOf(r.name); return i < 0 ? 99 : i; };
   for (const room of [...MD.rooms].filter((r) => r.tour).sort((a, b) => order(a) - order(b))) {
     const li = document.createElement('li');
     const b = document.createElement('button');

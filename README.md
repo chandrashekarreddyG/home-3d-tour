@@ -1,7 +1,13 @@
 # Padma Reddy Residence: to-scale 3D walkthrough
 
-Interactive 3D tour of the three house designs (Ground Floor Plan, Plan-1 and Plan-2) on the G. Padma Reddy site
+Interactive 3D tour of two house designs (Plan-1 and Plan-3) on the G. Padma Reddy site
 at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N, 78°38′48.17″E.
+
+Plan-3 comes from `PADMA REDDY GANNA.pdf` (plinth 1849 sft, slab 2400 sft). It has the same 43′ × 43′ shell,
+balconies and stair as Plan-1, with Kitchen, Dining, Master Bedroom + toilet across the back, a 17′ × 25′-1½″ Hall,
+Bedroom 2 + toilet, and Drawing Room, Pooja, Bedroom 3 + toilet along G.P Road. Its drawing has the East road at the
+top; the model turns it to sit on the survey like Plan-1. The drawn water sump and three bores stand on the
+23 SqYds strip, so Plan-3 has no strip garden.
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 
@@ -16,7 +22,7 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
   furniture clearances, door swings and walking routes.
 - Two drawing labels contradict their own dimension chains. Both are modelled from the chain and flagged in the report:
   - **Plan-1 Great Room** is labelled 23′-4½″ but the chain gives 25′-1½″.
-  - **GF Dining** is labelled 9′ but the top row sums to 41′-7½″ against the 41′-3″ overall.
+  - **Plan-3 Toilet 1** is labelled 8′-0″ × 4′-10″ but the chain across needs 4′-10½″.
 - Anything the drawings don't dimension is listed as an assumption:
   - heights: 10′ ceiling, 7′ lintels, 3′ sills
   - door and window positions, scaled from the drawing

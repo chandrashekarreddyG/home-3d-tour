@@ -838,6 +838,21 @@ export function buildModel(plan, M, onLabelClick) {
       cg.add(barMesh);
     }
   }
+  // water sump (RCC tank below ground, cover slab 150 mm proud, 600 × 600 manhole) and bore wells, where drawn
+  if (p.sump) {
+    const [sx0, sz0, sx1, sz1] = p.sump.map((v) => v * IN), top = GROUND + 0.15;
+    root.add(K.box(sx1 - sx0, 0.15, sz1 - sz0, M.slab, (sx0 + sx1) / 2, GROUND + 0.075, (sz0 + sz1) / 2));
+    root.add(K.box(0.6, 0.02, 0.6, M.alu, (sx0 + sx1) / 2, top + 0.01, (sz0 + sz1) / 2));
+    const el = label(`<b>Water sump</b><span>${ftIn(sx1 - sx0)} × ${ftIn(sz1 - sz0)}</span>`, 'slabel strip');
+    el.position.set((sx0 + sx1) / 2, GROUND + 0.9, (sz0 + sz1) / 2);
+    siteLabels.add(el);
+  }
+  for (const [bx, bz] of p.bores || []) {
+    // 150 mm PVC casing capped 450 mm above a 400 mm concrete pad
+    root.add(K.box(0.4, 0.08, 0.4, M.slab, bx * IN, GROUND + 0.04, bz * IN));
+    root.add(K.cyl(0.08, 0.08, 0.45, M.white, bx * IN, GROUND + 0.08 + 0.225, bz * IN, 20));
+    root.add(K.cyl(0.095, 0.095, 0.05, M.alu, bx * IN, GROUND + 0.08 + 0.475, bz * IN, 20));
+  }
 
   // ---------------- site from the survey map ----------------
   const site = buildSite(plan, M, K, root, siteLabels, plotRect);
@@ -1111,7 +1126,9 @@ function stripGarden(plan, M, K, group, Wp, siteLabels) {
   const uOut = (v) => 63.25 - (7 + 2 / 12) * (v / 59.08); // outer edge of the 23 SqYds strip (7′-2″ at the road → 0)
   const wg = plan.plot.gates.filter((g) => g.side === 'w');
   const vGate = wg.length ? Math.min(...wg.map((g) => (plan.plot.z1 - g.to) / 12)) : 40;
-  const v0 = 1.5, v1 = vGate - 3.5, inset = 0.3; // feet
+  // start beyond a drawn sump / bores on the strip (positions as v, feet from G.P Road)
+  const busy = [...(plan.plot.sump ? [plan.plot.sump[1]] : []), ...(plan.plot.bores || []).map((b) => b[1])].map((z) => (plan.plot.z1 - z) / 12);
+  const v0 = busy.length ? Math.max(1.5, ...busy.map((v) => v + 1.5)) : 1.5, v1 = vGate - 3.5, inset = 0.3; // feet
   if (v1 - v0 < 4) return;
   const at = (v, t) => Wp([U0 + inset + (uOut(v) - inset - (U0 + inset)) * t, v]); // t: 0 at compound wall → 1 at road edge
   const poly = [at(v0, 0), at(v0, 1), at(v1, 1), at(v1, 0)];

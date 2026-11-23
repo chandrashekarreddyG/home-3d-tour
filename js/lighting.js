@@ -146,7 +146,7 @@ export function buildLighting({ rooms, furniture, openings, M, K, parent, stairs
       pendant(x1 - 0.225, z0 + 0.22, 1.15, false);
       used = true;
     }
-    if (habitable && ['Living', 'Great Room'].includes(room.name)) {
+    if (habitable && ['Living', 'Great Room', 'Hall', 'Drawing Room'].includes(room.name)) {
       // up/down wall washers on the two longer walls, kept off doors and windows
       const longX = w >= d;
       const walls = longX ? [['n', r[1]], ['s', r[3]]] : [['w', r[0]], ['e', r[2]]];

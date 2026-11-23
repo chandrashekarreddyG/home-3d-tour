@@ -159,11 +159,11 @@ export function validate(model) {
     `Door and window widths are typical Indian sizes: room doors 900 mm, toilet doors 750 mm, main / double doors the nearest of ${STD.doubleSizes.map((v) => Math.round(v * 25.4)).join(', ')} mm to the drawing, all 2100 mm high. Windows are the nearest of ${STD.windowSizes.map((v) => Math.round(v * 25.4)).join(', ')} mm to the scaled drawing width, 1200 mm high on a 900 mm sill. Ventilators are 600 × 450 mm.`,
     `Furniture positions follow the drawing symbols, but every piece uses a standard real size (e.g. queen bed ${SIZES.queen.w} × ${SIZES.queen.l} m, sofa depth ${SIZES.sofaDepth} m, counters ${SIZES.counterDepth} × ${SIZES.counterH} m, wardrobes ${SIZES.wardrobeDepth} m deep). The drawing symbols are not drawn to furniture scale.`,
     'There are no columns or beams on the drawings, so none are modelled. Beams sit inside the 9″ / 4½″ walls above the 2100 mm lintel line, and the balconies are a cantilevered slab.',
-    plan.plot.gatesFromDrawing ? 'Gate positions are scaled from the drawing.' : 'Plan-1 and Plan-2 show no compound gates, so the gates are assumed in front of the main door and the side door.',
+    plan.plot.gatesFromDrawing ? 'Gate positions are scaled from the drawing.' : 'The drawing shows no compound gates, so the gates are assumed in front of the main door and the side door.',
   ];
   const deviations = [
     'Pooja window omitted (owner instruction: "no window required in the pooja room").',
-    ...(plan.id === 'p1' ? ['Pooja mandir is on the south wall, facing the pooja doors, so you face the deities as you enter (owner instruction). The drawing showed it on the east wall.'] : []),
+    ...(plan.mandirNote ? [plan.mandirNote] : []),
     ...rooms.filter((r) => r.issue).map((r) => `${r.name}: ${r.issue}`),
     ...model.report.adjustments,
   ];
