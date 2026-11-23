@@ -1185,7 +1185,7 @@ function buildSite(plan, M, K, root, siteLabels, plotRect) {
 // It runs from G.P Road up to 3′-6″ short of the side gate so the gate stays clear; the narrow
 // tail of the triangle beyond the gate is left as is.
 function stripGarden(plan, M, K, group, Wp, siteLabels) {
-  const U0 = SITE_W_FT; // plot line (the strip starts here, outside the compound)
+  const U0 = SITE_W_FT; // plot line (the strip starts here; outside the compound unless plot.westOnStrip)
   const uOut = (v) => 63.25 - (7 + 2 / 12) * (v / 59.08); // outer edge of the 23 SqYds strip (7′-2″ at the road → 0)
   const wg = plan.plot.gates.filter((g) => g.side === 'w');
   const vGate = wg.length ? Math.min(...wg.map((g) => (plan.plot.z1 - g.to) / 12)) : 40;
@@ -1193,7 +1193,9 @@ function stripGarden(plan, M, K, group, Wp, siteLabels) {
   const busy = [...(plan.plot.sump ? [plan.plot.sump[1]] : []), ...(plan.plot.bores || []).map((b) => b[1])].map((z) => (plan.plot.z1 - z) / 12);
   const v0 = busy.length ? Math.max(1.5, ...busy.map((v) => v + 1.5)) : 1.5, v1 = vGate - 3.5, inset = 0.3; // feet
   if (v1 - v0 < 4) return;
-  const at = (v, t) => Wp([U0 + inset + (uOut(v) - inset - (U0 + inset)) * t, v]); // t: 0 at compound wall → 1 at road edge
+  // t: 0 at the plot line → 1 at the road edge; when the compound wall stands on the road edge, stop 1′-1″ inside it
+  const outIn = plan.plot.westOnStrip ? 1.1 : 0;
+  const at = (v, t) => Wp([U0 + inset + (uOut(v) - inset - outIn - (U0 + inset)) * t, v]);
   const poly = [at(v0, 0), at(v0, 1), at(v1, 1), at(v1, 0)];
   const y0 = GROUND;
   // raised bed: granite kerb, soil, lawn

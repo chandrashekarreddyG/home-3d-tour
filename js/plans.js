@@ -27,8 +27,10 @@ export const PLANS = [
     map: { ox: 280, oy: 148, kx: 516 / 1112, kz: 516 / 1112 },
     note: 'Designed for the 56′-1″ × 59′-1″ Padma Reddy site.',
     mandirNote: 'Pooja mandir is on the south wall, facing the pooja doors, so you face the deities as you enter (owner instruction). The drawing showed it on the east wall.',
+    deviations: ['Open kitchen (owner instruction): the 4½″ wall between Cooking and Dining is removed (the Great Room wall stays). The kitchen run along that old wall stays as a peninsula counter.'],
     tour: ['Front Balcony', 'Living', 'Great Room', 'Pooja', 'Dining', 'Cooking', 'Toilet 1', 'Master Bedroom', 'Bedroom 2', 'Toilet 2', 'Bedroom 3', 'Toilet 3', 'Side Balcony'],
-    plot: { x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gates: [{ side: 'w', from: 313, to: 361 }, { side: 's', from: 19, to: 139 }] },
+    // west compound wall on the 21 ft road edge (owner instruction, as Plan-3): the 23 SqYds strip garden is inside
+    plot: { x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gates: [{ side: 'w', from: 313, to: 361 }, { side: 's', from: 19, to: 139 }], westOnStrip: true },
     balconies: { side: 60, front: 84 },
     stairs: [1028, 1260, 1290, 1440],
     walls: [
@@ -37,7 +39,7 @@ export const PLANS = [
       [511.5, 4.5, 511.5, 511.5, 9, [['w', 400, 475], ['w', 720, 800], ['v', 850, 900], ['v', 1060, 1110]]],
       // pooja window (px 722-775) omitted on owner's instruction
       [4.5, 511.5, 511.5, 511.5, 9, [['w', 345, 398], ['dd', 400, 500, '-'], ['w', 500, 553], ['w', 836, 952]]],
-      [125.25, 4.5, 125.25, 158.25, 4.5, [['a', 360, 460]]],
+      // open kitchen: no wall between Cooking and Dining (was [125.25, 4.5, 125.25, 158.25] with an arch)
       [4.5, 158.25, 511.5, 158.25, 4.5, [['a', 575, 775], ['a', 845, 930]]],
       [249.75, 4.5, 249.75, 158.25, 4.5, []],
       [249.75, 107.25, 312.75, 107.25, 4.5, [['dt', 840, 900, 'a-']]],
@@ -51,7 +53,8 @@ export const PLANS = [
       [444.75, 366.75, 444.75, 511.5, 4.5, [['dt', 1060, 1120, 'b+']]],
     ],
     rooms: [
-      { n: 'Cooking', r: [9, 9, 123, 156], lab: [114, 147], d: '9′-6″ × 12′-3″', f: 'kitchen' },
+      // open kitchen: Cooking also takes the floor strip of the removed Cooking–Dining wall
+      { n: 'Cooking', rs: [[9, 9, 123, 156], [123, 9, 127.5, 156]], lab: [114, 147], d: '9′-6″ × 12′-3″', f: 'kitchen' },
       { n: 'Dining', r: [127.5, 9, 247.5, 156], lab: [120, 147], d: '10′ × 12′-3″', f: 'tile' },
       { n: 'Toilet 1', r: [252, 9, 310.5, 105], lab: [58.5, 96], d: '8′ × 4′-10½″', f: 'bath' },
       { n: 'Passage', r: [252, 109.5, 310.5, 156], lab: null, f: 'tile', tour: false },
@@ -68,7 +71,7 @@ export const PLANS = [
       { n: 'Toilet 3', r: [447, 369, 507, 507], lab: [60, 138], d: '5′ × 11′-6″', f: 'bath' },
     ],
     furn: [
-      ['kitchen', 'Cooking', { runs: [['n', 300, 555], ['w', 212, 470], ['e', 212, 360]], hob: ['w', 295], sink: ['w', 440], upper: [['n', 300, 555], ['e', 212, 360]] }],
+      ['kitchen', 'Cooking', { runs: [['n', 300, 555], ['w', 212, 470], ['e', 212, 360, { island: true }]], hob: ['w', 295], sink: ['w', 440], upper: [['n', 300, 555]] }],
       ['dining', 'Dining', 668, 284, 'rect6'], ['crock', 'Dining', 'e', 168, 485],
       // mandir moved to the south wall so it faces the pooja doors (owner's instruction)
       ['mandir', 'Pooja', 's'],

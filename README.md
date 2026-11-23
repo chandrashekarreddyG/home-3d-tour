@@ -6,9 +6,14 @@ at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N,
 Plan-3 comes from `PADMA REDDY GANNA.pdf` (plinth 1849 sft, slab 2400 sft). It has the same 43′ × 43′ shell,
 balconies and stair as Plan-1, with Kitchen, Dining, Master Bedroom + toilet across the back, a 17′ × 25′-1½″ Hall,
 Bedroom 2 + toilet, and Drawing Room, Pooja, Bedroom 3 + toilet along G.P Road. Its drawing has the East road at the
-top; the model turns it to sit on the survey like Plan-1. As drawn, its west compound wall runs on the 21 ft road edge,
-so the 23 SqYds strip with the water sump and three bores is inside the compound (paved; no strip garden). Plan-3 has an **open kitchen** (owner request): the wall between
-Kitchen and Dining is removed (the Hall wall stays), and the run on that old wall becomes a peninsula counter.
+top; the model turns it to sit on the survey like Plan-1. The drawn water sump and three bores stand on the 23 SqYds strip
+(paved; no strip garden).
+
+Both plans (owner request):
+- **Compound wall on the road edge:** the west compound wall and its gate run on the 21 ft road edge (as on Plan-3's
+  drawing), so the 23 SqYds strip is inside the compound: Plan-3's sump and bores, Plan-1's strip garden.
+- **Open kitchen:** the wall between the kitchen and the dining area is removed (the hall / Great Room wall stays),
+  and the kitchen run on that old wall becomes a peninsula counter.
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 

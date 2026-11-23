@@ -9,14 +9,14 @@ Tolerance: 1 mm.
 
 ## Plan-1 · 2394 sft slab
 
-10/11 labelled rooms match their drawing size to within 1 mm; Great Room differs because the drawing contradicts its own dimension chain (see deviations). Openings: 30/30 measured widths equal the modelled widths. Furniture clearances: 30/31 OK. Door swings: 10/10 clear. Rooms reachable on foot: 16/16.
+10/11 labelled rooms match their drawing size to within 1 mm (Cooking, Dining open plan, measured to the old wall line); Great Room differs because the drawing contradicts its own dimension chain (see deviations). Openings: 29/29 measured widths equal the modelled widths. Furniture clearances: 30/31 OK. Door swings: 10/10 clear. Rooms reachable on foot: 16/16.
 
 ### Rooms: clear wall-to-wall size measured in the 3D model (Plan-1 · 2394 sft slab)
 
 | Room | Drawing label | Drawing W × D | Model W (ray-cast) | Model D (ray-cast) | ΔW | ΔD | Area | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Cooking | 9′-6″ × 12′-3″ | 9′-6″ × 12′-3″ | 2.896 m (9′-6″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 10.81 m² / 116.4 sft | ✅ match |
-| Dining | 10′ × 12′-3″ | 10′-0″ × 12′-3″ | 3.048 m (10′-0″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 11.38 m² / 122.5 sft | ✅ match |
+| Cooking | 9′-6″ × 12′-3″ | 9′-6″ × 12′-3″ | 2.896 m (9′-6″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 10.81 m² / 116.4 sft | ✅ match (open plan: measured to the old wall line) |
+| Dining | 10′ × 12′-3″ | 10′-0″ × 12′-3″ | 3.048 m (10′-0″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 11.38 m² / 122.5 sft | ✅ match (open plan: measured to the old wall line) |
 | Toilet 1 | 8′ × 4′-10½″ | 4′-10½″ × 8′-0″ | 1.486 m (4′-10½″) | 2.438 m (8′-0″) | +0.0 mm | +0.0 mm | 3.62 m² / 39.0 sft | ✅ match |
 | Passage | — | — | 1.486 m (4′-10½″) | 1.181 m (3′-10½″) | — | — | 1.75 m² / 18.9 sft | ➖ not labelled |
 | Master Bedroom | 16′ × 12′-3″ | 16′-0″ × 12′-3″ | 4.877 m (16′-0″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 18.21 m² / 196.0 sft | ✅ match |
@@ -65,7 +65,6 @@ Tolerance: 1 mm.
 | Double door (-) | Living ↔ Front Balcony | 3′-10⅜″ | 3′-11¼″ (1.200 m) | 1.200 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Window | Living ↔ Front Balcony | 2′-0⅝″ | 1′-11⅝″ (0.600 m) | 0.600 m | +74.5 mm | 0.900 → 2.100 m | ✅ |
 | Window | Bedroom 3 ↔ Front Balcony | 4′-5⅞″ | 4′-11″ (1.500 m) | 1.500 m | +0.0 mm | 0.900 → 2.100 m | ✅ |
-| Open arch | Cooking ↔ Dining | 3′-10⅜″ | 3′-10″ (1.168 m) | 1.168 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Open arch | Dining ↔ Great Room | 7′-8¾″ | 7′-9″ (2.362 m) | 2.362 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Open arch | Passage ↔ Great Room | 3′-3½″ | 3′-3″ (0.991 m) | 0.991 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Toilet door (a-) | Toilet 1 ↔ Passage | 2′-3⅞″ | 2′-5½″ (0.750 m) | 0.750 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
@@ -89,8 +88,8 @@ Tolerance: 1 mm.
 | Bedroom 3 | Wardrobe 1296×600 mm | 0.600 m (1′-11⅝″) | Queen bed 1520×1980 mm + side tables | 0.60 m | ✅ |
 | Bedroom 3 | Wardrobe 1296×600 mm | 4.239 m (13′-10⅞″) | wall | 0.60 m | ✅ |
 | Cooking | Kitchen counter 2888×600×850 mm | 3.134 m (10′-3⅜″) | wall | 0.90 m | ✅ |
-| Cooking | Kitchen counter 2967×600×850 mm | 1.696 m (5′-6¾″) | Kitchen counter 1670×600×850 mm | 0.90 m | ✅ |
-| Cooking | Kitchen counter 1670×600×850 mm | 1.695 m (5′-6¾″) | Kitchen counter 2967×600×850 mm | 0.90 m | ✅ |
+| Cooking | Kitchen counter 2967×600×850 mm | 1.696 m (5′-6¾″) | Kitchen peninsula 1670×600×850 mm | 0.90 m | ✅ |
+| Cooking | Kitchen peninsula 1670×600×850 mm | 1.695 m (5′-6¾″) | Kitchen counter 2967×600×850 mm | — | ✅ |
 | Cooking | Hob 750 mm + chimney 900 mm | — | — | — | ✅ |
 | Cooking | Sink 800×500 mm | — | — | — | ✅ |
 | Dining | Dining table 900×1500 mm, 6 chairs | — | — | — | ✅ |
@@ -134,7 +133,7 @@ Tolerance: 1 mm.
 
 | Room | Reachable | Route length |
 | --- | --- | --- |
-| Cooking | ✅ | 12.414 m |
+| Cooking | ✅ | 12.282 m |
 | Dining | ✅ | 14.461 m |
 | Toilet 1 | ✅ | 14.736 m |
 | Passage | ✅ | 13.615 m |
@@ -176,6 +175,7 @@ Tolerance: 1 mm.
 
 - Pooja window omitted (owner instruction: "no window required in the pooja room").
 - Pooja mandir is on the south wall, facing the pooja doors, so you face the deities as you enter (owner instruction). The drawing showed it on the east wall.
+- Open kitchen (owner instruction): the 4½″ wall between Cooking and Dining is removed (the Great Room wall stays). The kitchen run along that old wall stays as a peninsula counter.
 - Great Room: Labelled 23′-4½″ wide (looks copied from the GF plan), but the dimension chain gives 9 + G + 4½ + 192 (Bedroom-2, 16′) + 9 = 516″ (43′), so G = 25′-1½″. The drawing is also drawn at 25′-1½″, so it is modelled at 25′-1½″.
 - Plan-1: window next to a dd on wall #4 moved 2.0″ along the wall to keep a 3″ pier (standard width kept).
 - Plan-1: window next to a dd on wall #4 moved 2.9″ along the wall to keep a 3″ pier (standard width kept).
