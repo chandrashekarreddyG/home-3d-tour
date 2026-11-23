@@ -38,8 +38,11 @@ Both plans (owner request):
 
 ## Features
 
-- The landing page opens on the street corner with the roof and the Floating frame · glass parapet elevation. After about 4 s the
-  guided walk-in tour starts, unless the visitor has already clicked, scrolled or pressed a key.
+- The landing page opens on Plan-2 with the level verandahs for car parking and the Floating frame · glass parapet
+  elevation, seen from 5 m up over G.P Road beyond the 21 ft road corner, looking along the road at the front and the
+  parked car. After about 4 s the narrated video tour starts, unless the visitor has already clicked, scrolled or
+  pressed a key. The **▶ Video tour** button (accent pill, top row; bottom centre on phones) starts or stops it at any
+  time.
 - A female Telugu voice-over names each room as the guided tour arrives. The clips are in `audio/te/`, made with
   Microsoft's te-IN Shruti neural voice, a natural Indian Telugu accent
   (`edge-tts --voice te-IN-ShrutiNeural --rate=-8% --text "ఇది పూజ గది" --write-media pooja.mp3`). Browsers hold
@@ -118,14 +121,19 @@ Both plans (owner request):
     louvred valance and a planter band. The **[Exterior studio page](exterior.html)** (`exterior.html`, renders in
     `exterior/img/`) presents them with renders, materials, indicative costs, upkeep and sources. Each card links
     to the 3D model with that design via `?design=<id>`, which skips the auto tour.
-  - **Plinth (basement)** switch in the Elevation panel. **Whole slab area** (default) puts the plinth under the house
-    and both verandahs, with the verandahs level with the rooms. **House only** puts the 1′-6″ plinth under the rooms
-    only: the verandahs sit on a 150 mm apron, with granite steps up at each road-side door and a podium under the stair
-    foot. **Level for car parking** removes the plinth under both verandahs, so they sit flush with the paved yard. A
-    full-size SUV parks under the front verandah on the longest stretch clear of the front doors, and a 6.0 m gate on
-    G.P Road is added in front of it; planters keep clear of the drive. The elevation steps, piers, plinth cladding and
-    verandah switchboards follow the verandah level, and `?plinth=house` / `?plinth=level` open those options. The
-    Exterior studio page compares all three.
+  - Car porch designs for the level parking option: Teak car porch & stone wall, Kota porch & grass-paver drive, and
+    Green screen & pergola drive. Each dresses the car bay under the front verandah (slat or LED-lined ceiling, a feature
+    wall behind the car with wall washers or a cable-trellis green screen) and paves the drive from the 6 m car gate
+    (flamed granite, grass pavers in the open yard only, or clay pavers under a steel pergola).
+  - **Plinth (basement)** switch in the Elevation panel. **Level for car parking** (default) puts the 1′-6″ plinth
+    under the rooms only and leaves both verandahs flush with the paved yard. A full-size SUV parks under the front
+    verandah on the longest stretch clear of the front doors, and a 6.0 m gate on G.P Road is added in front of it;
+    planters keep clear of the drive. **Whole slab area** puts the plinth under the house and both verandahs, with the
+    verandahs level with the rooms. **House only** puts the plinth under the rooms only, with the verandahs on a
+    150 mm apron. Whenever the verandahs are lower than the rooms, granite steps lead up at each road-side door and a
+    podium sits under the stair foot. The elevation steps, piers, plinth cladding and verandah switchboards follow the
+    verandah level, and `?plinth=full` / `?plinth=house` open the other options. The Exterior studio page compares all
+    three.
   - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in

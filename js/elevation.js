@@ -25,6 +25,10 @@ export const ELEVATIONS = [
   { id: 'kota', style: 'Studio', name: 'Kota grey & charcoal fluted', glassParapet: true, blurb: 'Soft greige walls, blue-grey Kota stone around both entrances and on the plinth, a charcoal fascia, deep black window frames, charcoal fluted towers and a glass parapet: quiet and low-maintenance.', paint: '#e4e0d8' },
   { id: 'brick', style: 'Studio', name: 'Exposed brick & concrete', blurb: 'Both verandah walls in exposed brick, fair-face concrete bands on the slab edge and parapet, concrete window surrounds and plinth, and brick jaali towers: honest, earthy, and only a breathable sealer every few years.', paint: '#d9d4cb' },
   { id: 'bronze', style: 'Studio', name: 'Bronze metal jaali', glassParapet: true, blurb: 'Off-white walls, a bronze fascia and window surrounds, laser-cut bronze diamond jaali on the stair and side towers, a bronze canopy with a warm LED line over the front steps, dark granite plinth and a glass parapet.', paint: '#ecebe7' },
+  // car-porch designs for the level-verandah parking option (the car bay under the front verandah)
+  { id: 'porchteak', style: 'Parking', name: 'Teak car porch & stone wall', glassParapet: true, blurb: 'A teak slat ceiling with three downlights over the car bay, a honey Jaisalmer stone wall behind the car with wall washers, a charcoal fascia with a warm LED line, a flamed-granite drive from the 6 m gate with two bollard lights, teak slat towers and a glass parapet.', paint: '#ece7df' },
+  { id: 'porchkota', style: 'Parking', name: 'Kota porch & grass-paver drive', glassParapet: true, blurb: 'Blue-grey Kota stone behind the car and round the main door, three linear LED lines in the white porch ceiling, a white fascia with an LED line, a green grass-paver drive in the open yard (it soaks up rain and stays cool), charcoal fluted towers and a glass parapet.', paint: '#e4e0d8' },
+  { id: 'porchgreen', style: 'Parking', name: 'Green screen & pergola drive', blurb: 'Climbers on a stainless-steel cable trellis behind the car (rooted in a slim planter), a black steel pergola with oak slats carrying the porch out over the yard to the gate, a clay-paver drive, an oak fascia and oak slat towers.', paint: '#f1efe9' },
 ];
 
 export function buildElevations(M, dims) {
@@ -908,6 +912,146 @@ export function buildElevations(M, dims) {
     stairScreen(g, 'lattice', bronze, 'gold');
     sideFeature(g, 'lattice', bronze, bronze);
     out.bronze = g;
+  }
+
+  // ======================= car porch (level-verandah parking option) =======================
+  // porch span along the front verandah: the car bay (or, with a raised verandah, the stretch between the main door and
+  // the stair podium); drive span: the porch plus the 6 m car gate on G.P Road
+  const porch = bay ? [bay[0] - 0.25, bay[1] + 0.25] : [mainX + 1.3, stairs[0] - 0.5];
+  const carGate = dims.parkingGate;
+  const drive = carGate ? [Math.min(carGate[0], porch[0]), Math.max(carGate[1], porch[1])] : porch;
+  const driveZ = [bay ? D + 0.02 : D + F + 0.02, plot[3] - 0.25]; // under the verandah too when it is level with the yard
+  const cz = D + F / 2 + 0.15; // car centre line
+  const porchOk = porch[1] - porch[0] > 3;
+  const yardY = Math.max(vy, ground);
+  const flat = (mat, x0, x1, z0, z1, y = yardY + 0.006, t = 0.012) => box(x1 - x0, t, z1 - z0, mat, (x0 + x1) / 2, y, (z0 + z1) / 2);
+  const washers = (g) => { for (const t of [0.15, 0.5, 0.85]) sconce(g, 'front', porch[0] + t * (porch[1] - porch[0]), 2.3); };
+  // ---------- P1: teak car porch & stone wall ----------
+  {
+    const g = new THREE.Group();
+    glassParapet(g);
+    fascia(g, charcoal, 0.34);
+    g.add(box(W + S, 0.012, 0.012, M.lamp, (W - S) / 2, top - 0.31, D + F + 0.066)); // LED line under the fascia
+    g.add(box(0.012, 0.012, D + F, M.lamp, -S - 0.066, top - 0.31, (D + F) / 2));
+    if (porchOk) {
+      // teak slat ceiling (70 mm slats, 50 mm gaps) and three downlights over the car
+      for (let x = porch[0] + 0.06; x < porch[1] - 0.03; x += 0.12) g.add(box(0.07, 0.03, F - 0.1, M.teak, x, ceil - 0.02, D + F / 2));
+      for (const t of [1 / 6, 1 / 2, 5 / 6]) g.add(box(0.14, 0.01, 0.14, M.lamp, porch[0] + t * (porch[1] - porch[0]), ceil - 0.04, cz));
+      clad(g, 'front', porch[0], porch[1], vy, ceil, sand);
+      washers(g);
+    }
+    // flamed (rough) grey granite drive and two bollard lights beside the car gate
+    const flamed = M.granite.clone();
+    flamed.color.set('#a3a19c');
+    flamed.roughness = 0.9;
+    g.add(flat(flamed, drive[0], drive[1], driveZ[0], driveZ[1]));
+    if (carGate) {
+      for (const x of [carGate[0] - 0.35, carGate[1] + 0.35]) {
+        g.add(box(0.14, 0.7, 0.14, M.black, x, ground + 0.35, plot[3] - 0.45));
+        g.add(box(0.1, 0.06, 0.1, M.lamp, x, ground + 0.62, plot[3] - 0.45));
+      }
+    }
+    surround(g, steel, 0.05, 0.04);
+    entranceLights(g);
+    steps(g, 2.4, true);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    stairScreen(g, 'vslats', M.teak, 'gold');
+    sideFeature(g, 'vslats', M.teak, charcoal);
+    out.porchteak = g;
+  }
+  // ---------- P2: Kota porch & grass-paver drive ----------
+  {
+    const g = new THREE.Group();
+    glassParapet(g);
+    fascia(g, white, 0.36);
+    g.add(box(W + S, 0.012, 0.012, M.lamp, (W - S) / 2, top - 0.33, D + F + 0.066));
+    g.add(box(0.012, 0.012, D + F, M.lamp, -S - 0.066, top - 0.33, (D + F) / 2));
+    clad(g, 'front', mainX - 1.5, mainX + 1.5, vy, ceil, kota);
+    if (porchOk) {
+      clad(g, 'front', Math.max(porch[0], mainX + 1.5), porch[1], vy, ceil, kota);
+      for (const z of [D + 0.45, cz, D + F - 0.35]) g.add(box(porch[1] - porch[0] - 0.4, 0.012, 0.03, M.lamp, (porch[0] + porch[1]) / 2, ceil - 0.006, z));
+      washers(g);
+    }
+    // grass pavers (open concrete grid, 500 mm cells with grass) in the open yard, where the grass gets sun and rain
+    const [x0, x1] = drive, z0 = D + F + 0.05, z1 = driveZ[1];
+    if (z1 - z0 > 0.6) {
+      g.add(flat(M.grass, x0, x1, z0, z1, ground + 0.008, 0.004));
+      const cells = [];
+      for (let x = x0 + 0.3; x < x1 - 0.2; x += 0.6) for (let z = z0 + 0.3; z < z1 - 0.2; z += 0.6) cells.push([x, z]);
+      const inst = new THREE.InstancedMesh(boxGeo(0.5, 0.03, 0.5), pale, cells.length);
+      cells.forEach(([x, z], i) => inst.setMatrixAt(i, mtx.makeTranslation(x, ground + 0.02, z)));
+      inst.receiveShadow = true;
+      g.add(inst);
+      g.add(flat(fairFace, x0 - 0.1, x1 + 0.1, z0 - 0.05, z0 + 0.05, ground + 0.02, 0.04)); // kerb at the verandah edge
+    }
+    surround(g, steel, 0.12, 0.05);
+    entranceLights(g);
+    steps(g, 2.4, true);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    stairScreen(g, 'fluted', charcoal, 'gold');
+    sideFeature(g, 'fluted', charcoal, charcoal);
+    out.porchkota = g;
+  }
+  // ---------- P3: green screen & pergola drive ----------
+  {
+    const g = new THREE.Group();
+    fascia(g, M.oak, 0.3);
+    if (porchOk) {
+      // green facade: climbers on stainless cables 100 mm off the wall, from a slim planter at the wall foot (doors and
+      // windows kept clear; denser low down, as climbers grow from the bottom)
+      const rects = clad(new THREE.Group(), 'front', porch[0], porch[1], vy + 0.35, ceil - 0.1, white);
+      const leaves = [];
+      let seed = 7;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      for (const [a0, y0, a1, y1] of rects) {
+        for (let x = a0 + 0.15; x < a1 - 0.1; x += 0.3) {
+          g.add(box(0.008, y1 - y0, 0.008, M.steel, x, (y0 + y1) / 2, D + 0.1));
+          // leaves thin out with height (a 2–3 season growth); each leaf a small flattened blob around the cable
+          for (let y = y0 + 0.04; y < y1; y += 0.05) {
+            const k = (y - vy) / (ceil - vy);
+            for (let n = 0; n < 3; n++) if (rnd() < 0.95 - k * 0.55) leaves.push([x + (rnd() - 0.5) * 0.26 * (1 - k * 0.4), y + (rnd() - 0.5) * 0.05, D + 0.1 + (rnd() - 0.4) * 0.1, 0.035 + rnd() * 0.03]);
+          }
+        }
+      }
+      const leafLight = M.solid('#6a9a44', { roughness: 0.8 });
+      for (const [mat, part] of [[leafMat, 0], [leafLight, 1]]) {
+        const mine = leaves.filter((_, i) => i % 3 === part || (part === 0 && i % 3 === 2));
+        const lInst = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), mat, mine.length);
+        mine.forEach(([x, y, z, r], i) => lInst.setMatrixAt(i, mtx.makeScale(r * 1.3, r, r * 0.5).setPosition(x, y, z)));
+        lInst.castShadow = true;
+        g.add(lInst);
+      }
+      for (const [a0, , a1, y1] of rects.filter((r) => r[1] <= vy + 0.36)) g.add(box(a1 - a0, 0.35, 0.22, concrete, (a0 + a1) / 2, vy + 0.175, D + 0.11)); // planter
+      washers(g);
+    }
+    // black steel pergola with oak slats carrying the porch out to the compound wall over the drive
+    const pz0 = D + F, pz1 = plot[3] - 0.3, py = ceil - 0.1;
+    if (pz1 - pz0 > 0.8) {
+      const [x0, x1] = drive, pm = (pz0 + pz1) / 2;
+      for (const x of [x0 + 0.1, x1 - 0.1]) {
+        g.add(box(0.1, 0.2, pz1 - pz0, M.black, x, py, pm));
+        g.add(box(0.1, py - ground, 0.1, M.black, x, (py + ground) / 2, pz1 - 0.05)); // posts just inside the compound wall
+      }
+      g.add(box(x1 - x0, 0.2, 0.1, M.black, (x0 + x1) / 2, py, pz1 - 0.05));
+      for (let z = pz0 + 0.2; z < pz1 - 0.1; z += 0.3) g.add(box(x1 - x0 - 0.2, 0.12, 0.05, M.oak, (x0 + x1) / 2, py + 0.16, z));
+      // creeper trained along the pergola's front beam
+      for (let x = x0 + 0.2; x < x1 - 0.2; x += 0.09) {
+        const s = new THREE.Mesh(new THREE.IcosahedronGeometry(0.06 + ((x * 7.3) % 1) * 0.04, 0), (Math.round(x * 11) % 2 ? leafMat : M.leaf));
+        s.position.set(x, py - 0.12 - ((x * 5.1) % 1) * 0.18, pz1 - 0.12);
+        g.add(s);
+      }
+    }
+    // clay pavers on the drive
+    const clay = M.terracotta.clone();
+    clay.color.set('#f0c9b0');
+    g.add(flat(clay, drive[0], drive[1], driveZ[0], driveZ[1]));
+    surround(g, M.oak, 0.06, 0.05);
+    entranceLights(g);
+    steps(g, 2.4);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    stairScreen(g, 'vslats', M.oak, 'gold');
+    sideFeature(g, 'vslats', M.oak, white);
+    out.porchgreen = g;
   }
 
   for (const g of Object.values(out)) g.visible = false;

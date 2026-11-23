@@ -160,7 +160,7 @@ Tolerance: 1 mm.
 | Ventilator sill | 1.650 m (5′-5″) | 5′-5″ — 600 × 450 mm ventilator under the lintel |
 | RCC slab | 0.127 m (5″) | 5″ — assumed |
 | Plinth above ground | 0.457 m (1′-6″) | 1′-6″ — assumed |
-| Verandah floor below the house floor | 0.000 m (0″) | level with the house — plinth under the whole slab (house + both verandahs) |
+| Verandah floor below the house floor | 0.453 m (1′-5⅞″) | 1′-5⅞″ — plinth under the house only: verandahs flush with the paved yard for car parking, steps up to each door |
 | Stair riser / tread | 0.176 m (7″) | 176 mm × 250 mm, 18 risers, flights 1.061 m wide — flights drawn, risers assumed |
 | Eye height (walk mode) | 1.600 m (5′-3″) | 1.600 m |
 
@@ -180,6 +180,7 @@ Tolerance: 1 mm.
 - Great Room: Labelled 23′-4½″ wide (looks copied from the GF plan), but the dimension chain gives 9 + G + 4½ + 192 (Bedroom-2, 16′) + 9 = 516″ (43′), so G = 25′-1½″. The drawing is also drawn at 25′-1½″, so it is modelled at 25′-1½″.
 - Plan-1: window next to a dd on wall #4 moved 2.0″ along the wall to keep a 3″ pier (standard width kept).
 - Plan-1: window next to a dd on wall #4 moved 2.9″ along the wall to keep a 3″ pier (standard width kept).
+- Plan-1: level verandahs for parking (proposal): plinth under the house only, a 4.8 m car bay under the front verandah, and a 6.0 m wide gate on G.P Road in front of it.
 - Master Bedroom: bed moved 128 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 3: bed moved 197 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 
@@ -298,19 +299,19 @@ Tolerance: 1 mm.
 
 | Room | Reachable | Route length |
 | --- | --- | --- |
-| Kitchen | ✅ | 16.055 m |
-| Dining | ✅ | 18.317 m |
-| Toilet 1 | ✅ | 20.261 m |
-| Master Bedroom | ✅ | 20.156 m |
-| Hall | ✅ | 9.189 m |
-| Bedroom 2 | ✅ | 19.472 m |
-| Toilet 2 | ✅ | 17.706 m |
-| Drawing Room | ✅ | 8.082 m |
-| Pooja | ✅ | 14.240 m |
-| Bedroom 3 | ✅ | 17.825 m |
-| Toilet 3 | ✅ | 23.627 m |
-| Side Balcony | ✅ | 12.090 m |
-| Front Balcony | ✅ | 0.000 m |
+| Kitchen | ✅ | 18.726 m |
+| Dining | ✅ | 20.988 m |
+| Toilet 1 | ✅ | 22.932 m |
+| Master Bedroom | ✅ | 22.827 m |
+| Hall | ✅ | 11.860 m |
+| Bedroom 2 | ✅ | 22.143 m |
+| Toilet 2 | ✅ | 20.377 m |
+| Drawing Room | ✅ | 10.753 m |
+| Pooja | ✅ | 16.912 m |
+| Bedroom 3 | ✅ | 20.496 m |
+| Toilet 3 | ✅ | 26.299 m |
+| Side Balcony | ✅ | 14.160 m |
+| Front Balcony | ✅ | 1.330 m |
 
 ### Heights used (not dimensioned on the drawings)
 
@@ -322,7 +323,7 @@ Tolerance: 1 mm.
 | Ventilator sill | 1.650 m (5′-5″) | 5′-5″ — 600 × 450 mm ventilator under the lintel |
 | RCC slab | 0.127 m (5″) | 5″ — assumed |
 | Plinth above ground | 0.457 m (1′-6″) | 1′-6″ — assumed |
-| Verandah floor below the house floor | 0.000 m (0″) | level with the house — plinth under the whole slab (house + both verandahs) |
+| Verandah floor below the house floor | 0.453 m (1′-5⅞″) | 1′-5⅞″ — plinth under the house only: verandahs flush with the paved yard for car parking, steps up to each door |
 | Stair riser / tread | 0.176 m (7″) | 176 mm × 250 mm, 18 risers, flights 1.060 m wide — flights drawn, risers assumed |
 | Eye height (walk mode) | 1.600 m (5′-3″) | 1.600 m |
 
@@ -340,6 +341,7 @@ Tolerance: 1 mm.
 - Pooja mandir is on the south wall, facing the pooja door, so you face the deities as you enter (owner instruction). The drawing showed it on the west wall.
 - Open kitchen (owner instruction): the 4½″ wall between Kitchen and Dining is removed (the Hall wall stays). The kitchen run along that old wall stays as a peninsula counter.
 - Toilet 1: Labelled 4′-10″, but the dimension chain across needs 9 + 132 + 4½ + 102 + 4½ + T + 4½ + 192 + 9 = 516″ (43′), so T = 4′-10½″ (as Plan-1’s same toilet). Modelled at 4′-10½″.
+- Plan-2: level verandahs for parking (proposal): plinth under the house only, a 4.8 m car bay under the front verandah, and a 6.0 m wide gate on G.P Road in front of it.
 - Master Bedroom: bed moved 456 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 2: bed moved 58 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 3: bed moved 293 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).

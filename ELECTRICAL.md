@@ -6,7 +6,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 
 48 switchboards and points placed by rule; 48/48 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. Every planned point found a clear wall.
 
-### Switchboards and power points (positions measured in the 3D model)
+## Switchboards and power points (positions measured in the 3D model)
 
 | # | Room | Board / point | Where | Height (centre, above FFL) | Plate | Contents | Why here | Check |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | E47 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.97 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
 | E48 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 10.09 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
 
-### Coverage by room
+## Coverage by room
 
 | Room | Light / fan switches at | Sockets in the room | Dedicated points |
 | --- | --- | --- | --- |
@@ -80,7 +80,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Side Balcony | switched from the adjoining room | 1 | — |
 | Front Balcony | E48 | 1 | Video door phone outdoor unit + bell E21 |
 
-### Count by type
+## Count by type
 
 | Board / point | Number |
 | --- | --- |
@@ -116,7 +116,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Chimney point | 1 |
 | Staircase 2-way switch (foot) | 1 |
 
-### Rules and heights used
+## Rules and heights used
 
 | Item | Height | Rule / source |
 | --- | --- | --- |
@@ -136,12 +136,11 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Outdoor sockets / bell | 0.60 m / 1.35 m | Weatherproof box with cover, above mopping splash; bell push at the side entrance. |
 | Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |
 
-
 ## Plan-2 · 2400 sft slab
 
 38 switchboards and points placed by rule; 38/38 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. 3 need a site decision (listed below).
 
-### Switchboards and power points (positions measured in the 3D model)
+## Switchboards and power points (positions measured in the 3D model)
 
 | # | Room | Board / point | Where | Height (centre, above FFL) | Plate | Contents | Why here | Check |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -182,9 +181,9 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | E35 | Master Bedroom | Split AC point | right wall (as drawn), 2.42 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
 | E36 | Bedroom 2 | Split AC point | right wall (as drawn), 2.45 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
 | E37 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.99 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
-| E38 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 9.64 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
+| E38 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 10.19 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
 
-### Coverage by room
+## Coverage by room
 
 | Room | Light / fan switches at | Sockets in the room | Dedicated points |
 | --- | --- | --- | --- |
@@ -202,7 +201,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Side Balcony | switched from the adjoining room | 1 | Video door phone outdoor unit + bell E14 |
 | Front Balcony | E38 | 1 | — |
 
-### Count by type
+## Count by type
 
 | Board / point | Number |
 | --- | --- |
@@ -232,7 +231,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Chimney point | 1 |
 | Staircase 2-way switch (foot) | 1 |
 
-### Rules and heights used
+## Rules and heights used
 
 | Item | Height | Rule / source |
 | --- | --- | --- |
@@ -252,7 +251,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Outdoor sockets / bell | 0.60 m / 1.35 m | Weatherproof box with cover, above mopping splash; bell push at the side entrance. |
 | Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |
 
-### Needs a site decision
+## Needs a site decision
 
 - Front Balcony: Bell push — no clear wall near the planned spot (blocked: window); confirm on site.
 - Bedroom 3: Bedside board (left) — no clear wall near the planned spot (blocked: door frame); confirm on site.

@@ -401,7 +401,7 @@ async function startTour() {
   const seq = MD.plan.tour.map((n) => MD.rooms.find((r) => r.name === n)).filter(Boolean);
   touring = true;
   $('btnTour').classList.add('on');
-  $('btnTour').textContent = '■ Stop tour';
+  $('btnTour').textContent = '■ Stop video tour';
   if (!music.start()) $('voice').hidden = false;
   for (const room of seq) {
     if (!touring) break;
@@ -421,7 +421,7 @@ function stopTour() {
   music.stop();
   $('voice').hidden = true;
   $('btnTour').classList.remove('on');
-  $('btnTour').textContent = '▶ Guided tour';
+  $('btnTour').textContent = '▶ Video tour';
 }
 
 // ---------- picking ----------
@@ -703,8 +703,9 @@ $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbi
 // landing page shows Floating frame · glass parapet; ?design=<id> (from exterior.html) opens that design instead
 const linkedDesign = ELEVATIONS.find((q) => q.id !== 'none' && q.id === new URLSearchParams(location.search).get('design'));
 const elev = { on: true, id: linkedDesign ? linkedDesign.id : 'frameglass' };
-// plinth (basement) extent: under the whole slab with level verandahs (default) or under the house only (?plinth=house)
-let plinthExtent = ['house', 'level'].find((v) => v === new URLSearchParams(location.search).get('plinth')) || 'full';
+// plinth (basement) extent: under the house only with level verandahs and the car bay (default), under the whole slab
+// (?plinth=full) or under the house with a low verandah apron (?plinth=house)
+let plinthExtent = ['full', 'house', 'level'].find((v) => v === new URLSearchParams(location.search).get('plinth')) || 'level';
 document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListener('click', () => {
   if (plinthExtent === b.dataset.id) return;
   plinthExtent = b.dataset.id;
@@ -716,7 +717,7 @@ for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
     const h = document.createElement('span');
     h.className = 'seg-label';
-    h.textContent = { Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos', Studio: 'Exterior studio · researched designs' }[e.style];
+    h.textContent = { Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos', Studio: 'Exterior studio · researched designs', Parking: 'Car porch · for the level parking option' }[e.style];
     $('elevs').append(h);
     lastStyle = e.style;
   }
@@ -749,6 +750,12 @@ $('btnStreet').addEventListener('click', () => {
   const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);
   orbitTo(new THREE.Vector3(MD.plotRect[0] - 7, 1.7, MD.plotRect[3] + 7), c, true);
 });
+// landing view: from over G.P Road beyond the 21 ft road corner, looking along the road at the front and the car bay
+// (camera at 5 m, where the room tags switch off)
+function landingView() {
+  const [, , W, D] = MD.building;
+  orbitTo(new THREE.Vector3(MD.plotRect[0] - 12.5, 5, MD.plotRect[3] + 12.5), new THREE.Vector3(W * 0.6, 1.6, D * 0.5), false);
+}
 function applyElevation() {
   const e = ELEVATIONS.find((q) => q.id === (elev.on ? elev.id : 'none'));
   for (const [id, g] of Object.entries(MD.elevations)) g.visible = elev.on && id === elev.id;
@@ -985,17 +992,17 @@ if (innerWidth < 760) document.body.classList.remove('panel-open');
 $('chkHQ').checked = !mobile;
 gtao.enabled = !mobile;
 resize();
-loadPlan((location.hash || '#p1').slice(1));
+loadPlan((location.hash || '#p2').slice(1));
 $('loading').remove();
 frame();
-// landing: the street corner with the roof and elevation, then the guided walk-in tour starts by itself
+// landing: Plan-2 from over G.P Road (landingView), then the video tour starts by itself
 // (unless the visitor has already taken over by clicking, scrolling or using the keyboard)
 {
   let acted = false;
   const took = (e) => { if (!(e.target.closest && e.target.closest('#voice'))) acted = true; };
   const evs = ['pointerdown', 'keydown', 'wheel'];
   evs.forEach((ev) => addEventListener(ev, took, true));
-  $('btnStreet').click();
+  landingView();
   setTimeout(() => {
     evs.forEach((ev) => removeEventListener(ev, took, true));
     const linked = linkedDesign || new URLSearchParams(location.search).has('plinth');

@@ -1010,6 +1010,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
     plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
     gates: plotGates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
     parkingBay: parking ? parking.bay : null,
+    parkingGate: parking ? [parking.gate.from * IN, parking.gate.to * IN] : null,
     westOnStrip: !!plan.plot.westOnStrip, verandahY: VY,
   });
   for (const g of Object.values(elevations)) root.add(g);
