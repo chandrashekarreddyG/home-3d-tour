@@ -148,6 +148,7 @@ function applySun() {
   M.shade.emissiveIntensity = night ? 1.6 : 0.3;
   M.glow.opacity = night ? 0.85 : 0.12; // wall-washer halos only read after dark
   M.glowFan.opacity = night ? 0.8 : 0.08;
+  ceilingBounce();
   const mins = Number($('sunTime').value);
   const hh = String(Math.floor(mins / 60)).padStart(2, '0'), mm = String(mins % 60).padStart(2, '0');
   const deg = (r) => Math.round((r * 180) / Math.PI);
@@ -170,8 +171,12 @@ function loadPlan(id) {
       if (o.isCSS2DObject) o.element.remove();
     });
   }
-  MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); }, { plinth: plinthExtent });
+  MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); }, { plinth: plinthExtent, interior: interiorStyle });
   document.querySelectorAll('#plinthOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === plinthExtent));
+  document.querySelectorAll('#interiorOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === interiorStyle));
+  $('interiorNote').textContent = interiorStyle === 'luxe'
+    ? 'Warm luxe, from your sample designs: backlit onyx TV wall, quilted panel wall behind the sofa, brass medallion screen at the entrance, branch-crystal chandeliers, arched display unit, palm-mural dining arches with a ring chandelier, greige gloss kitchen with a hanging herb shelf, and feature walls with globe pendants behind every bed. Best seen in Walk in with the cove lights in the evening.'
+    : 'Standard: plain painted walls with a simple TV feature wall, laminate wardrobes and kitchen.';
   $('plinthNote').textContent = {
     house: 'Plinth under the house only (1849 sft): the verandahs sit on a 150 mm apron, about 1′ below the rooms, with two granite steps up to each door and a podium under the stair.',
     level: MD.parking
@@ -615,6 +620,13 @@ function applyLighting() {
   document.querySelectorAll('#lightPower button').forEach((b) => b.classList.toggle('on', (b.dataset.id === 'on') === finish.lightsOn));
   $('lightNote').textContent = finish.lightsOn ? LIGHTS.find((q) => q.id === finish.light).blurb : 'All lights inside the house are switched off; daylight and the outside lights only.';
   updateLights();
+  ceilingBounce();
+}
+// after dark with the lights on, the ceilings pick up a little warm bounce light from the lamps (the renderer has
+// no indirect light, so without this they read almost black)
+function ceilingBounce() {
+  M.ceiling.emissive.set(finish.lightsOn && night ? LIGHT_TEMPS.find((t) => t.id === finish.temp).color : '#000000');
+  M.ceiling.emissiveIntensity = 0.16;
 }
 const optionButtons = (el, list, onPick) => {
   for (const o of list) {
@@ -711,6 +723,16 @@ document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListene
   plinthExtent = b.dataset.id;
   loadPlan(MD.plan.id);
   $('btnStreet').click();
+}));
+// interior design: standard, or "Warm luxe" from the owner's sample designs (?interior=luxe); luxe brings the cove
+// ceiling lighting with it
+let interiorStyle = ['standard', 'luxe'].find((v) => v === new URLSearchParams(location.search).get('interior')) || 'standard';
+if (interiorStyle === 'luxe') finish.light = 'cove';
+document.querySelectorAll('#interiorOpts button').forEach((b) => b.addEventListener('click', () => {
+  if (interiorStyle === b.dataset.id) return;
+  interiorStyle = b.dataset.id;
+  if (interiorStyle === 'luxe') finish.light = 'cove';
+  loadPlan(MD.plan.id);
 }));
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
@@ -891,6 +913,8 @@ function updateElecTags() {
 // used to regenerate VALIDATION.md from the live model
 window.measurementReport = () => toMarkdown(getReport());
 window.electricalLayout = () => electricalMarkdown(MD.electrical, MD.rooms, MD.plan.name);
+// console accessor for framing renders: stand at (x, z) metres looking along yaw / pitch (degrees; yaw 0 = −z, 90 = −x)
+window.walkTo = (x, z, yawDeg = 0, pitchDeg = 0) => enterWalk(x, z, (yawDeg * Math.PI) / 180, (pitchDeg * Math.PI) / 180);
 
 // ---------- minimap ----------
 const mm = $('minimap');

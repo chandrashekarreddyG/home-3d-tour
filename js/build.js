@@ -10,6 +10,7 @@ import { buildElevations } from './elevation.js';
 import { buildLighting } from './lighting.js';
 import { buildElectrical } from './electrical.js';
 import { buildScaleRefs } from './scale.js';
+import { buildInterior } from './interior.js';
 import { NavGrid, inRect } from './nav.js';
 import { PARCELS, ROADS, DIMENSIONS } from './site.js';
 
@@ -85,7 +86,8 @@ function subtractRect(r, h) {
 // 'level' = plinth under the house only, verandahs flush with the paved yard (car parking under the front verandah)
 export function buildModel(plan, M, onLabelClick, opts = {}) {
   const VY = opts.plinth === 'house' ? GROUND + 0.15 : opts.plinth === 'level' ? GROUND + 0.004 : 0; // verandah floor (house floor = 0)
-  const K = kit(M);
+  const interior = opts.interior === 'luxe' ? 'luxe' : 'standard';
+  const K = kit(M, interior);
   const { ox, oy, kx, kz } = plan.map;
   const pxX = (p) => (p - ox) * kx; // drawing px → inches
   const pxZ = (p) => (p - oy) * kz;
@@ -811,12 +813,30 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
       addItem(room, `Diwan ${Math.round((b - a) * 1000)}×800 mm`, K.diwan(b - a), NORMAL.n, x, faceOf(room, 'n', x), 0.2);
     }
   }
+  // ---------------- interior design: "Warm luxe" feature walls, screens, display units, chandeliers ----------------
+  let noFan = new Set();
+  if (interior === 'luxe') {
+    const deco = buildInterior({
+      M, rooms, fixtures, furniture: report.furniture, ceil: CEIL,
+      openings: openingsAll.map((o) => ({ kind: o.kind, vertical: o.vertical, outer: o.outer, sides: o.sides, c: o.c * IN, a: o.a * IN, b: o.b * IN, t: o.t * IN, lo: o.lo, hi: o.hi })),
+      walls: plan.walls.map(([x0, z0, x1, z1, t]) => ({ x0: x0 * IN, z0: z0 * IN, x1: x1 * IN, z1: z1 * IN, t: t * IN })),
+    });
+    root.add(deco.group);
+    ceilings.add(deco.hanging);
+    deco.group.traverse((m) => m.isMesh && furnMeshes.push(m));
+    for (const it of deco.items) {
+      colliders.push({ r: it.rect, clear: it.block });
+      report.furniture.push({ room: it.room, name: it.name, rect: it.rect, normal: null });
+    }
+    report.adjustments.push(...deco.notes);
+    noFan = deco.noFan;
+  }
 
   // ---------------- ceiling fans + lighting designs ----------------
   for (const room of rooms) {
     if (room.outdoor) continue;
     const habitable = ['wood', 'tile'].includes(room.finish) && room.tour;
-    if (habitable && area(room.main) > 6) {
+    if (habitable && area(room.main) > 6 && !noFan.has(room.name)) {
       const f = K.fan();
       f.g.position.set(room.center[0], CEIL, room.center[1]);
       ceilings.add(f.g);
@@ -1045,7 +1065,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
   return {
     plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical, scaleRefs,
     colliders, nav, levels, upPick, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
-    plinth: opts.plinth === 'house' || opts.plinth === 'level' ? opts.plinth : 'full', verandahY: VY, parking,
+    plinth: opts.plinth === 'house' || opts.plinth === 'level' ? opts.plinth : 'full', verandahY: VY, parking, interior,
     floorY: (x, z) => (inHouse(x, z) ? 0 : onVerandah(x, z) ? VY : GROUND),
     walkAreas,
   };

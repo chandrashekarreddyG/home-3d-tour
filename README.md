@@ -139,6 +139,17 @@ Both plans (owner request):
   - The 21 ft road side tower rises to the same height and carries a flat painted Shanku · Namam · Chakra panel
     (the owner's line artwork, `textures/emblems/shanku-namam-chakra.png`) in a slim gold frame. It sits above the
     slab bands and has the same soft halo after dark.
+- **Interior design** switch in the Finishes panel (`?interior=luxe`). **Warm luxe** follows the owner's sample
+  designs and is placed by rule from each plan's rooms, walls, openings and furniture (`js/interior.js`), so no wall,
+  door or window moves: a backlit-onyx TV wall, a quilted panel wall behind the TV-facing sofa, framed art with brass
+  sconces over the other sofas, branch-crystal chandeliers over the coffee tables, a brass medallion screen beside a
+  main double door that opens into a sitting room, an arched display unit in a sitting room without a TV, backlit
+  palm-mural arches and a ring chandelier in the dining, a hanging herb shelf and slatted back on the kitchen
+  peninsula, and a feature wall with globe pendants behind every bed (grey channels, oak grid, white flutes in turn).
+  The furniture restyles with it (`kit(M, 'luxe')`): boucle sofas, a pebble coffee table, a marble dining top with grey
+  chairs, channel-stitched beds, carved-shutter wardrobes and greige gloss kitchen shutters. A chandelier replaces a
+  ceiling fan only where they would clash (noted in the measurement report). Artwork in `textures/interior/` is drawn
+  by `textures/interior/make-art.py`.
 - **Flooring designs**, switchable live. The default is white marble-look 600×1200 (matt, soft grey veins, like Kajaria
   Statuario White 60×120 cm). The others are beige marble + oak, vitrified 600×600, glossy white 800×800, Indian marble,
   black granite, terrazzo, red oxide tiles and oak throughout.

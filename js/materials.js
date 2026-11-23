@@ -104,6 +104,32 @@ export function makeMaterials(renderer) {
     };
     return new THREE.MeshStandardMaterial({ map: tx(cd, true), bumpMap: tx(cb, false), bumpScale: 2, roughness: rough });
   };
+  // seamless veined stone slab (no tile joints): soft blurred veins on a base colour, 1.2 m repeat
+  const veined = (base, vein, seed0, extra = {}) => {
+    const N = 512, c = document.createElement('canvas');
+    c.width = c.height = N;
+    const g = c.getContext('2d');
+    let seed = seed0;
+    const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    g.fillStyle = base; g.fillRect(0, 0, N, N);
+    for (let k = 0; k < 26; k++) {
+      g.filter = `blur(${1 + R() * 6}px)`;
+      g.strokeStyle = vein(R);
+      g.lineWidth = 1 + R() * 9;
+      g.beginPath();
+      let x = R() * N, y = -20;
+      g.moveTo(x, y);
+      while (y < N + 20) { x += (R() - 0.45) * 70; y += 20 + R() * 40; g.lineTo(x, y); }
+      g.stroke();
+    }
+    g.filter = 'none';
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(1 / 1.2, 1 / 1.2);
+    t.anisotropy = aniso;
+    t.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.2, envMapIntensity: 1.2, ...extra, ...(extra.emissive ? { emissiveMap: t } : {}) });
+  };
 
   return {
     // floors
@@ -291,6 +317,82 @@ export function makeMaterials(renderer) {
     velvet: pbr('velour_velvet', { useDiff: false, color: '#8f7c66', normalScale: 0.6 }),
     curtain: pbr('rough_linen', { useDiff: false, color: '#e7dccb', normalScale: 0.6, side: THREE.DoubleSide }),
     rug: pbr('rough_linen', { useDiff: false, color: '#cfc3b0', normalScale: 1.2 }),
+    // "Warm luxe" interior (from the owner's sample designs): boucle, channel fabric, lacquer, onyx, wave rug ...
+    boucle: pbr('rough_linen', { useDiff: false, color: '#efe8dc', normalScale: 1.6 }),
+    sage: pbr('velour_velvet', { useDiff: false, color: '#a7b597', normalScale: 0.6 }),
+    fabricGrey: pbr('rough_linen', { useDiff: false, color: '#b9b5ae', normalScale: 1.0 }),
+    chairGrey: pbr('rough_linen', { useDiff: false, color: '#6f6f6d', normalScale: 1.0 }),
+    lacquer: solid('#f3f0ea', { roughness: 0.25, envMapIntensity: 1.1 }),
+    greige: solid('#cfc5b6', { roughness: 0.22, envMapIntensity: 1.1 }),
+    quartz: solid('#f6f4ef', { roughness: 0.18, envMapIntensity: 1.2 }),
+    // seamless slabs: light warm-grey stone (TV wall), white marble (dining and coffee table tops)
+    stoneSlab: veined('#c9c1b5', (R) => `rgba(${120 + R() * 30},${112 + R() * 30},${104 + R() * 30},${0.2 + R() * 0.3})`, 31, { roughness: 0.35 }),
+    slabWhite: veined('#f4f2ee', (R) => `rgba(${150 + R() * 30},${154 + R() * 30},${160 + R() * 30},${0.15 + R() * 0.3})`, 53),
+    // backlit onyx: cream slab with amber veins, glowing softly from behind
+    onyx: veined('#f1e6d2', (R) => `rgba(${170 + R() * 50},${120 + R() * 40},${60 + R() * 30},${0.15 + R() * 0.35})`, 77, { emissive: '#ffd6a0', emissiveIntensity: 0.55 }),
+    // grey rug with soft wave lines (2 m repeat)
+    rugWave: (() => {
+      const N = 512, c = document.createElement('canvas');
+      c.width = c.height = N;
+      const g = c.getContext('2d');
+      g.fillStyle = '#9a9792'; g.fillRect(0, 0, N, N);
+      for (let k = 0; k < 18; k++) {
+        g.strokeStyle = k % 3 ? 'rgba(220,216,208,0.55)' : 'rgba(70,68,66,0.45)';
+        g.lineWidth = k % 3 ? 3 : 2;
+        g.beginPath();
+        for (let x = 0; x <= N; x += 8) { const y = k * (N / 18) + Math.sin((x / N) * Math.PI * 4 + k * 0.7) * 14; x ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.stroke();
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(1 / 2, 1 / 2);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshStandardMaterial({ map: t, roughness: 1 });
+    })(),
+    // carved (CNC-routed) wave relief for wardrobe shutters: beige with contour grooves (1 m repeat)
+    carved: (() => {
+      const N = 512, c = document.createElement('canvas');
+      c.width = c.height = N;
+      const g = c.getContext('2d');
+      g.fillStyle = '#dcc6a6'; g.fillRect(0, 0, N, N);
+      for (let k = 0; k < 40; k++) {
+        g.strokeStyle = k % 2 ? 'rgba(150,120,85,0.7)' : 'rgba(250,236,214,0.8)';
+        g.lineWidth = 3;
+        g.beginPath();
+        for (let y = 0; y <= N; y += 6) { const x = k * (N / 40) + Math.sin((y / N) * Math.PI * 6 + k * 0.5) * 10 + Math.sin((y / N) * Math.PI * 2) * 18; y ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.stroke();
+      }
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.colorSpace = THREE.SRGBColorSpace;
+      const b = new THREE.CanvasTexture(c);
+      b.wrapS = b.wrapT = THREE.RepeatWrapping;
+      return new THREE.MeshStandardMaterial({ map: t, bumpMap: b, bumpScale: 3, roughness: 0.7 });
+    })(),
+    // filigree medallion for the brass partition screen: a lattice disc (alpha-cut), one per 0.5 m square
+    medallion: (() => {
+      const N = 512, c = document.createElement('canvas');
+      c.width = c.height = N;
+      const g = c.getContext('2d');
+      g.fillStyle = '#000'; g.fillRect(0, 0, N, N);
+      g.translate(N / 2, N / 2);
+      g.strokeStyle = '#fff';
+      g.fillStyle = '#fff';
+      g.lineWidth = 10;
+      g.beginPath(); g.arc(0, 0, 240, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 5;
+      for (const r of [60, 130, 200]) { g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); }
+      for (let k = 0; k < 24; k++) {
+        g.save(); g.rotate((k / 24) * Math.PI * 2);
+        g.beginPath(); g.ellipse(0, -165, 14, 36, 0, 0, Math.PI * 2); g.stroke();
+        g.beginPath(); g.ellipse(0, -95, 9, 26, 0, 0, Math.PI * 2); g.stroke();
+        g.beginPath(); g.moveTo(0, -200); g.lineTo(0, -240); g.stroke();
+        g.restore();
+      }
+      g.beginPath(); g.arc(0, 0, 26, 0, Math.PI * 2); g.fill();
+      const t = new THREE.CanvasTexture(c);
+      return new THREE.MeshStandardMaterial({ color: '#d8bf86', metalness: 0.85, roughness: 0.3, alphaMap: t, alphaTest: 0.5, side: THREE.DoubleSide });
+    })(),
     // stone, metal, ceramics, glass
     granite: pbr('granite_tile', { roughness: 0.35, envMapIntensity: 1.2 }),
     porcelain: new THREE.MeshPhysicalMaterial({ color: '#fbfbf8', roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 }),
