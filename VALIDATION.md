@@ -184,7 +184,7 @@ Tolerance: 1 mm.
 
 ## Plan-3 · 2400 sft slab
 
-10/11 labelled rooms match their drawing size to within 1 mm (Kitchen, Dining, Hall open plan, measured to the old wall line); Toilet 1 differs because the drawing contradicts its own dimension chain (see deviations). Openings: 21/21 measured widths equal the modelled widths. Furniture clearances: 31/31 OK. Door swings: 9/9 clear. Rooms reachable on foot: 13/13.
+10/11 labelled rooms match their drawing size to within 1 mm (Kitchen, Dining open plan, measured to the old wall line); Toilet 1 differs because the drawing contradicts its own dimension chain (see deviations). Openings: 22/22 measured widths equal the modelled widths. Furniture clearances: 31/31 OK. Door swings: 9/9 clear. Rooms reachable on foot: 13/13.
 
 ### Rooms: clear wall-to-wall size measured in the 3D model (Plan-3 · 2400 sft slab)
 
@@ -194,7 +194,7 @@ Tolerance: 1 mm.
 | Dining | 12′-3″ × 8′-6″ | 8′-6″ × 12′-3″ | 2.591 m (8′-6″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 9.67 m² / 104.1 sft | ✅ match (open plan: measured to the old wall line) |
 | Toilet 1 | 8′-0″ × 4′-10″ | 4′-10″ × 8′-0″ | 1.486 m (4′-10½″) | 2.438 m (8′-0″) | +12.7 mm | +0.0 mm | 3.62 m² / 39.0 sft | ⚠️ drawing conflict |
 | Master Bedroom | 12′-3″ × 16′-0″ | 16′-0″ × 12′-3″ | 4.877 m (16′-0″) | 3.734 m (12′-3″) | +0.0 mm | +0.0 mm | 18.21 m² / 196.0 sft | ✅ match |
-| Hall | 17′-0″ × 25′-1½″ | 25′-1½″ × 17′-0″ | 7.658 m (25′-1½″) | 5.182 m (17′-0″) | +0.0 mm | +0.0 mm | 39.68 m² / 427.1 sft | ✅ match (open plan: measured to the old wall line) |
+| Hall | 17′-0″ × 25′-1½″ | 25′-1½″ × 17′-0″ | 7.658 m (25′-1½″) | 5.182 m (17′-0″) | +0.0 mm | +0.0 mm | 39.68 m² / 427.1 sft | ✅ match |
 | Bedroom 2 | 12′-1½″ × 16′-0″ | 16′-0″ × 12′-1½″ | 4.877 m (16′-0″) | 3.696 m (12′-1½″) | +0.0 mm | +0.0 mm | 18.02 m² / 194.0 sft | ✅ match |
 | Toilet 2 | 4′-6″ × 10′-6″ | 10′-6″ × 4′-6″ | 3.200 m (10′-6″) | 1.372 m (4′-6″) | +0.0 mm | +0.0 mm | 4.39 m² / 47.3 sft | ✅ match |
 | Drawing Room | 11′-6″ × 11′-0″ | 11′-0″ × 11′-6″ | 3.353 m (11′-0″) | 3.505 m (11′-6″) | +0.0 mm | +0.0 mm | 11.75 m² / 126.5 sft | ✅ match |
@@ -234,6 +234,7 @@ Tolerance: 1 mm.
 | Window | Drawing Room ↔ Front Balcony | 4′-1″ | 3′-11¼″ (1.200 m) | 1.200 m | +0.0 mm | 0.900 → 2.100 m | ✅ |
 | Window | Bedroom 3 ↔ Front Balcony | 4′-1″ | 3′-11¼″ (1.200 m) | 1.200 m | +0.0 mm | 0.900 → 2.100 m | ✅ |
 | Toilet door (b-) | Toilet 1 ↔ Master Bedroom | 2′-4″ | 2′-5½″ (0.750 m) | 0.750 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
+| Open arch | Dining ↔ Hall | 7′-2″ | 7′-2″ (2.184 m) | 2.184 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Door (a-) | Master Bedroom ↔ Hall | 2′-11⅞″ | 2′-11⅜″ (0.900 m) | 0.900 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Door (a-) | Bedroom 2 ↔ Hall | 2′-11⅞″ | 2′-11⅜″ (0.900 m) | 0.900 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
 | Toilet door (b+) | Hall ↔ Toilet 2 | 2′-5⅞″ | 2′-5½″ (0.750 m) | 0.750 m | +0.0 mm | 0.000 → 2.100 m | ✅ |
@@ -249,7 +250,7 @@ Tolerance: 1 mm.
 | Master Bedroom | Wardrobe 1395×600 mm | 0.600 m (1′-11⅝″) | King bed 1830×1980 mm + side tables | 0.60 m | ✅ |
 | Bedroom 2 | Wardrobe 2336×600 mm | 0.600 m (1′-11⅝″) | Queen bed 1520×1980 mm + side tables | 0.60 m | ✅ |
 | Bedroom 3 | Wardrobe 2366×600 mm | 0.600 m (1′-11⅝″) | Queen bed 1520×1980 mm + side tables | 0.60 m | ✅ |
-| Kitchen | Kitchen counter 3353×600×850 mm | 3.248 m (10′-7⅞″) | Sofa 2154×880 mm | 0.90 m | ✅ |
+| Kitchen | Kitchen counter 3353×600×850 mm | 3.134 m (10′-3⅜″) | wall | 0.90 m | ✅ |
 | Kitchen | Kitchen counter 3042×600×850 mm | 2.153 m (7′-0¾″) | Kitchen peninsula 2010×600×850 mm | 0.90 m | ✅ |
 | Kitchen | Kitchen peninsula 2010×600×850 mm | 2.153 m (7′-0¾″) | Kitchen counter 3042×600×850 mm | — | ✅ |
 | Kitchen | Hob 750 mm + chimney 900 mm | — | — | — | ✅ |
@@ -296,11 +297,11 @@ Tolerance: 1 mm.
 
 | Room | Reachable | Route length |
 | --- | --- | --- |
-| Kitchen | ✅ | 15.765 m |
+| Kitchen | ✅ | 16.055 m |
 | Dining | ✅ | 18.317 m |
 | Toilet 1 | ✅ | 20.261 m |
 | Master Bedroom | ✅ | 20.156 m |
-| Hall | ✅ | 18.564 m |
+| Hall | ✅ | 9.189 m |
 | Bedroom 2 | ✅ | 19.472 m |
 | Toilet 2 | ✅ | 17.706 m |
 | Drawing Room | ✅ | 8.082 m |
@@ -335,7 +336,7 @@ Tolerance: 1 mm.
 
 - Pooja window omitted (owner instruction: "no window required in the pooja room").
 - Pooja mandir is on the south wall, facing the pooja door, so you face the deities as you enter (owner instruction). The drawing showed it on the west wall.
-- Open kitchen (owner instruction): the 4½″ walls between Kitchen and Dining and between Kitchen / Dining and the Hall are removed. The kitchen run along the old Kitchen–Dining wall stays as a peninsula counter. A 9″ × 12″ RCC beam is left under the slab on the old Hall wall line (20′ span from the outer wall to the toilet wall) — to be designed by the structural engineer; it can also be a concealed beam within a thicker slab.
+- Open kitchen (owner instruction): the 4½″ wall between Kitchen and Dining is removed (the Hall wall stays). The kitchen run along that old wall stays as a peninsula counter.
 - Toilet 1: Labelled 4′-10″, but the dimension chain across needs 9 + 132 + 4½ + 102 + 4½ + T + 4½ + 192 + 9 = 516″ (43′), so T = 4′-10½″ (as Plan-1’s same toilet). Modelled at 4′-10½″.
 - Master Bedroom: bed moved 456 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 2: bed moved 58 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).

@@ -433,12 +433,6 @@ export function buildModel(plan, M, onLabelClick) {
     }
     root.add(room.highlight);
   }
-  // RCC beams left where a partition wall was taken out (open plan): 9″ wide, 12″ deep under the slab, wall to wall
-  for (const [x1, z1, x2, z2] of plan.beams || []) {
-    const bw = 9 * IN, bd = 12 * IN, L = (Math.hypot(x2 - x1, z2 - z1) + 0.01) * IN;
-    const bm = x1 === x2 ? K.box(bw, bd, L, M.ceiling, x1 * IN, CEIL - bd / 2, ((z1 + z2) / 2) * IN) : K.box(L, bd, bw, M.ceiling, ((x1 + x2) / 2) * IN, CEIL - bd / 2, z1 * IN);
-    ceilings.add(bm);
-  }
   // plinth and the RCC slab over the house + balconies (the slab is the roof; stair well left open)
   for (const r of [building, sideBal, frontBal]) {
     const m = K.box(r[2] - r[0], -GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, GROUND / 2 - 0.001, (r[1] + r[3]) / 2);
