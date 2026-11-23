@@ -18,6 +18,13 @@ export const ELEVATIONS = [
   { id: 'ref4', style: 'Reference', name: 'Wood, brick & fluted box', blurb: 'Like your latest photo: white box frames, horizontal teak cladding on the left wall, an exposed-brick wall round the right window, a white fluted box at the stair end, a grey roof volume with a teak slat screen and a black terrace railing, dark granite steps, and a lawn with a wide slab walkway and round topiaries out to the gate.', paint: '#f4f3ef' },
   { id: 'ref5', style: 'Reference', name: 'Taupe band & ledgestone', fence: true, blurb: 'Like your 1st photo of this set: a deep taupe roof band with a charcoal soffit, a white L-frame on the left with a taupe panel and a projecting window box, stacked ledgestone piers, a dark wood slat panel, a glass roof balustrade, and a matching boundary with charcoal ledgestone piers, white coping, slotted taupe gates and a paved drive.', paint: '#f2f0ec' },
   { id: 'ref6', style: 'Reference', name: 'Stone, wood & jaali', blurb: 'Like your 3rd photo of this set: a warm wood-clad verandah wall with wall washers, a grey crazy-stone panel, charcoal projecting window boxes with fins, a flower motif, a tall wooden fin with LED edge, a black corner pillar with a white jaali screen, a grey parapet band with steel railing, steps with handrails, a box hedge and globe garden lights.', paint: '#f6f6f4' },
+  // exterior studio: designs researched from current Indian practice (notes, costs and sources in exterior.html)
+  { id: 'jaali', style: 'Studio', name: 'Terracotta jaali veil', ownParapet: true, blurb: 'Lime-white walls veiled in terracotta brick jaali: a jaali parapet with white coping on both road sides, jaali stair and side towers, terracotta window surrounds and plinth. The jaali filters the morning sun on the 21 ft road side, screens the stair and lets the breeze through.', paint: '#f3ede4' },
+  { id: 'jaisalmer', style: 'Studio', name: 'Jaisalmer sandstone & white', glassParapet: true, blurb: 'Honey-gold Jaisalmer stone on both verandah walls, a crisp white slab fascia with a warm LED line, fluted sandstone towers, slim black window frames and a frameless glass parapet.', paint: '#f6f3ec' },
+  { id: 'tropical', style: 'Studio', name: 'Tropical louvres & green', blurb: 'Warm white walls, a wood-look fascia, a louvred teak valance along both verandah edges, a continuous planter band with trailing creepers outside the parapet, teak window surrounds, teak slat towers and lit ground planters.', paint: '#efe9de' },
+  { id: 'kota', style: 'Studio', name: 'Kota grey & charcoal fluted', glassParapet: true, blurb: 'Soft greige walls, blue-grey Kota stone around both entrances and on the plinth, a charcoal fascia, deep black window frames, charcoal fluted towers and a glass parapet: quiet and low-maintenance.', paint: '#e4e0d8' },
+  { id: 'brick', style: 'Studio', name: 'Exposed brick & concrete', blurb: 'Both verandah walls in exposed brick, fair-face concrete bands on the slab edge and parapet, concrete window surrounds and plinth, and brick jaali towers: honest, earthy, and only a breathable sealer every few years.', paint: '#d9d4cb' },
+  { id: 'bronze', style: 'Studio', name: 'Bronze metal jaali', glassParapet: true, blurb: 'Off-white walls, a bronze fascia and window surrounds, laser-cut bronze diamond jaali on the stair and side towers, a bronze canopy with a warm LED line over the front steps, dark granite plinth and a glass parapet.', paint: '#ecebe7' },
 ];
 
 export function buildElevations(M, dims) {
@@ -60,7 +67,9 @@ export function buildElevations(M, dims) {
   };
   const glowPlane = (w, h, mat = M.glow) => new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
   // one tall screen panel: along = 'x' (faces +z) or 'z' (faces −x); [a0, a1] along it, [y0, y1] high, at `fixed`
-  // kinds: solid, fluted, vslats / hslats (frame + slats, so light and air still get through)
+  // kinds: solid, fluted, vslats / hslats (frame + slats, so light and air still get through),
+  // jaali (staggered brick jaali, 230 × 75 mm bricks with 100 mm gaps), lattice (laser-cut metal: 120 mm diamonds)
+  const mtx = new THREE.Matrix4(), quat = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), at3 = new THREE.Vector3();
   const screenPanel = (g, kind, mat, along, a0, a1, y0, y1, fixed) => {
     const L = a1 - a0, H = y1 - y0, am = (a0 + a1) / 2, ym = (y0 + y1) / 2;
     const put = (l, h, d, ax, y, off = 0) => (along === 'x' ? box(l, h, d, mat, ax, y, fixed + off) : box(d, h, l, mat, fixed - off, y, ax));
@@ -73,6 +82,23 @@ export function buildElevations(M, dims) {
     g.add(put(L, 0.08, 0.1, am, y1 - 0.04));
     g.add(put(L, 0.08, 0.1, am, y0 + 0.04));
     for (const a of [a0 + 0.04, a1 - 0.04]) g.add(put(0.08, H, 0.1, a, ym));
+    if (kind === 'jaali' || kind === 'lattice') {
+      const jaali = kind === 'jaali';
+      const bw = jaali ? 0.23 : 0.17, bh = jaali ? 0.075 : 0.17, step = jaali ? bw + 0.1 : 0.27, row = jaali ? 0.1 : 0.135, dep = jaali ? 0.11 : 0.015;
+      const pts = [];
+      for (let y = y0 + 0.08 + bh / 2, r = 0; y < y1 - 0.08 - bh / 2; y += row, r++) {
+        const off = (r % 2) * (step / 2);
+        for (let a = a0 + 0.08 + bw / 2 + off; a < a1 - 0.08 - bw / 2; a += step) pts.push([a, y]);
+      }
+      const inst = new THREE.InstancedMesh(along === 'x' ? boxGeo(bw, bh, dep) : boxGeo(dep, bh, bw), mat, pts.length);
+      // lattice plates turned 45° about the panel normal (diamonds)
+      if (!jaali) quat.setFromAxisAngle(along === 'x' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0), Math.PI / 4);
+      else quat.identity();
+      pts.forEach(([a, y], i) => inst.setMatrixAt(i, mtx.compose(along === 'x' ? at3.set(a, y, fixed) : at3.set(fixed, y, a), quat, one)));
+      inst.castShadow = inst.receiveShadow = true;
+      g.add(inst);
+      return;
+    }
     if (kind === 'vslats') for (let a = a0 + 0.16; a < a1 - 0.1; a += 0.13) g.add(put(0.05, H - 0.16, 0.1, a, ym));
     else for (let y = y0 + 0.2; y < y1 - 0.1; y += 0.16) g.add(put(L - 0.16, 0.12, 0.05, am, y));
   };
@@ -148,10 +174,9 @@ export function buildElevations(M, dims) {
     return g;
   };
   out.frame = floatingFrame();
-  {
-    // replaces the plastered parapet on the two road sides (main.js hides those when `glassParapet` is set):
-    // 100 mm white curb on the slab, toughened glass panes (~1.5 m, 12 mm joints) and a steel top cap
-    const g = floatingFrame();
+  // glass parapet on the two road sides (main.js hides the plastered parapets when `glassParapet` is set):
+  // 100 mm white curb on the slab, toughened glass panes (~1.5 m, 12 mm joints) and a steel top cap
+  const glassParapet = (g) => {
     const curb = 0.1, pz = D + F - 0.06, px = -S + 0.06;
     g.add(box(W + S, curb, 0.115, white, (W - S) / 2, top + curb / 2, D + F - 0.0575));
     g.add(box(0.115, curb, D + F, white, -S + 0.0575, top + curb / 2, (D + F) / 2));
@@ -164,6 +189,10 @@ export function buildElevations(M, dims) {
     panes(0, D + F, (L, a) => g.add(box(0.015, gh, L, M.glass, px, gy, a)));
     g.add(box(W + S, 0.03, 0.04, steel, (W - S) / 2, ptop - 0.015, pz));
     g.add(box(0.04, 0.03, D + F, steel, px, ptop - 0.015, (D + F) / 2));
+  };
+  {
+    const g = floatingFrame();
+    glassParapet(g);
     out.frameglass = g;
   }
   // ---------- F: oak slats ----------
@@ -735,6 +764,141 @@ export function buildElevations(M, dims) {
     stairScreen(g, 'vslats', M.oak, 'gold');
     sideFeature(g, 'vslats', M.oak, charcoal);
     out.ref6 = g;
+  }
+
+  // ======================= exterior studio: researched designs (exterior.html has the notes and sources) =======================
+  const sand = M.jaisalmer; // Jaisalmer honey-gold limestone, 600 × 300 slabs
+  const kota = M.kotaStone; // Kota blue-grey limestone
+  const bronze = M.solid('#74563a', { metalness: 0.75, roughness: 0.38 });
+  const fairFace = M.solid('#b0ada6', { roughness: 0.92 });
+  // band on the slab edge of both road faces (h tall, d proud of the face)
+  const fascia = (g, mat, h = 0.32, d = 0.06) => {
+    const y = top - h / 2 + 0.03;
+    g.add(box(W + S + 2 * d, h, d, mat, (W - S) / 2, y, D + F + d / 2));
+    g.add(box(d, h, D + F + d, mat, -S - d / 2, y, (D + F + d) / 2));
+  };
+  // the parapet's outer faces clad in `mat` (front and side)
+  const parapetFace = (g, mat, t = 0.03) => {
+    g.add(box(W + S, parapet, t, mat, (W - S) / 2, top + parapet / 2, D + F + t / 2));
+    g.add(box(t, parapet, D + F, mat, -S - t / 2, top + parapet / 2, (D + F) / 2));
+  };
+  const entranceLights = (g) => {
+    for (const x of [mainX - 0.85, mainX + 0.85]) sconce(g, 'front', x);
+    for (const z of [sideZ - 0.85, sideZ + 0.85]) sconce(g, 'side', z);
+  };
+  // ---------- S1: terracotta jaali veil ----------
+  {
+    const g = new THREE.Group();
+    // jaali parapet (replaces the plastered parapet on both road sides) with a white coping
+    screenPanel(g, 'jaali', M.brick, 'x', -S, W, top, ptop - 0.06, D + F - 0.06);
+    screenPanel(g, 'jaali', M.brick, 'z', 0, D + F, top, ptop - 0.06, -S + 0.06);
+    g.add(box(W + S, 0.06, 0.22, white, (W - S) / 2, ptop - 0.03, D + F - 0.06));
+    g.add(box(0.22, 0.06, D + F, white, -S + 0.06, ptop - 0.03, (D + F) / 2));
+    fascia(g, white);
+    surround(g, M.brick, 0.07, 0.06);
+    plinthClad(g, M.brick);
+    entranceLights(g);
+    steps(g, 2.4);
+    stairScreen(g, 'jaali', M.brick, 'ink');
+    sideFeature(g, 'jaali', M.brick, white);
+    out.jaali = g;
+  }
+  // ---------- S2: Jaisalmer sandstone & white ----------
+  {
+    const g = new THREE.Group();
+    glassParapet(g);
+    clad(g, 'front', 0, W, 0, ceil, sand);
+    clad(g, 'side', 0, D, 0, ceil, sand);
+    fascia(g, white, 0.36);
+    g.add(box(W + S, 0.012, 0.012, M.lamp, (W - S) / 2, top - 0.33, D + F + 0.066)); // LED line under the fascia
+    g.add(box(0.012, 0.012, D + F, M.lamp, -S - 0.066, top - 0.33, (D + F) / 2));
+    surround(g, steel, 0.05, 0.04);
+    plinthClad(g, sand);
+    entranceLights(g);
+    steps(g, 2.6, true);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    stairScreen(g, 'fluted', sand, 'ink');
+    sideFeature(g, 'fluted', sand, white);
+    out.jaisalmer = g;
+  }
+  // ---------- S3: tropical louvres & green ----------
+  {
+    const g = new THREE.Group();
+    fascia(g, M.teak, 0.3);
+    // louvred valance: vertical teak blades hanging 550 mm below the verandah slab edge (all above head height)
+    const vH = 0.55, vy = ceil - vH / 2;
+    for (let x = -S + 0.1; x < stairs[0] - 0.25; x += 0.12) g.add(box(0.04, vH, 0.1, M.teak, x, vy, D + F - 0.06));
+    for (let z = towerEnd + 0.25; z < D + F - 0.1; z += 0.12) g.add(box(0.1, vH, 0.04, M.teak, -S + 0.06, vy, z));
+    // continuous planter band outside the parapet, with shrubs and trailing creepers
+    const pH = 0.42, pD = 0.45, py = top + 0.12 + pH / 2;
+    g.add(box(W + S - 0.2, pH, pD, white, (W - S) / 2, py, D + F + pD / 2));
+    g.add(box(pD, pH, D + F - 0.2, white, -S - pD / 2, py, (D + F) / 2));
+    const leaves = [], vines = [];
+    for (let x = -S + 0.25; x < W - 0.2; x += 0.33) { leaves.push([x, D + F + pD / 2]); if (Math.round(x * 3) % 2 === 0) vines.push([x, D + F + pD - 0.03]); }
+    for (let z = 0.25; z < D + F - 0.2; z += 0.33) { leaves.push([-S - pD / 2, z]); if (Math.round(z * 3) % 2 === 0) vines.push([-S - pD + 0.03, z]); }
+    const lInst = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.2, 1), leafMat, leaves.length);
+    leaves.forEach(([x, z], i) => lInst.setMatrixAt(i, mtx.makeTranslation(x, py + pH / 2 + 0.12, z)));
+    // trailing creepers: a few leaf clusters hanging below the planter lip, smaller as they go down
+    const vInst = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), leafMat, vines.length * 3);
+    vines.forEach(([x, z], i) => [0.11, 0.08, 0.06].forEach((r, k) => vInst.setMatrixAt(i * 3 + k, mtx.makeScale(r, r * 1.3, r).setPosition(x, py - pH / 2 - 0.05 - k * 0.2, z))));
+    lInst.castShadow = vInst.castShadow = true;
+    g.add(lInst, vInst);
+    surround(g, M.teak, 0.06, 0.05);
+    planterLit(g, 'front', -S + 0.4, mainX - 1.4);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    entranceLights(g);
+    steps(g, 2.4);
+    stairScreen(g, 'vslats', M.teak, 'gold');
+    sideFeature(g, 'vslats', M.teak, white);
+    out.tropical = g;
+  }
+  // ---------- S4: Kota grey & charcoal fluted ----------
+  {
+    const g = new THREE.Group();
+    glassParapet(g);
+    fascia(g, charcoal, 0.3);
+    clad(g, 'front', mainX - 1.7, mainX + 1.7, 0, ceil, kota);
+    clad(g, 'side', sideZ - 1.5, sideZ + 1.5, 0, ceil, kota);
+    surround(g, steel, 0.12, 0.05);
+    plinthClad(g, kota);
+    entranceLights(g);
+    steps(g, 2.4, true);
+    stairScreen(g, 'fluted', charcoal, 'gold');
+    sideFeature(g, 'fluted', charcoal, charcoal);
+    out.kota = g;
+  }
+  // ---------- S5: exposed brick & fair-face concrete ----------
+  {
+    const g = new THREE.Group();
+    clad(g, 'front', 0, W, 0, ceil, M.brick);
+    clad(g, 'side', 0, D, 0, ceil, M.brick);
+    fascia(g, fairFace, 0.42, 0.08);
+    parapetFace(g, fairFace);
+    surround(g, fairFace, 0.08, 0.06);
+    plinthClad(g, fairFace);
+    entranceLights(g);
+    steps(g, 2.4);
+    planterLit(g, 'front', -S + 0.4, mainX - 1.4);
+    stairScreen(g, 'jaali', M.brick, 'ink');
+    sideFeature(g, 'jaali', M.brick, fairFace);
+    out.brick = g;
+  }
+  // ---------- S6: bronze metal jaali ----------
+  {
+    const g = new THREE.Group();
+    glassParapet(g);
+    fascia(g, bronze, 0.26, 0.05);
+    // bronze canopy over the front steps with a warm LED line
+    g.add(box(3.0, 0.08, 1.1, bronze, mainX, ceil + 0.04, D + F + 0.55));
+    g.add(box(2.8, 0.012, 0.03, M.lamp, mainX, ceil - 0.006, D + F + 1.05));
+    surround(g, bronze, 0.08, 0.05);
+    plinthClad(g, M.granite);
+    entranceLights(g);
+    steps(g, 2.6, true);
+    planterLit(g, 'side', towerEnd + 0.3, sideZ - 1.4);
+    stairScreen(g, 'lattice', bronze, 'gold');
+    sideFeature(g, 'lattice', bronze, bronze);
+    out.bronze = g;
   }
 
   for (const g of Object.values(out)) g.visible = false;

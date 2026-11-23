@@ -71,6 +71,39 @@ export function makeMaterials(renderer) {
     const rough = tx(cr, false);
     return new THREE.MeshStandardMaterial({ map: tx(cd, true), roughnessMap: rough, roughness: 1, bumpMap: rough, bumpScale: -1.5, envMapIntensity: 1.3 });
   };
+  // Dressed stone cladding drawn procedurally: 600 × 300 mm slabs in stagger bond with 4 mm joints, each slab a slightly
+  // different tone with fine grain speckle (Jaisalmer / Kota style). The texture covers 1.2 × 1.2 m.
+  const ashlar = (tones, joint, seed0, rough = 0.85) => {
+    const N = 1024, cw = N / 2, ch = N / 4, jw = 4;
+    const mk = () => { const c = document.createElement('canvas'); c.width = c.height = N; return c; };
+    const cd = mk(), cb = mk();
+    const d = cd.getContext('2d'), b = cb.getContext('2d');
+    let seed = seed0;
+    const R = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    d.fillStyle = joint; d.fillRect(0, 0, N, N);
+    b.fillStyle = '#000'; b.fillRect(0, 0, N, N);
+    for (let r = 0; r < 4; r++) {
+      for (let k = -1; k < 3; k++) {
+        const x = k * cw + (r % 2) * (cw / 2) + jw / 2, y = r * ch + jw / 2, w = cw - jw, h = ch - jw;
+        d.fillStyle = tones[Math.floor(R() * tones.length)];
+        d.fillRect(x, y, w, h);
+        for (let s = 0; s < 260; s++) { // grain
+          d.fillStyle = `rgba(${R() > 0.5 ? '255,255,255' : '60,45,30'},${(0.04 + R() * 0.06).toFixed(3)})`;
+          d.fillRect(x + R() * w, y + R() * h, 1 + R() * 3, 1 + R() * 2);
+        }
+        b.fillStyle = '#fff'; b.fillRect(x, y, w, h);
+      }
+    }
+    const tx = (c, srgb) => {
+      const t = new THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(1 / 1.2, 1 / 1.2);
+      t.anisotropy = aniso;
+      if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    };
+    return new THREE.MeshStandardMaterial({ map: tx(cd, true), bumpMap: tx(cb, false), bumpScale: 2, roughness: rough });
+  };
 
   return {
     // floors
@@ -149,6 +182,8 @@ export function makeMaterials(renderer) {
     terrazzo: pbr('terrazzo_tiles', { color: '#efe9df', roughness: 0.5 }),
     terracotta: pbr('terracotta_floor_tiles', { roughness: 0.8 }),
     greyStone: pbr('japanese_stone_wall', { color: '#d9d6d0', roughness: 1 }),
+    jaisalmer: ashlar(['#e8c483', '#e2b976', '#edcd92', '#dcb06a', '#e6c07d'], '#bf9a5e', 41),
+    kotaStone: ashlar(['#8f9a94', '#97a29b', '#88938d', '#9ea8a1', '#8a958f'], '#6f7873', 73, 0.7),
     brick: pbr('brick_wall_02', { color: '#f2a578', roughness: 1 }),
     // stacked ledgestone: thin horizontal stones in grey-beige, drawn procedurally (600 mm repeat)
     ledge: (() => {

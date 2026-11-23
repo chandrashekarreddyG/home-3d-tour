@@ -112,6 +112,12 @@ Both plans (owner request):
     every design also gets a matching tall screened tower closing the rear end of the side verandah (with an LED edge
     and a cap), plus soffit downlights at the side door and granite steps towards the side gate. The "Front view",
     "Side view" and "Corner view" buttons frame the road-facing sides.
+  - Exterior studio, researched from current Indian practice: Terracotta jaali veil, Jaisalmer sandstone & white,
+    Tropical louvres & green, Kota grey & charcoal fluted, Exposed brick & concrete, Bronze metal jaali. They add
+    brick jaali and laser-cut lattice screens, procedural 600 × 300 mm Jaisalmer / Kota stone, slab-edge fascias, a
+    louvred valance and a planter band. The **[Exterior studio page](exterior.html)** (`exterior.html`, renders in
+    `exterior/img/`) presents them with renders, materials, indicative costs, upkeep and sources. Each card links
+    to the 3D model with that design via `?design=<id>`, which skips the auto tour.
   - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in

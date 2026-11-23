@@ -693,13 +693,15 @@ $('btnTour').addEventListener('click', () => startTour());
 $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbit' && ($('chkRoof').checked || elev.on); });
 
 // elevation ideas (road-facing sides)
-const elev = { on: true, id: 'frameglass' }; // landing page shows Floating frame · glass parapet
+// landing page shows Floating frame · glass parapet; ?design=<id> (from exterior.html) opens that design instead
+const linkedDesign = ELEVATIONS.find((q) => q.id !== 'none' && q.id === new URLSearchParams(location.search).get('design'));
+const elev = { on: true, id: linkedDesign ? linkedDesign.id : 'frameglass' };
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
     const h = document.createElement('span');
     h.className = 'seg-label';
-    h.textContent = { Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos' }[e.style];
+    h.textContent = { Modern: 'Modern · subtle colours', Reference: 'Inspired by your photos', Studio: 'Exterior studio · researched designs' }[e.style];
     $('elevs').append(h);
     lastStyle = e.style;
   }
@@ -738,8 +740,8 @@ function applyElevation() {
   // designs that bring their own boundary replace the plain wall + railing on the two road sides (not where the plan's
   // west wall follows the road edge: that boundary stays)
   for (const side of ['s', 'w']) MD.compound[side].visible = !(elev.on && e.fence && !MD.plan.plot.westOnStrip);
-  // designs with a glass parapet replace the plastered parapet on the two road sides
-  for (const side of ['s', 'w']) MD.parapet[side].visible = !(elev.on && e.glassParapet);
+  // designs with a glass (or jaali) parapet replace the plastered parapet on the two road sides
+  for (const side of ['s', 'w']) MD.parapet[side].visible = !(elev.on && (e.glassParapet || e.ownParapet));
   applyPaint();
   $('chkElev').checked = elev.on;
   $('elevs').classList.toggle('off', !elev.on);
@@ -981,6 +983,6 @@ frame();
   $('btnStreet').click();
   setTimeout(() => {
     evs.forEach((ev) => removeEventListener(ev, took, true));
-    if (!acted && !touring && mode === 'orbit') startTour();
+    if (!acted && !touring && mode === 'orbit' && !linkedDesign) startTour(); // a linked design stays on the facade
   }, 4500);
 }
