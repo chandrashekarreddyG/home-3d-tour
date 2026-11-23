@@ -172,9 +172,12 @@ function loadPlan(id) {
   }
   MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); }, { plinth: plinthExtent });
   document.querySelectorAll('#plinthOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === plinthExtent));
-  $('plinthNote').textContent = plinthExtent === 'house'
-    ? 'Plinth under the house only (1849 sft): the verandahs sit on a 150 mm apron, about 1′ below the rooms, with two granite steps up to each door and a podium under the stair.'
-    : 'Plinth under the whole slab (house + both verandahs, 2400 sft): the verandahs are level with the rooms, so there is no step at the doors; three granite steps lead up from the garden.';
+  $('plinthNote').textContent = {
+    house: 'Plinth under the house only (1849 sft): the verandahs sit on a 150 mm apron, about 1′ below the rooms, with two granite steps up to each door and a podium under the stair.',
+    level: MD.parking
+      ? 'Level for car parking: plinth under the house only; both verandahs are flush with the paved yard. A full-size SUV parks under the front verandah (4.8 m bay), entered through a 6.0 m gate on G.P Road; three granite steps lead up to each door.'
+      : 'Level: plinth under the house only; both verandahs are flush with the paved yard, with three granite steps up to each door. The front verandah has no 5.0 m stretch free of doors for a car.',
+  }[plinthExtent] || 'Plinth under the whole slab (house + both verandahs, 2400 sft): the verandahs are level with the rooms, so there is no step at the doors; three granite steps lead up from the garden.';
   MD.interiorLamps = collectInteriorLamps();
   scene.add(MD.root);
   history.replaceState(null, '', '#' + plan.id);
@@ -701,7 +704,7 @@ $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbi
 const linkedDesign = ELEVATIONS.find((q) => q.id !== 'none' && q.id === new URLSearchParams(location.search).get('design'));
 const elev = { on: true, id: linkedDesign ? linkedDesign.id : 'frameglass' };
 // plinth (basement) extent: under the whole slab with level verandahs (default) or under the house only (?plinth=house)
-let plinthExtent = new URLSearchParams(location.search).get('plinth') === 'house' ? 'house' : 'full';
+let plinthExtent = ['house', 'level'].find((v) => v === new URLSearchParams(location.search).get('plinth')) || 'full';
 document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListener('click', () => {
   if (plinthExtent === b.dataset.id) return;
   plinthExtent = b.dataset.id;

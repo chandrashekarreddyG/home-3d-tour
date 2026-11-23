@@ -121,8 +121,11 @@ Both plans (owner request):
   - **Plinth (basement)** switch in the Elevation panel. **Whole slab area** (default) puts the plinth under the house
     and both verandahs, with the verandahs level with the rooms. **House only** puts the 1′-6″ plinth under the rooms
     only: the verandahs sit on a 150 mm apron, with granite steps up at each road-side door and a podium under the stair
-    foot. The elevation steps, piers, plinth cladding and verandah switchboards follow the verandah level, and
-    `?plinth=house` opens that option. The Exterior studio page compares both.
+    foot. **Level for car parking** removes the plinth under both verandahs, so they sit flush with the paved yard. A
+    full-size SUV parks under the front verandah on the longest stretch clear of the front doors, and a 6.0 m gate on
+    G.P Road is added in front of it; planters keep clear of the drive. The elevation steps, piers, plinth cladding and
+    verandah switchboards follow the verandah level, and `?plinth=house` / `?plinth=level` open those options. The
+    Exterior studio page compares all three.
   - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in

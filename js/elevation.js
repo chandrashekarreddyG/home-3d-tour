@@ -158,7 +158,8 @@ export function buildElevations(M, dims) {
     });
   };
   // planters / screens must leave the entrance axes, the stair and the side tower clear
-  const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D) && !(x < 0 && z < towerEnd + 0.4);
+  const bay = dims.parkingBay; // car bay under the front verandah (level option): no planters in front of it
+  const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D) && !(x < 0 && z < towerEnd + 0.4) && !(bay && z > D && x > bay[0] - 0.4 && x < bay[1] + 0.4);
 
   // ---------- E: floating frame (and the same with a glass parapet on both road sides) ----------
   const floatingFrame = () => {
@@ -307,6 +308,12 @@ export function buildElevations(M, dims) {
   const leafMat = M.solid('#4f7a3a', { roughness: 0.85 });
   // planter at ground level in front of the plinth, with uplights washing the plinth/wall
   const planterLit = (g, face, from, to) => {
+    // keep the drive into the car bay open: split a front planter around it
+    if (face === 'front' && bay && from < bay[1] + 0.4 && to > bay[0] - 0.4) {
+      if (bay[0] - 0.4 - from > 0.6) planterLit(g, face, from, bay[0] - 0.4);
+      if (to - (bay[1] + 0.4) > 0.6) planterLit(g, face, bay[1] + 0.4, to);
+      return;
+    }
     const L = to - from, mid = (from + to) / 2, dep = 0.5, h = 0.4;
     const edge = face === 'front' ? D + F : -S;
     const px = face === 'front' ? mid : edge - dep / 2, pz = face === 'front' ? edge + dep / 2 : mid;

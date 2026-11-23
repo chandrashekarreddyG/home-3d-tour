@@ -81,9 +81,10 @@ function subtractRect(r, h) {
 
 // =====================================================================
 // opts.plinth: 'full' = plinth (basement) under the whole slab, verandahs at house floor level (default);
-// 'house' = plinth under the house only, verandahs on a 150 mm apron above ground, steps up at each door
+// 'house' = plinth under the house only, verandahs on a 150 mm apron above ground, steps up at each door;
+// 'level' = plinth under the house only, verandahs flush with the paved yard (car parking under the front verandah)
 export function buildModel(plan, M, onLabelClick, opts = {}) {
-  const VY = opts.plinth === 'house' ? GROUND + 0.15 : 0; // verandah floor level (house floor = 0)
+  const VY = opts.plinth === 'house' ? GROUND + 0.15 : opts.plinth === 'level' ? GROUND + 0.004 : 0; // verandah floor (house floor = 0)
   const K = kit(M);
   const { ox, oy, kx, kz } = plan.map;
   const pxX = (p) => (p - ox) * kx; // drawing px → inches
@@ -439,6 +440,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
   // plinth (basement) under the house, and under the verandahs up to their floor level; the RCC slab over the house +
   // balconies is the roof (stair well left open)
   for (const [r, topY] of [[building, 0], [sideBal, VY], [frontBal, VY]]) {
+    if (topY - GROUND < 0.02) continue; // verandah flush with the yard: no plinth under it
     const m = K.box(r[2] - r[0], topY - GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, (topY + GROUND) / 2 - 0.001, (r[1] + r[3]) / 2);
     worldUV(m);
     root.add(m);
@@ -458,6 +460,33 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
     root.add(K.box(st[2] - st[0], -VY, st[3] - st[1], M.granite, (st[0] + st[2]) / 2, VY / 2, (st[1] + st[3]) / 2));
     for (let k = 1; k < n; k++) root.add(K.box(tread, -k * rise - VY, st[3] - st[1], M.granite, st[0] - (k - 0.5) * tread, (-k * rise + VY) / 2, (st[1] + st[3]) / 2));
   }
+  // level verandahs: a car bay under the front verandah on the longest stretch clear of the front doors (350 mm past
+  // each door edge, 200 mm past its steps) and the stair podium; a 6.0 m gate on G.P Road in front of it; a parked SUV
+  let parking = null;
+  if (opts.plinth === 'level') {
+    const podium = Math.max(1, Math.round(-VY / 0.15)) - 1; // podium treads in front of the stair foot
+    let segs = [[frontBal[0] + 0.3, st[0] - podium * 0.3 - 0.15]];
+    for (const o of openingsAll) {
+      if (!o.outer || o.vertical || !['d', 'dd', 'dt'].includes(o.kind) || !o.sides.includes('Front Balcony')) continue;
+      const [a, b] = [o.a * IN - 0.35, o.b * IN + 0.35];
+      segs = segs.flatMap(([p, q]) => (b <= p || a >= q ? [[p, q]] : [[p, a], [b, q]].filter(([u, v]) => v - u > 0.1)));
+    }
+    const [b0, b1] = segs.reduce((m, s) => (s[1] - s[0] > m[1] - m[0] ? s : m), [0, 0]);
+    if (b1 - b0 >= 5.0) {
+      const cx = (b0 + b1) / 2, cz = frontBal[1] + (frontBal[3] - frontBal[1]) / 2 + 0.15;
+      // car gate (inches, along G.P Road), pushed clear of any existing front gate with a 1′ pier between
+      let g0 = (cx - 3.0) / IN, g1 = g0 + 6.0 / IN;
+      for (const g of plan.plot.gates.filter((q) => q.side === 's')) if (g0 < g.to + 12 && g1 > g.from - 12) { g0 = g.to + 12; g1 = g0 + 6.0 / IN; }
+      g1 = Math.min(g1, plan.plot.x1 - 12);
+      parking = { bay: [cx - 2.4, cx + 2.4], gate: { side: 's', from: g0, to: g1 }, car: { x: cx, z: cz, y: VY, heading: 0 } };
+      const parked = buildScaleRefs({ car: parking.car });
+      parked.userData.load();
+      root.add(parked);
+      colliders.push({ r: [cx - 2.4, cz - 0.93, cx + 2.4, cz + 0.93], clear: 0.2 });
+      report.adjustments.push(`${plan.short}: level verandahs for parking (proposal): plinth under the house only, a 4.8 m car bay under the front verandah, and a 6.0 m wide gate on G.P Road in front of it.`);
+    }
+  }
+  const plotGates = parking ? [...plan.plot.gates, parking.gate] : plan.plot.gates;
   const terraceZone = { name: 'Terrace', label: 'roof · +3.18 m', outdoor: true, level: 'roof' };
   const stairZone = { name: 'Staircase', label: '18 risers', outdoor: true, level: 'stair' };
   const upPick = []; // terrace slab + stair treads: clickable while walking upstairs
@@ -872,7 +901,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
     for (const [side, d] of Object.entries(sides)) {
       const cg = (compound[side] = new THREE.Group());
       root.add(cg);
-      const gates = p.gates.filter((g) => g.side === side).map((g) => [g.from * IN, g.to * IN]).sort((u, v) => u[0] - v[0]);
+      const gates = plotGates.filter((g) => g.side === side).map((g) => [g.from * IN, g.to * IN]).sort((u, v) => u[0] - v[0]);
       if (side === 'w' && p.westOnStrip) {
         // gate z positions → distance along the slanted line from C (north) to B (south)
         const L = Math.hypot(stB[0] - stC[0], stB[1] - stC[1]), sOf = (z) => ((z - stC[1]) / (stB[1] - stC[1])) * L;
@@ -979,7 +1008,8 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
     windows: openingsAll.filter((o) => o.outer && o.kind === 'w').map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     openings: openingsAll.filter((o) => o.outer).map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
-    gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
+    gates: plotGates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
+    parkingBay: parking ? parking.bay : null,
     westOnStrip: !!plan.plot.westOnStrip, verandahY: VY,
   });
   for (const g of Object.values(elevations)) root.add(g);
@@ -1014,7 +1044,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
   return {
     plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical, scaleRefs,
     colliders, nav, levels, upPick, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
-    plinth: VY < 0 ? 'house' : 'full', verandahY: VY,
+    plinth: opts.plinth === 'house' || opts.plinth === 'level' ? opts.plinth : 'full', verandahY: VY, parking,
     floorY: (x, z) => (inHouse(x, z) ? 0 : onVerandah(x, z) ? VY : GROUND),
     walkAreas,
   };
