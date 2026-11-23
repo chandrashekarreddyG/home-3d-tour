@@ -181,7 +181,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | E35 | Master Bedroom | Split AC point | right wall (as drawn), 2.42 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
 | E36 | Bedroom 2 | Split AC point | right wall (as drawn), 2.45 m from its top end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
 | E37 | Bedroom 3 | Split AC point | bottom wall (as drawn), 2.99 m from its left end | 2.30 m | 4M plate (4M used) | 16 A switch, indicator, 16 A socket (split AC) | Outer wall (short pipe run to the outdoor unit), right end of a 1.0 m indoor unit, clear of wardrobes, not on the bed-head wall | ✅ |
-| E38 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 10.19 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
+| E38 | Front Balcony | Staircase 2-way switch (foot) | top wall (as drawn), 9.64 m from its left end | 1.10 m | 1M plate (1M used) | stair light (2-way) | Weatherproof, at the stair foot on the house wall; the matching top switch needs a roof-level stair cabin | ✅ |
 
 ## Coverage by room
 

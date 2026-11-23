@@ -703,9 +703,9 @@ $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbi
 // landing page shows Floating frame · glass parapet; ?design=<id> (from exterior.html) opens that design instead
 const linkedDesign = ELEVATIONS.find((q) => q.id !== 'none' && q.id === new URLSearchParams(location.search).get('design'));
 const elev = { on: true, id: linkedDesign ? linkedDesign.id : 'frameglass' };
-// plinth (basement) extent: under the house only with level verandahs and the car bay (default), under the whole slab
-// (?plinth=full) or under the house with a low verandah apron (?plinth=house)
-let plinthExtent = ['full', 'house', 'level'].find((v) => v === new URLSearchParams(location.search).get('plinth')) || 'level';
+// plinth (basement) extent: under the whole slab with level verandahs (default), under the house only with a low
+// verandah apron (?plinth=house) or under the house with verandahs level with the yard and a car bay (?plinth=level)
+let plinthExtent = ['full', 'house', 'level'].find((v) => v === new URLSearchParams(location.search).get('plinth')) || 'full';
 document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListener('click', () => {
   if (plinthExtent === b.dataset.id) return;
   plinthExtent = b.dataset.id;
@@ -750,7 +750,7 @@ $('btnStreet').addEventListener('click', () => {
   const c = new THREE.Vector3(MD.building[2] * 0.45, 2.2, MD.building[3] * 0.6);
   orbitTo(new THREE.Vector3(MD.plotRect[0] - 7, 1.7, MD.plotRect[3] + 7), c, true);
 });
-// landing view: from over G.P Road beyond the 21 ft road corner, looking along the road at the front and the car bay
+// landing view: from over G.P Road beyond the 21 ft road corner, looking along the road at the front
 // (camera at 5 m, where the room tags switch off)
 function landingView() {
   const [, , W, D] = MD.building;
@@ -995,17 +995,5 @@ resize();
 loadPlan((location.hash || '#p2').slice(1));
 $('loading').remove();
 frame();
-// landing: Plan-2 from over G.P Road (landingView), then the video tour starts by itself
-// (unless the visitor has already taken over by clicking, scrolling or using the keyboard)
-{
-  let acted = false;
-  const took = (e) => { if (!(e.target.closest && e.target.closest('#voice'))) acted = true; };
-  const evs = ['pointerdown', 'keydown', 'wheel'];
-  evs.forEach((ev) => addEventListener(ev, took, true));
-  landingView();
-  setTimeout(() => {
-    evs.forEach((ev) => removeEventListener(ev, took, true));
-    const linked = linkedDesign || new URLSearchParams(location.search).has('plinth');
-    if (!acted && !touring && mode === 'orbit' && !linked) startTour(); // a linked design / plinth option stays on the facade
-  }, 4500);
-}
+// landing: Plan-2 from over G.P Road; the video tour starts only from its button
+landingView();
