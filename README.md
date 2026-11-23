@@ -7,7 +7,9 @@ Plan-3 comes from `PADMA REDDY GANNA.pdf` (plinth 1849 sft, slab 2400 sft). It h
 balconies and stair as Plan-1, with Kitchen, Dining, Master Bedroom + toilet across the back, a 17′ × 25′-1½″ Hall,
 Bedroom 2 + toilet, and Drawing Room, Pooja, Bedroom 3 + toilet along G.P Road. Its drawing has the East road at the
 top; the model turns it to sit on the survey like Plan-1. The drawn water sump and three bores stand on the
-23 SqYds strip, so Plan-3 has no strip garden.
+23 SqYds strip, so Plan-3 has no strip garden. Plan-3 has an **open kitchen** (owner request): the walls between
+Kitchen, Dining and Hall are removed, the run on the old Kitchen–Dining wall becomes a peninsula counter, and a
+9″ × 12″ RCC beam stays under the slab on the old Hall wall line (for the structural engineer to design).
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 

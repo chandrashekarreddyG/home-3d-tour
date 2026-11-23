@@ -98,6 +98,7 @@ export const PLANS = [
     map: { ox: 1573, oy: 552, kx: 516 / 2160.5, kz: 516 / 2160.5 },
     note: 'From PADMA REDDY GANNA.pdf, for the 56′-1″ × 59′-1″ Padma Reddy site. Plinth 1849 sft, slab 2400 sft.',
     mandirNote: 'Pooja mandir is on the south wall, facing the pooja door, so you face the deities as you enter (owner instruction). The drawing showed it on the west wall.',
+    deviations: ['Open kitchen (owner instruction): the 4½″ walls between Kitchen and Dining and between Kitchen / Dining and the Hall are removed. The kitchen run along the old Kitchen–Dining wall stays as a peninsula counter. A 9″ × 12″ RCC beam is left under the slab on the old Hall wall line (20′ span from the outer wall to the toilet wall) — to be designed by the structural engineer; it can also be a concealed beam within a thicker slab.'],
     tour: ['Front Balcony', 'Drawing Room', 'Hall', 'Pooja', 'Dining', 'Kitchen', 'Master Bedroom', 'Toilet 1', 'Bedroom 2', 'Toilet 2', 'Bedroom 3', 'Toilet 3', 'Side Balcony'],
     plot: {
       x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gatesFromDrawing: true,
@@ -107,17 +108,19 @@ export const PLANS = [
     },
     balconies: { side: 60, front: 84 },
     stairs: [3042, 2712, 3545, 3062],
+    beams: [[9, 158.25, 247.5, 158.25]],
     walls: [
       [4.5, 4.5, 511.5, 4.5, 9, [['w', 2295, 2500], ['v', 2700, 2800], ['w', 2920, 3120]]],
       [4.5, 4.5, 4.5, 511.5, 9, [['w', 975, 1180], ['w', 1360, 1560], ['dd', 1700, 1850, '+']]],
       [511.5, 4.5, 511.5, 511.5, 9, [['w', 975, 1175], ['w', 1610, 1815], ['v', 1915, 2015], ['v', 2435, 2535]]],
       // pooja window (px 2320-2470) omitted on owner's instruction
       [4.5, 511.5, 511.5, 511.5, 9, [['d', 1715, 1860, 'a-'], ['w', 1900, 2105], ['w', 2940, 3145]]],
-      [143.25, 4.5, 143.25, 158.25, 4.5, [['a', 1020, 1205]]],
+      // open kitchen: no wall between Kitchen and Dining (was [143.25, 4.5, 143.25, 158.25] with an arch)
       [249.75, 4.5, 249.75, 158.25, 4.5, []],
       [249.75, 107.25, 312.75, 107.25, 4.5, []],
       [312.75, 4.5, 312.75, 107.25, 4.5, [['dt', 733, 850, 'b-']]],
-      [4.5, 158.25, 511.5, 158.25, 4.5, [['a', 2210, 2570], ['d', 2660, 2810, 'a-']]],
+      // open kitchen: the Hall wall now starts at the toilet wall (Kitchen and Dining open to the Hall)
+      [247.5, 158.25, 511.5, 158.25, 4.5, [['d', 2660, 2810, 'a-']]],
       [312.75, 158.25, 312.75, 308.25, 4.5, []],
       [312.75, 308.25, 511.5, 308.25, 4.5, [['d', 2910, 3060, 'a-']]],
       [378.75, 308.25, 378.75, 366.75, 4.5, [['dt', 1925, 2050, 'b+']]],
@@ -128,8 +131,9 @@ export const PLANS = [
       [446.25, 414.75, 511.5, 414.75, 4.5, [['dt', 3460, 3580, 'a+']]],
     ],
     rooms: [
-      { n: 'Kitchen', r: [9, 9, 141, 156], lab: [132, 147], d: '12′-3″ × 11′-0″', f: 'kitchen' },
-      { n: 'Dining', r: [145.5, 9, 247.5, 156], lab: [102, 147], d: '12′-3″ × 8′-6″', f: 'tile' },
+      // open kitchen: each zone also takes the floor strip of the wall that was removed beside it
+      { n: 'Kitchen', rs: [[9, 9, 141, 156], [141, 9, 145.5, 160.5], [9, 156, 141, 160.5]], lab: [132, 147], d: '12′-3″ × 11′-0″', f: 'kitchen' },
+      { n: 'Dining', rs: [[145.5, 9, 247.5, 156], [145.5, 156, 247.5, 160.5]], lab: [102, 147], d: '12′-3″ × 8′-6″', f: 'tile' },
       { n: 'Toilet 1', r: [252, 9, 310.5, 105], lab: [58, 96], d: '8′-0″ × 4′-10″', f: 'bath',
         issue: 'Labelled 4′-10″, but the dimension chain across needs 9 + 132 + 4½ + 102 + 4½ + T + 4½ + 192 + 9 = 516″ (43′), so T = 4′-10½″ (as Plan-1’s same toilet). Modelled at 4′-10½″.' },
       // M-Bed includes the lobby in front of its toilet (entered from the Hall)
@@ -145,7 +149,7 @@ export const PLANS = [
       { n: 'Toilet 3', r: [448.5, 417, 507, 507], lab: [58.5, 90], d: '7′-6″ × 4′-10½″', f: 'bath' },
     ],
     furn: [
-      ['kitchen', 'Kitchen', { runs: [['n', 1610, 2170], ['w', 590, 1190], ['e', 590, 1020]], hob: ['w', 760], sink: ['w', 1120], upper: [['n', 1610, 2170], ['e', 590, 1020]] }],
+      ['kitchen', 'Kitchen', { runs: [['n', 1610, 2170], ['w', 590, 1190], ['e', 590, 1020, { island: true }]], hob: ['w', 760], sink: ['w', 1120], upper: [['n', 1610, 2170]] }],
       ['dining', 'Dining', 2396, 859, 'rect6'],
       ['wc', 'Toilet 1', 'n', 2750], ['vanity', 'Toilet 1', 'w', 780], ['glass', 'Toilet 1', 'z', 865, 2630, 2875],
       ['bed', 'Master Bedroom', 3330, 'king'], ['ward', 'Master Bedroom', 'e', 740, 970],

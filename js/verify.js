@@ -27,13 +27,21 @@ export function validate(model) {
     const [x0, z0, x1, z1] = room.main;
     const c = [(x0 + x1) / 2, (z0 + z1) / 2];
     const y = 2.6; // above every door/window head, below the ceiling: walls are continuous here
-    const w = cast(c, [1, 0], y) + cast(c, [-1, 0], y);
-    const d = cast(c, [0, 1], y) + cast(c, [0, -1], y);
+    // a side with no wall (open plan) runs past the room's own edge: measure that side to the room edge (the line of
+    // the wall that was taken out) and say so
+    let open = false;
+    const side = (dir, edge) => {
+      const h = cast(c, dir, y);
+      if (!(h <= edge + 0.2)) { open = true; return edge; }
+      return h;
+    };
+    const w = side([1, 0], x1 - c[0]) + side([-1, 0], c[0] - x0);
+    const d = side([0, 1], z1 - c[1]) + side([0, -1], c[1] - z0);
     const lab = room.lab ? [room.lab[0] * IN, room.lab[1] * IN] : null;
     const dw = lab ? w - lab[0] : null, dd = lab ? d - lab[1] : null;
     let status = 'derived';
-    if (lab) status = Math.abs(dw) <= TOL && Math.abs(dd) <= TOL ? 'match' : 'conflict';
-    rooms.push({ name: room.name, label: room.drawLabel || '—', lab, w, d, dw, dd, status, issue: room.issue, areaM2: w * d, areaSft: (w * d) / 0.09290304 });
+    if (lab) status = Math.abs(dw) <= TOL && Math.abs(dd) <= TOL ? (open ? 'open' : 'match') : 'conflict';
+    rooms.push({ name: room.name, label: room.drawLabel || '—', lab, w, d, dw, dd, status, open, issue: room.issue, areaM2: w * d, areaSft: (w * d) / 0.09290304 });
   }
 
   // ---- overall ----
@@ -164,6 +172,7 @@ export function validate(model) {
   const deviations = [
     'Pooja window omitted (owner instruction: "no window required in the pooja room").',
     ...(plan.mandirNote ? [plan.mandirNote] : []),
+    ...(plan.deviations || []),
     ...rooms.filter((r) => r.issue).map((r) => `${r.name}: ${r.issue}`),
     ...model.report.adjustments,
   ];
@@ -175,7 +184,7 @@ export function validate(model) {
 const mm = (v) => (v == null || Number.isNaN(v) ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v * 1000).toFixed(1)} mm`);
 const m3 = (v) => (v == null || Number.isNaN(v) ? '—' : `${v.toFixed(3)} m`);
 const both = (v) => (v == null || Number.isNaN(v) ? '—' : `${v.toFixed(3)} m (${ftIn(v)})`);
-const badge = (s) => ({ match: '✅ match', derived: '➖ not labelled', conflict: '⚠️ drawing conflict', true: '✅', false: '⚠️' }[s]);
+const badge = (s) => ({ match: '✅ match', open: '✅ match (open plan: measured to the old wall line)', derived: '➖ not labelled', conflict: '⚠️ drawing conflict', true: '✅', false: '⚠️' }[s]);
 
 export function toTables(v) {
   return [
@@ -226,9 +235,11 @@ export function toHTML(v) {
 
 export function summarise(v) {
   const lab = v.rooms.filter((r) => r.lab);
-  const match = lab.filter((r) => r.status === 'match').length;
+  const match = lab.filter((r) => r.status === 'match' || r.status === 'open').length;
   const conflict = lab.filter((r) => r.status === 'conflict').map((r) => r.name);
+  const open = v.rooms.filter((r) => r.open).map((r) => r.name);
   return `${match}/${lab.length} labelled rooms match their drawing size to within 1 mm` +
+    (open.length ? ` (${open.join(', ')} open plan, measured to the old wall line)` : '') +
     (conflict.length ? `; ${conflict.join(', ')} ${conflict.length > 1 ? 'differ' : 'differs'} because the drawing contradicts its own dimension chain (see deviations)` : '') +
     `. Openings: ${v.openings.filter((o) => o.ok).length}/${v.openings.length} measured widths equal the modelled widths. ` +
     `Furniture clearances: ${v.furniture.filter((f) => f.ok).length}/${v.furniture.length} OK. Door swings: ${v.doors.filter((d) => d.ok).length}/${v.doors.length} clear. ` +

@@ -433,6 +433,12 @@ export function buildModel(plan, M, onLabelClick) {
     }
     root.add(room.highlight);
   }
+  // RCC beams left where a partition wall was taken out (open plan): 9″ wide, 12″ deep under the slab, wall to wall
+  for (const [x1, z1, x2, z2] of plan.beams || []) {
+    const bw = 9 * IN, bd = 12 * IN, L = (Math.hypot(x2 - x1, z2 - z1) + 0.01) * IN;
+    const bm = x1 === x2 ? K.box(bw, bd, L, M.ceiling, x1 * IN, CEIL - bd / 2, ((z1 + z2) / 2) * IN) : K.box(L, bd, bw, M.ceiling, ((x1 + x2) / 2) * IN, CEIL - bd / 2, z1 * IN);
+    ceilings.add(bm);
+  }
   // plinth and the RCC slab over the house + balconies (the slab is the roof; stair well left open)
   for (const r of [building, sideBal, frontBal]) {
     const m = K.box(r[2] - r[0], -GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, GROUND / 2 - 0.001, (r[1] + r[3]) / 2);
@@ -657,20 +663,23 @@ export function buildModel(plan, M, onLabelClick) {
     } else if (type === 'kitchen') {
       const spec = it[2];
       const taken = [];
-      for (const [side, f, t] of spec.runs) {
+      for (const [side, f, t, opt = {}] of spec.runs) {
         const nrm = NORMAL[side];
         let [a, b] = clampAlong(room, side, alongAt(side, f), alongAt(side, t));
-        // don't overlap a perpendicular run already placed
+        // don't overlap a perpendicular run already placed (opposite parallel runs, e.g. w and e, never meet)
+        const alongX = side === 'n' || side === 's';
         for (const q of taken) {
-          const lo = side === 'n' || side === 's' ? q[0] : q[1], hi = side === 'n' || side === 's' ? q[2] : q[3];
+          if (q.alongX === alongX) continue;
+          const lo = alongX ? q.r[0] : q.r[1], hi = alongX ? q.r[2] : q.r[3];
           if (a < hi && b > lo) { if (lo <= a + 0.01) a = hi; else b = lo; }
         }
         if (b - a < 0.3) continue;
-        const built = K.counter(b - a, { backsplash: true });
+        // island / peninsula runs stand free of a wall: no backsplash, no wall boards behind them
+        const built = K.counter(b - a, { backsplash: !opt.island });
         const [x, z] = wallsideAt(room, side, (a + b) / 2);
-        const rect = addItem(room, `Kitchen counter ${Math.round((b - a) * 1000)}×600×850 mm`, built, nrm, x, z, 0.15);
-        taken.push(rect);
-        fixtures.push({ type: 'counter', room: rn, side, a, b });
+        const rect = addItem(room, `Kitchen ${opt.island ? 'peninsula' : 'counter'} ${Math.round((b - a) * 1000)}×600×850 mm`, built, nrm, x, z, 0.15);
+        taken.push({ r: rect, alongX });
+        if (!opt.island) fixtures.push({ type: 'counter', room: rn, side, a, b });
       }
       for (const [key, fn, nm] of [['hob', K.hob, 'Hob 750 mm + chimney 900 mm'], ['sink', K.sink, 'Sink 800×500 mm']]) {
         if (!spec[key]) continue;
