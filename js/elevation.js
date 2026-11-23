@@ -29,6 +29,10 @@ export const ELEVATIONS = [
 
 export function buildElevations(M, dims) {
   const { W, D, S, F, ceil, slab, parapet, ground, mainX, sideZ, stairs } = dims;
+  const vy = dims.verandahY || 0; // verandah floor level (0 = house floor; lower when the plinth is under the house only)
+  // risers from the ground up to the verandah edge (~150 mm each): tread tops below the verandah, nearest first
+  const nRise = Math.max(1, Math.round((vy - ground) / 0.152)), riser = (vy - ground) / nRise;
+  const treadTops = Array.from({ length: nRise - 1 }, (_, i) => vy - (i + 1) * riser);
   const plot = dims.plot || [-S - 2, -1, W + 1, D + F + 2];
   const openings = dims.openings || [];
   const top = ceil + slab; // roof slab top
@@ -41,9 +45,9 @@ export function buildElevations(M, dims) {
     return m;
   };
   const plinthClad = (g, mat) => {
-    const h = -ground;
-    g.add(box(W + S, h, 0.03, mat, (W - S) / 2, ground / 2, D + F + 0.015));
-    g.add(box(0.03, h, D + F, mat, -S - 0.015, ground / 2, (D + F) / 2));
+    const h = vy - ground;
+    g.add(box(W + S, h, 0.03, mat, (W - S) / 2, (vy + ground) / 2, D + F + 0.015));
+    g.add(box(0.03, h, D + F, mat, -S - 0.015, (vy + ground) / 2, (D + F) / 2));
   };
   // ======================= modern =======================
   const windows = dims.windows || []; // road-facing windows: { vertical, c, a, b, lo, hi } in metres
@@ -147,12 +151,11 @@ export function buildElevations(M, dims) {
       p.position.set(-0.034, 2.55, z);
       g.add(p);
     }
-    // two granite steps down from the side verandah towards the side gate
-    const r = -ground / 3;
-    for (let k = 1; k <= 2; k++) {
-      const yTop = -k * r, x1 = -S - (k - 1) * 0.3;
-      g.add(box(0.3, yTop - ground, 1.4 + k * 0.3, M.granite, x1 - 0.15, (yTop + ground) / 2, sideZ));
-    }
+    // granite steps down from the side verandah towards the side gate
+    treadTops.forEach((yTop, i) => {
+      const x1 = -S - i * 0.3;
+      g.add(box(0.3, yTop - ground, 1.4 + (i + 1) * 0.3, M.granite, x1 - 0.15, (yTop + ground) / 2, sideZ));
+    });
   };
   // planters / screens must leave the entrance axes, the stair and the side tower clear
   const clearOf = (x, z) => Math.abs(x - mainX) > 1.1 && Math.abs(z - sideZ) > 1.1 && !(x > stairs[0] - 0.3 && z > D) && !(x < 0 && z < towerEnd + 0.4);
@@ -202,7 +205,7 @@ export function buildElevations(M, dims) {
     g.add(box(S, 0.012, D, M.oak, -S / 2, ceil - 0.007, D / 2));
     g.add(box(W + S + 0.04, 0.32, 0.03, M.oak, (W - S) / 2, ceil + 0.08, D + F + 0.015)); // slab edge
     g.add(box(0.03, 0.32, D + F + 0.04, M.oak, -S - 0.015, ceil + 0.08, (D + F) / 2));
-    const slat = (x, z, alongX) => g.add(box(alongX ? 0.045 : 0.09, ceil - 0.02, alongX ? 0.09 : 0.045, M.oak, x, (ceil - 0.02) / 2, z));
+    const slat = (x, z, alongX) => g.add(box(alongX ? 0.045 : 0.09, ceil - 0.02 - vy, alongX ? 0.09 : 0.045, M.oak, x, (ceil - 0.02 + vy) / 2, z));
     for (let x = -S + 0.08; x < -S + 1.7; x += 0.13) slat(x, D + F - 0.06, true); // corner screen, front
     for (let z = D + F - 0.08; z > D + F - 1.7; z -= 0.13) slat(-S + 0.06, z, false); // corner screen, side
     for (let x = stairs[0] - 0.12; x > stairs[0] - 1.2; x -= 0.13) slat(x, D + F - 0.06, true); // beside the stair
@@ -325,14 +328,13 @@ export function buildElevations(M, dims) {
       }
     }
   };
-  // granite steps from the garden up to the verandah at the main door (3 risers of 152 mm)
+  // granite steps from the garden up to the verandah at the main door (risers of ~152 mm)
   const steps = (g, width, ledLit = false) => {
-    const r = -ground / 3;
-    for (let k = 1; k <= 2; k++) {
-      const top = -k * r, z0 = D + F + (k - 1) * 0.3;
-      g.add(box(width + k * 0.3, top - ground, 0.3, M.granite, mainX, (top + ground) / 2, z0 + 0.15));
-      if (ledLit) g.add(box(width + k * 0.3 - 0.1, 0.012, 0.012, M.lamp, mainX, top - 0.03, z0 + 0.305));
-    }
+    treadTops.forEach((top, i) => {
+      const z0 = D + F + i * 0.3;
+      g.add(box(width + (i + 1) * 0.3, top - ground, 0.3, M.granite, mainX, (top + ground) / 2, z0 + 0.15));
+      if (ledLit) g.add(box(width + (i + 1) * 0.3 - 0.1, 0.012, 0.012, M.lamp, mainX, top - 0.03, z0 + 0.305));
+    });
   };
   // paving slabs (900 × 600) with grass joints in the front and side yards
   const pavers = (g) => {
@@ -365,7 +367,7 @@ export function buildElevations(M, dims) {
   };
   const squarePillars = (g) => {
     const zf = D + F - 0.15, xs = -S + 0.15, xEnd = stairs[0] - 0.3;
-    const put = (x, z) => g.add(box(0.3, ceil, 0.3, white, x, ceil / 2, z));
+    const put = (x, z) => g.add(box(0.3, ceil - vy, 0.3, white, x, (ceil + vy) / 2, z));
     const nF = Math.max(1, Math.round((xEnd - xs) / 3.2));
     for (let i = 0; i <= nF; i++) { const x = xs + ((xEnd - xs) * i) / nF; if (i === 0 || Math.abs(x - mainX) > 1.3) put(x, zf); }
     const nS = Math.max(1, Math.round((zf - 0.3) / 3.2));
@@ -600,8 +602,8 @@ export function buildElevations(M, dims) {
       g.add(FACE.front.put(tt, h, d, white, o.b + tt / 2, (o.lo + o.hi) / 2));
     }
     // stacked ledgestone piers at the verandah edge
-    for (const x of [mainX + 1.25, stairs[0] - 0.35, W - 0.25]) g.add(box(0.5, ceil, 0.5, M.ledge, x, ceil / 2, D + F - 0.25));
-    g.add(box(0.5, ceil, 0.5, M.ledge, -S + 0.25, ceil / 2, Math.max(0.5, sideZ - 1.4)));
+    for (const x of [mainX + 1.25, stairs[0] - 0.35, W - 0.25]) g.add(box(0.5, ceil - vy, 0.5, M.ledge, x, (ceil + vy) / 2, D + F - 0.25));
+    g.add(box(0.5, ceil - vy, 0.5, M.ledge, -S + 0.25, (ceil + vy) / 2, Math.max(0.5, sideZ - 1.4)));
     // dark wood slat panel on the wall right of the entrance
     const wx0 = mainX + 1.7, wx1 = Math.min(wx0 + 1.1, stairs[0] - 0.6);
     for (const [a0, y0, a1, y1] of clad(g, 'front', wx0, wx1, 0, ceil, M.walnut)) {
@@ -710,7 +712,7 @@ export function buildElevations(M, dims) {
     g.add(box(0.3, ptop + 0.7 - ground, 0.3, M.oak, fx, (ptop + 0.7 + ground) / 2, D + F - 0.15));
     g.add(box(0.015, ptop + 0.6 - ground, 0.015, M.lamp, fx - 0.16, (ptop + 0.6 + ground) / 2, D + F));
     // black corner pillar with a white jaali screen on both road faces
-    g.add(box(0.5, ceil, 0.5, M.black, -S + 0.25, ceil / 2, D + F - 0.25));
+    g.add(box(0.5, ceil - vy, 0.5, M.black, -S + 0.25, (ceil + vy) / 2, D + F - 0.25));
     const jf = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 1.8), M.jaali);
     jf.position.set(-S + 0.25, 1.3, D + F + 0.005);
     const js = jf.clone();
@@ -734,9 +736,9 @@ export function buildElevations(M, dims) {
     steps(g, 2.0);
     for (const s of [-1, 1]) {
       const x = mainX + s * 1.15;
-      for (const z of [D + F - 0.05, D + F + 0.65]) g.add(box(0.04, 0.9, 0.04, steel, x, (z > D + F ? ground : 0) + 0.45, z));
-      const rail = box(0.04, 0.04, Math.hypot(0.7, -ground), steel, x, (0.9 + ground + 0.9) / 2, D + F + 0.3);
-      rail.rotation.x = Math.atan2(-ground, 0.7);
+      for (const z of [D + F - 0.05, D + F + 0.65]) g.add(box(0.04, 0.9, 0.04, steel, x, (z > D + F ? ground : vy) + 0.45, z));
+      const rail = box(0.04, 0.04, Math.hypot(0.7, vy - ground), steel, x, (vy + 0.9 + ground + 0.9) / 2, D + F + 0.3);
+      rail.rotation.x = Math.atan2(vy - ground, 0.7);
       g.add(rail);
     }
     // box hedge inside the road boundaries (gates kept clear) and globe garden lights

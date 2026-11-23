@@ -170,7 +170,11 @@ function loadPlan(id) {
       if (o.isCSS2DObject) o.element.remove();
     });
   }
-  MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); });
+  MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); }, { plinth: plinthExtent });
+  document.querySelectorAll('#plinthOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === plinthExtent));
+  $('plinthNote').textContent = plinthExtent === 'house'
+    ? 'Plinth under the house only (1849 sft): the verandahs sit on a 150 mm apron, about 1′ below the rooms, with two granite steps up to each door and a podium under the stair.'
+    : 'Plinth under the whole slab (house + both verandahs, 2400 sft): the verandahs are level with the rooms, so there is no step at the doors; three granite steps lead up from the garden.';
   MD.interiorLamps = collectInteriorLamps();
   scene.add(MD.root);
   history.replaceState(null, '', '#' + plan.id);
@@ -696,6 +700,14 @@ $('chkRoof').addEventListener('change', () => { MD.roof.visible = mode === 'orbi
 // landing page shows Floating frame · glass parapet; ?design=<id> (from exterior.html) opens that design instead
 const linkedDesign = ELEVATIONS.find((q) => q.id !== 'none' && q.id === new URLSearchParams(location.search).get('design'));
 const elev = { on: true, id: linkedDesign ? linkedDesign.id : 'frameglass' };
+// plinth (basement) extent: under the whole slab with level verandahs (default) or under the house only (?plinth=house)
+let plinthExtent = new URLSearchParams(location.search).get('plinth') === 'house' ? 'house' : 'full';
+document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListener('click', () => {
+  if (plinthExtent === b.dataset.id) return;
+  plinthExtent = b.dataset.id;
+  loadPlan(MD.plan.id);
+  $('btnStreet').click();
+}));
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {
   if (e.style !== lastStyle) {
@@ -983,6 +995,7 @@ frame();
   $('btnStreet').click();
   setTimeout(() => {
     evs.forEach((ev) => removeEventListener(ev, took, true));
-    if (!acted && !touring && mode === 'orbit' && !linkedDesign) startTour(); // a linked design stays on the facade
+    const linked = linkedDesign || new URLSearchParams(location.search).has('plinth');
+    if (!acted && !touring && mode === 'orbit' && !linked) startTour(); // a linked design / plinth option stays on the facade
   }, 4500);
 }

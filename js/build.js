@@ -80,7 +80,10 @@ function subtractRect(r, h) {
 }
 
 // =====================================================================
-export function buildModel(plan, M, onLabelClick) {
+// opts.plinth: 'full' = plinth (basement) under the whole slab, verandahs at house floor level (default);
+// 'house' = plinth under the house only, verandahs on a 150 mm apron above ground, steps up at each door
+export function buildModel(plan, M, onLabelClick, opts = {}) {
+  const VY = opts.plinth === 'house' ? GROUND + 0.15 : 0; // verandah floor level (house floor = 0)
   const K = kit(M);
   const { ox, oy, kx, kz } = plan.map;
   const pxX = (p) => (p - ox) * kx; // drawing px → inches
@@ -119,8 +122,8 @@ export function buildModel(plan, M, onLabelClick) {
   const sideBal = [-bal.side * IN, 0, 0, D * IN];
   const frontBal = [-bal.side * IN, D * IN, W * IN, (D + bal.front) * IN];
   st[3] = Math.min(st[3], frontBal[3]);
-  rooms.push({ name: 'Side Balcony', drawLabel: '5′-0″ wide', lab: [bal.side, null], rects: [sideBal], main: sideBal, finish: 'stone', tour: true, outdoor: true, center: centerOf(sideBal), lights: [] });
-  rooms.push({ name: 'Front Balcony', drawLabel: '7′-0″ wide', lab: [null, bal.front], rects: [frontBal], main: frontBal, finish: 'stone', tour: true, outdoor: true, center: centerOf(frontBal), lights: [] });
+  rooms.push({ name: 'Side Balcony', drawLabel: '5′-0″ wide', lab: [bal.side, null], rects: [sideBal], main: sideBal, finish: 'stone', tour: true, outdoor: true, floorY: VY, center: centerOf(sideBal), lights: [] });
+  rooms.push({ name: 'Front Balcony', drawLabel: '7′-0″ wide', lab: [null, bal.front], rects: [frontBal], main: frontBal, finish: 'stone', tour: true, outdoor: true, floorY: VY, center: centerOf(frontBal), lights: [] });
   const roomAt = (x, z) => rooms.find((r) => r.rects.some((q) => inRect(x, z, q)));
   const roomAtIn = (x, z) => roomAt(x * IN, z * IN);
   const byName = (n) => rooms.find((r) => r.name === n);
@@ -417,12 +420,12 @@ export function buildModel(plan, M, onLabelClick) {
     room.highlight = new THREE.Group();
     room.highlight.visible = false;
     for (const r of room.rects) {
-      const fm = new THREE.Mesh(flatRect(r, 0), floorMat[room.finish]);
+      const fm = new THREE.Mesh(flatRect(r, room.floorY || 0), floorMat[room.finish]);
       fm.receiveShadow = true;
       fm.userData.floor = room;
       root.add(fm);
       floors.push(fm);
-      room.highlight.add(new THREE.Mesh(flatRect(r, 0.02), hiMat));
+      room.highlight.add(new THREE.Mesh(flatRect(r, (room.floorY || 0) + 0.02), hiMat));
       const cr = room.name === 'Front Balcony' ? subtractRect(r, st) : [r];
       for (const q of cr) {
         const cm = new THREE.Mesh(flatRect(q, CEIL, true), M.ceiling);
@@ -433,11 +436,27 @@ export function buildModel(plan, M, onLabelClick) {
     }
     root.add(room.highlight);
   }
-  // plinth and the RCC slab over the house + balconies (the slab is the roof; stair well left open)
-  for (const r of [building, sideBal, frontBal]) {
-    const m = K.box(r[2] - r[0], -GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, GROUND / 2 - 0.001, (r[1] + r[3]) / 2);
+  // plinth (basement) under the house, and under the verandahs up to their floor level; the RCC slab over the house +
+  // balconies is the roof (stair well left open)
+  for (const [r, topY] of [[building, 0], [sideBal, VY], [frontBal, VY]]) {
+    const m = K.box(r[2] - r[0], topY - GROUND, r[3] - r[1], M.plinth, (r[0] + r[2]) / 2, (topY + GROUND) / 2 - 0.001, (r[1] + r[3]) / 2);
     worldUV(m);
     root.add(m);
+  }
+  if (VY < 0) {
+    // house-only plinth: granite steps from each verandah up to the house doors, and a plinth-height podium under the
+    // stair with steps at its foot (risers of about 150 mm)
+    const n = Math.max(1, Math.round(-VY / 0.15)), rise = -VY / n, tread = 0.3;
+    for (const o of openingsAll) {
+      if (!o.outer || !['d', 'dd', 'dt'].includes(o.kind) || !o.sides.some((s) => /Balcony/.test(s))) continue;
+      const a = o.a * IN - 0.15, b = o.b * IN + 0.15, dir = o.vertical ? -1 : 1, face = (o.c + (dir * o.t) / 2) * IN;
+      for (let k = 1; k < n; k++) {
+        const top = -k * rise, p0 = face + dir * (k - 1) * tread, p1 = face + dir * k * tread, pm = (p0 + p1) / 2;
+        root.add(o.vertical ? K.box(tread, top - VY, b - a, M.granite, pm, (top + VY) / 2, (a + b) / 2) : K.box(b - a, top - VY, tread, M.granite, (a + b) / 2, (top + VY) / 2, pm));
+      }
+    }
+    root.add(K.box(st[2] - st[0], -VY, st[3] - st[1], M.granite, (st[0] + st[2]) / 2, VY / 2, (st[1] + st[3]) / 2));
+    for (let k = 1; k < n; k++) root.add(K.box(tread, -k * rise - VY, st[3] - st[1], M.granite, st[0] - (k - 0.5) * tread, (-k * rise + VY) / 2, (st[1] + st[3]) / 2));
   }
   const terraceZone = { name: 'Terrace', label: 'roof · +3.18 m', outdoor: true, level: 'roof' };
   const stairZone = { name: 'Staircase', label: '18 risers', outdoor: true, level: 'stair' };
@@ -961,7 +980,7 @@ export function buildModel(plan, M, onLabelClick) {
     openings: openingsAll.filter((o) => o.outer).map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
     gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
-    westOnStrip: !!plan.plot.westOnStrip,
+    westOnStrip: !!plan.plot.westOnStrip, verandahY: VY,
   });
   for (const g of Object.values(elevations)) root.add(g);
   // scale reference: a full-size SUV parked on the 21 ft road along Padma Reddy's side, shown in the outside views only.
@@ -990,11 +1009,13 @@ export function buildModel(plan, M, onLabelClick) {
   const scaleRefs = buildScaleRefs({ car: carSpot });
   root.add(scaleRefs);
 
-  const insideSlab = (x, z) => [building, sideBal, frontBal].some((r) => inRect(x, z, r));
+  const inHouse = (x, z) => inRect(x, z, building) || inRect(x, z, st); // house floor level (the stair foot podium too)
+  const onVerandah = (x, z) => inRect(x, z, sideBal) || inRect(x, z, frontBal);
   return {
     plan, root, ceilings, roof, labels, siteLabels, dims, markers, rooms, floors, solids, furnMeshes, fans, elevations, lighting, skirts, compound, parapet, electrical, scaleRefs,
     colliders, nav, levels, upPick, building, plotRect, stairs: st, stairInfo, mini, site, roomAt, report, openings: openingsAll,
-    floorY: (x, z) => (insideSlab(x, z) ? 0 : GROUND),
+    plinth: VY < 0 ? 'house' : 'full', verandahY: VY,
+    floorY: (x, z) => (inHouse(x, z) ? 0 : onVerandah(x, z) ? VY : GROUND),
     walkAreas,
   };
 }

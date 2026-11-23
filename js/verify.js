@@ -158,6 +158,9 @@ export function validate(model) {
     ['Ventilator sill', STD.ventSill * IN, `${ftIn(STD.ventSill * IN)} — 600 × 450 mm ventilator under the lintel`],
     ['RCC slab', STD.slab * IN, '5″ — assumed'],
     ['Plinth above ground', STD.plinth * IN, '1′-6″ — assumed'],
+    model.plinth === 'house'
+      ? ['Verandah floor below the house floor', -model.verandahY, `${ftIn(-model.verandahY)} — plinth under the house only: verandahs on a 150 mm apron, steps up to each door`]
+      : ['Verandah floor below the house floor', 0, 'level with the house — plinth under the whole slab (house + both verandahs)'],
     ['Stair riser / tread', model.stairInfo.rise, `${(model.stairInfo.rise * 1000).toFixed(0)} mm × ${(model.stairInfo.tread * 1000).toFixed(0)} mm, 18 risers, flights ${model.stairInfo.width.toFixed(3)} m wide — flights drawn, risers assumed`],
     ['Eye height (walk mode)', 1.6, '1.600 m'],
   ];

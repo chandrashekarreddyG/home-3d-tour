@@ -127,7 +127,8 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
       const curtain = o.kind === 'w' && !soft && !room.outdoor && !['bath', 'kitchen'].includes(room.finish) && room.name !== 'Pooja';
       const m = curtain ? 0.3 : 0.12;
       const y0 = curtain ? 0 : o.lo - 0.02, y1 = curtain ? 2.25 : o.hi + 0.05; // curtain stack to the rod top
-      if (A + w / 2 > o.A - m && A - w / 2 < o.B + m && y + h / 2 > y0 && y - h / 2 < y1) return o.kind === 'w' || o.kind === 'v' ? 'window' : 'door frame';
+      const yw = y + (room.floorY || 0); // heights are above the room's own floor (a verandah may sit below the house floor)
+      if (A + w / 2 > o.A - m && A - w / 2 < o.B + m && yw + h / 2 > y0 && yw - h / 2 < y1) return o.kind === 'w' || o.kind === 'v' ? 'window' : 'door frame';
     }
     const [ax, az] = at(f, A - w / 2, 0), [bx, bz] = at(f, A + w / 2, 0.15);
     const zone = [Math.min(ax, bx), Math.min(az, bz), Math.max(ax, bx), Math.max(az, bz)];
@@ -155,7 +156,7 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
   function add(room, board, f, A, y, items, special, why, q = {}) {
     const size = special ? SPECIAL[special] : plateOf(items);
     const [x, z] = at(f, A, q.proud || 0); // proud: mounted on a panel in front of the wall (TV feature wall)
-    const rec = { id: `E${placed.length + 1}`, room: room.name, serves: room.name, board, face: f, A, y, w: size.w, h: size.h, items, special, why, pos: [x, y, z], mods: size.mods, q };
+    const rec = { id: `E${placed.length + 1}`, room: room.name, serves: room.name, board, face: f, A, y, w: size.w, h: size.h, items, special, why, pos: [x, y + (room.floorY || 0), z], mods: size.mods, q };
     placed.push(rec);
     return rec;
   }

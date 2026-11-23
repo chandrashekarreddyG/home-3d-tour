@@ -160,6 +160,7 @@ Tolerance: 1 mm.
 | Ventilator sill | 1.650 m (5′-5″) | 5′-5″ — 600 × 450 mm ventilator under the lintel |
 | RCC slab | 0.127 m (5″) | 5″ — assumed |
 | Plinth above ground | 0.457 m (1′-6″) | 1′-6″ — assumed |
+| Verandah floor below the house floor | 0.000 m (0″) | level with the house — plinth under the whole slab (house + both verandahs) |
 | Stair riser / tread | 0.176 m (7″) | 176 mm × 250 mm, 18 risers, flights 1.061 m wide — flights drawn, risers assumed |
 | Eye height (walk mode) | 1.600 m (5′-3″) | 1.600 m |
 
@@ -321,6 +322,7 @@ Tolerance: 1 mm.
 | Ventilator sill | 1.650 m (5′-5″) | 5′-5″ — 600 × 450 mm ventilator under the lintel |
 | RCC slab | 0.127 m (5″) | 5″ — assumed |
 | Plinth above ground | 0.457 m (1′-6″) | 1′-6″ — assumed |
+| Verandah floor below the house floor | 0.000 m (0″) | level with the house — plinth under the whole slab (house + both verandahs) |
 | Stair riser / tread | 0.176 m (7″) | 176 mm × 250 mm, 18 risers, flights 1.060 m wide — flights drawn, risers assumed |
 | Eye height (walk mode) | 1.600 m (5′-3″) | 1.600 m |
 

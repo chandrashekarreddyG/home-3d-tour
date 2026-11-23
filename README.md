@@ -118,6 +118,11 @@ Both plans (owner request):
     louvred valance and a planter band. The **[Exterior studio page](exterior.html)** (`exterior.html`, renders in
     `exterior/img/`) presents them with renders, materials, indicative costs, upkeep and sources. Each card links
     to the 3D model with that design via `?design=<id>`, which skips the auto tour.
+  - **Plinth (basement)** switch in the Elevation panel. **Whole slab area** (default) puts the plinth under the house
+    and both verandahs, with the verandahs level with the rooms. **House only** puts the 1′-6″ plinth under the rooms
+    only: the verandahs sit on a 150 mm apron, with granite steps up at each road-side door and a podium under the stair
+    foot. The elevation steps, piers, plinth cladding and verandah switchboards follow the verandah level, and
+    `?plinth=house` opens that option. The Exterior studio page compares both.
   - In every design the stair tower rises 1.4 m above the parapet and carries a 3D Om medallion (`js/emblems.js`):
     the Om sits at the centre of a spiral of tapering arcs, either black on cream or gold on dark to suit the design,
     with a soft halo that glows after dark. The Om outline comes from Noto Sans Devanagari (OFL) and is stored in
