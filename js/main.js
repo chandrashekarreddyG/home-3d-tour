@@ -156,10 +156,12 @@ function applySun() {
 let night = false;
 
 // ---------- plan loading ----------
+const OLD_PLAN_IDS = { p3: 'p2' }; // Plan-2 was first published as #p3; old links still open it
 function loadPlan(id) {
   stopTour();
   cancelAnim();
-  const plan = PLANS.find((p) => p.id === id) || PLANS[0]; // old links (#gf, #p2) open Plan-1
+  id = OLD_PLAN_IDS[id] || id;
+  const plan = PLANS.find((p) => p.id === id) || PLANS[0]; // other old links (#gf) open Plan-1
   if (MD) {
     scene.remove(MD.root);
     MD.root.traverse((o) => {

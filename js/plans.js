@@ -29,7 +29,7 @@ export const PLANS = [
     mandirNote: 'Pooja mandir is on the south wall, facing the pooja doors, so you face the deities as you enter (owner instruction). The drawing showed it on the east wall.',
     deviations: ['Open kitchen (owner instruction): the 4½″ wall between Cooking and Dining is removed (the Great Room wall stays). The kitchen run along that old wall stays as a peninsula counter.'],
     tour: ['Front Balcony', 'Living', 'Great Room', 'Pooja', 'Dining', 'Cooking', 'Toilet 1', 'Master Bedroom', 'Bedroom 2', 'Toilet 2', 'Bedroom 3', 'Toilet 3', 'Side Balcony'],
-    // west compound wall on the 21 ft road edge (owner instruction, as Plan-3): the 23 SqYds strip garden is inside
+    // west compound wall on the 21 ft road edge (owner instruction, as Plan-2): the 23 SqYds strip garden is inside
     plot: { x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gates: [{ side: 'w', from: 313, to: 361 }, { side: 's', from: 19, to: 139 }], westOnStrip: true },
     balconies: { side: 60, front: 84 },
     stairs: [1028, 1260, 1290, 1440],
@@ -93,10 +93,10 @@ export const PLANS = [
     // sits like Plan-1 on the survey: 5′ balcony on the 21 ft road (west), 7′ balcony + stair on G.P Road (south).
     // Chains: across 9 + 132 (Kitchen 11′) + 4½ + 102 (Dining 8′-6″) + 4½ + 58½ (Toilet) + 4½ + 192 (M-Bed 16′) + 9 = 516;
     // down 9 + 147 (12′-3″) + 4½ + 204 (Hall 17′) + 4½ + 138 (11′-6″) + 9 = 516.
-    id: 'p3',
-    name: 'Plan-3 · 2400 sft slab',
-    short: 'Plan-3',
-    image: 'plans/plan-3.jpg',
+    id: 'p2',
+    name: 'Plan-2 · 2400 sft slab',
+    short: 'Plan-2',
+    image: 'plans/plan-2.jpg',
     outer: [516, 516], // 43′-0″ × 43′-0″
     map: { ox: 1573, oy: 552, kx: 516 / 2160.5, kz: 516 / 2160.5 },
     note: 'From PADMA REDDY GANNA.pdf, for the 56′-1″ × 59′-1″ Padma Reddy site. Plinth 1849 sft, slab 2400 sft.',

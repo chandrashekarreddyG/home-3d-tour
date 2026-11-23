@@ -182,11 +182,11 @@ Tolerance: 1 mm.
 - Master Bedroom: bed moved 128 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 - Bedroom 3: bed moved 197 mm west of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).
 
-## Plan-3 · 2400 sft slab
+## Plan-2 · 2400 sft slab
 
 10/11 labelled rooms match their drawing size to within 1 mm (Kitchen, Dining open plan, measured to the old wall line); Toilet 1 differs because the drawing contradicts its own dimension chain (see deviations). Openings: 22/22 measured widths equal the modelled widths. Furniture clearances: 31/31 OK. Door swings: 9/9 clear. Rooms reachable on foot: 13/13.
 
-### Rooms: clear wall-to-wall size measured in the 3D model (Plan-3 · 2400 sft slab)
+### Rooms: clear wall-to-wall size measured in the 3D model (Plan-2 · 2400 sft slab)
 
 | Room | Drawing label | Drawing W × D | Model W (ray-cast) | Model D (ray-cast) | ΔW | ΔD | Area | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

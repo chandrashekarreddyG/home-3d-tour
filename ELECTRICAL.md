@@ -137,7 +137,7 @@ Generated from the live 3D model by `js/electrical.js`: every board is placed by
 | Staircase | 1.10 m | Two-way switch at the stair foot; the top switch needs the roof-level stair cabin (not on the drawings). |
 
 
-## Plan-3 · 2400 sft slab
+## Plan-2 · 2400 sft slab
 
 38 switchboards and points placed by rule; 38/38 re-checked clear of doors, door leaves, windows, curtains, furniture and each other, at a height inside their rule band. 3 need a site decision (listed below).
 
