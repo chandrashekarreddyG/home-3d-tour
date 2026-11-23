@@ -103,8 +103,9 @@ export const PLANS = [
     plot: {
       x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gatesFromDrawing: true,
       gates: [{ side: 'w', from: 377, to: 434 }, { side: 's', from: -104, to: -5 }],
-      // water sump and three bores, as drawn, on the 23 SqYds strip between the compound wall and the 21 ft road
-      sump: [-184, 520.5, -129.5, 611.5], bores: [[-155, 504.5], [-184, 630.5], [-147.5, 655]],
+      // water sump and three bores, as drawn, on the 23 SqYds strip; the west compound wall runs on the 21 ft road
+      // edge (as drawn) so the strip, sump and bores are inside the compound
+      sump: [-184, 520.5, -129.5, 611.5], bores: [[-155, 504.5], [-184, 630.5], [-147.5, 655]], westOnStrip: true,
     },
     balconies: { side: 60, front: 84 },
     stairs: [3042, 2712, 3545, 3062],

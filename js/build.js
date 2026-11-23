@@ -795,18 +795,77 @@ export function buildModel(plan, M, onLabelClick) {
     // assumed boundary: 3′-0″ solid wall + steel bar railing to 5′-0″ (not shown on the drawings).
     // Each side is its own group so an elevation design can swap in its own boundary on the road sides.
     const Hc = STD.compound * IN, Hs = 0.914, tt = 0.23;
+    // westOnStrip: the west wall runs on the 21 ft road edge (survey line C–B) instead of the plot line, taking the
+    // 23 SqYds strip (and anything drawn on it, e.g. a water sump) inside the compound
+    const toW = ([u, v]) => [plotRect[0] + (SITE_W_FT - u) * FT, plotRect[3] - v * FT];
+    const strip = PARCELS.find((q) => q.id === 's23').poly; // Bin, B, C
+    const [stB, stC] = [toW(strip[1]), toW(strip[2])];
     const sides = {
       n: { a: plotRect[0], b: plotRect[2], fixed: plotRect[1], vertical: false, sgn: 1 },
-      s: { a: plotRect[0], b: plotRect[2], fixed: plotRect[3], vertical: false, sgn: -1 },
+      s: { a: p.westOnStrip ? stB[0] : plotRect[0], b: plotRect[2], fixed: plotRect[3], vertical: false, sgn: -1 },
       w: { a: plotRect[1], b: plotRect[3], fixed: plotRect[0], vertical: true, sgn: 1 },
       e: { a: plotRect[1], b: plotRect[3], fixed: plotRect[2], vertical: true, sgn: -1 },
     };
+    if (p.westOnStrip) {
+      const pave = new THREE.Mesh(flatPoly([stB, toW(strip[0]), stC], GROUND + 0.003), M.paving);
+      pave.receiveShadow = true;
+      root.add(pave);
+    }
     const gateMat = M.solid('#24272b', { metalness: 0.7, roughness: 0.45 });
+    // a compound side on a slanted line P0 → P1: same wall, railing and gates, rotated; colliders / minimap as short
+    // axis-aligned pieces along the line. Gates are [s0, s1] in metres along the line. Returns the railing bars.
+    const slantSide = (cg, [x0s, z0s], [x1s, z1s], gates) => {
+      const L = Math.hypot(x1s - x0s, z1s - z0s), ux = (x1s - x0s) / L, uz = (z1s - z0s) / L;
+      let nx = -uz, nz = ux; // inward normal (into the plot, +x for the west side)
+      if (nx < 0) { nx = -nx; nz = -nz; }
+      const at = (s) => [x0s + ux * s + nx * (tt / 2), z0s + uz * s + nz * (tt / 2)];
+      const rotY = -Math.atan2(uz, ux);
+      const put = (m, s) => { [m.position.x, m.position.z] = at(s); m.rotation.y = rotY; cg.add(m); return m; };
+      const bars = [];
+      const seg = (a, b) => {
+        if (b - a < 0.05) return;
+        const m = put(K.box(b - a, Hs, tt, M.paintExt, 0, GROUND + Hs / 2, 0), (a + b) / 2);
+        m.userData.wall = true;
+        solids.push(m);
+        put(K.box(b - a, 0.04, 0.04, gateMat, 0, GROUND + Hc - 0.02, 0), (a + b) / 2);
+        for (let s = a + 0.06; s < b; s += 0.12) { const [x, z] = at(s); bars.push([x, GROUND + Hs + (Hc - Hs) / 2, z, Hc - Hs]); }
+        for (let s = a; s < b; s += 0.3) {
+          const [xa, za] = at(s), [xb, zb] = at(Math.min(b, s + 0.3));
+          const fp = [Math.min(xa, xb) - tt / 2, Math.min(za, zb), Math.max(xa, xb) + tt / 2, Math.max(za, zb)];
+          colliders.push({ r: fp, clear: 0.22, wall: true });
+          mini.walls.push(fp);
+        }
+      };
+      let cur = 0;
+      for (const [ga, gb] of gates) {
+        seg(cur, ga);
+        for (const s of [ga, gb]) put(K.box(0.3, Hc + 0.15, 0.3, M.paintExt, 0, GROUND + (Hc + 0.15) / 2, 0), s);
+        const gl = (gb - ga) / 2 - 0.2, gy0 = GROUND + 0.08, gh = 1.35;
+        for (const [s0, s1] of [[ga + 0.15, ga + 0.15 + gl], [gb - 0.15 - gl, gb - 0.15]]) {
+          for (const y of [gy0 + 0.02, gy0 + gh - 0.02]) put(K.box(gl, 0.04, 0.04, gateMat, 0, y, 0), (s0 + s1) / 2);
+          for (let s = s0 + 0.05; s < s1; s += 0.11) { const [x, z] = at(s); bars.push([x, gy0 + gh / 2, z, gh]); }
+        }
+        cur = gb;
+      }
+      seg(cur, L);
+      return bars;
+    };
     for (const [side, d] of Object.entries(sides)) {
       const cg = (compound[side] = new THREE.Group());
       root.add(cg);
-      const bars = [];
       const gates = p.gates.filter((g) => g.side === side).map((g) => [g.from * IN, g.to * IN]).sort((u, v) => u[0] - v[0]);
+      if (side === 'w' && p.westOnStrip) {
+        // gate z positions → distance along the slanted line from C (north) to B (south)
+        const L = Math.hypot(stB[0] - stC[0], stB[1] - stC[1]), sOf = (z) => ((z - stC[1]) / (stB[1] - stC[1])) * L;
+        const bars = slantSide(cg, stC, stB, gates.map(([a, b]) => [sOf(a), sOf(b)]));
+        const barMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.022, 1, 0.022), gateMat, bars.length);
+        const mtx = new THREE.Matrix4();
+        bars.forEach(([x, y, z, h], i) => barMesh.setMatrixAt(i, mtx.makeScale(1, h, 1).setPosition(x, y, z)));
+        barMesh.castShadow = true;
+        cg.add(barMesh);
+        continue;
+      }
+      const bars = [];
       const fixed = d.fixed + d.sgn * (tt / 2); // wall sits inside the plot line
       let cur = d.a;
       const seg = (a, b) => {
@@ -902,6 +961,7 @@ export function buildModel(plan, M, onLabelClick) {
     openings: openingsAll.filter((o) => o.outer).map((o) => ({ vertical: o.vertical, c: o.c * IN, a: o.a * IN, b: o.b * IN, lo: o.lo, hi: o.hi })),
     plot: [plan.plot.x0 * IN, plan.plot.z0 * IN, plan.plot.x1 * IN, plan.plot.z1 * IN],
     gates: plan.plot.gates.map((g) => ({ side: g.side, from: g.from * IN, to: g.to * IN })),
+    westOnStrip: !!plan.plot.westOnStrip,
   });
   for (const g of Object.values(elevations)) root.add(g);
   // scale reference: a full-size SUV parked on the 21 ft road along Padma Reddy's side, shown in the outside views only.

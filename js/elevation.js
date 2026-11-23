@@ -622,8 +622,11 @@ export function buildElevations(M, dims) {
       wallSeg(cur, hi);
       pier(lo + 0.25); pier(hi - 0.25);
     };
-    fence('s');
-    fence('w');
+    // a plan whose west wall follows the road edge (strip inside) keeps its own compound wall on both road sides
+    if (!dims.westOnStrip) {
+      fence('s');
+      fence('w');
+    }
     // paved drive from the front gate to the steps
     const fg = (dims.gates || []).find((q) => q.side === 's');
     if (fg) {
