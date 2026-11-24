@@ -21,6 +21,7 @@ import { electricalHTML, electricalMarkdown } from './electrical.js';
 import { sunPosition, istDate } from './sun.js';
 import { ELEVATIONS } from './elevation.js';
 import { createMusic } from './music.js';
+import { createPhoto } from './photo.js';
 
 const EYE = 1.6; // m
 // Spacious view: how interiors are photographed for sale (16 mm lens ≈ 95° horizontal, camera at 1.35 m) so rooms
@@ -823,6 +824,41 @@ $('btnWide').addEventListener('click', () => {
   $('btnWide').classList.toggle('on', spacious);
   $('btnWide').textContent = spacious ? '⤢ Spacious view: on' : '⤢ Spacious view';
 });
+// Photo render (realistic view): path-traced still of the current view with bounced light from the sun, sky and
+// the lamps nearby, plus a soft ceiling fill per room. Any click, key or scroll goes back to the live view.
+// Defaults are the settings used for the Plan-2 interior renders (320 samples ≈ 4–5 min at 1600 × 1067).
+const photo = createPhoto({ renderer, scene, ceil: CEIL });
+async function photoRender({ samples = 320, exposure = 1, lampGain = 0.12, lightGain = 0.12, env = 1, tone = 'agx', fill = 1 } = {}) {
+  const color = LIGHT_TEMPS.find((t) => t.id === finish.temp).color;
+  const lamps = finish.lightsOn ? MD.interiorLamps.filter((l) => l.mat === M.lamp || l.mat === M.shade).map((l) => ({ mesh: l.mesh, shade: l.mat === M.shade })) : [];
+  pool.forEach((l) => (l.visible = false)); // the live view's moving light pool is replaced by real lights at the lamps
+  photoSaved = { exposure: renderer.toneMappingExposure, tone: renderer.toneMapping, env: scene.environmentIntensity, roof: MD.roof.visible };
+  if (exposure) renderer.toneMappingExposure = exposure;
+  if (tone) renderer.toneMapping = tone === 'neutral' ? THREE.NeutralToneMapping : THREE.AgXToneMapping;
+  scene.environmentIntensity *= env;
+  MD.roof.visible = true; // the slab above the ceilings keeps sky light from leaking in at the wall heads
+  $('btnPhoto').textContent = '✨ Preparing…';
+  // the live view's fake ceiling bounce (M.ceiling emissive) is real bounce light here, so it is switched off
+  const areas = finish.lightsOn ? MD.rooms.filter((r) => !r.outdoor && Math.hypot(r.center[0] - camera.position.x, r.center[1] - camera.position.z) < 8).flatMap((r) => r.rects) : [];
+  return photo.start({ camera, lamps, color, samples, lampMats: [M.lamp, M.shade, M.onyx], lampGain, lightGain, offMats: [M.ceiling], areas, fill });
+}
+let photoSaved = null;
+function endPhoto() {
+  if (!photo.active) return;
+  photo.stop();
+  pool.forEach((l) => (l.visible = true));
+  if (photoSaved) {
+    renderer.toneMappingExposure = photoSaved.exposure;
+    renderer.toneMapping = photoSaved.tone;
+    scene.environmentIntensity = photoSaved.env;
+    MD.roof.visible = photoSaved.roof;
+    photoSaved = null;
+  }
+  $('btnPhoto').textContent = '✨ Photo render';
+}
+$('btnPhoto').addEventListener('click', (e) => { e.stopPropagation(); if (photo.active) endPhoto(); else photoRender(); });
+for (const ev of ['pointerdown', 'keydown', 'wheel']) addEventListener(ev, (e) => { if (photo.active && !(e.target.closest && e.target.closest('#btnPhoto'))) endPhoto(); }, true);
+window.photoRender = photoRender;
 
 // sun controls
 {
@@ -983,6 +1019,11 @@ addEventListener('resize', resize);
 const clock = new THREE.Clock();
 let slowTimer = 0;
 function frame() {
+  // a photo render owns the canvas until it is cancelled by the next click, key or scroll
+  if (photo.frame((n, total) => { $('btnPhoto').textContent = n < total ? `✨ Rendering… ${Math.round((100 * n) / total)} %` : '✨ Photo ready (click to go back)'; })) {
+    requestAnimationFrame(frame);
+    return;
+  }
   const dt = Math.min(0.05, clock.getDelta());
   if (anim) { const a = anim; if (a.update(dt) && anim === a) { anim = null; a.resolve(true); } }
   if (mode === 'walk') {

@@ -5,31 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Padma Reddy Residence · 3D Walkthrough</title>
   <meta name="description" content="Dimensionally accurate interactive 3D walkthrough of the house plans and survey site at Yellareddypet, Rajanna Siricilla Dist." />
-  <link rel="stylesheet" href="style.css?v=52" />
+  <link rel="stylesheet" href="style.css?v=53" />
   <!-- ?v= forces browsers to fetch fresh copies of every module after an update (bump on each release) -->
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
         "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "./js/build.js": "./js/build.js?v=52",
-        "./js/electrical.js": "./js/electrical.js?v=52",
-        "./js/elevation.js": "./js/elevation.js?v=52",
-        "./js/emblems.js": "./js/emblems.js?v=52",
-        "./js/furniture.js": "./js/furniture.js?v=52",
-        "./js/interior.js": "./js/interior.js?v=52",
-        "./js/lighting.js": "./js/lighting.js?v=52",
-        "./js/mandir.js": "./js/mandir.js?v=52",
-        "./js/materials.js": "./js/materials.js?v=52",
-        "./js/music.js": "./js/music.js?v=52",
-        "./js/nav.js": "./js/nav.js?v=52",
-        "./js/omglyph.js": "./js/omglyph.js?v=52",
-        "./js/plans.js": "./js/plans.js?v=52",
-        "./js/scale.js": "./js/scale.js?v=52",
-        "./js/site.js": "./js/site.js?v=52",
-        "./js/sun.js": "./js/sun.js?v=52",
-        "./js/units.js": "./js/units.js?v=52",
-        "./js/verify.js": "./js/verify.js?v=52"
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js",
+        "three-gpu-pathtracer": "https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.23/build/index.module.js",
+        "./js/build.js": "./js/build.js?v=53",
+        "./js/electrical.js": "./js/electrical.js?v=53",
+        "./js/elevation.js": "./js/elevation.js?v=53",
+        "./js/emblems.js": "./js/emblems.js?v=53",
+        "./js/furniture.js": "./js/furniture.js?v=53",
+        "./js/interior.js": "./js/interior.js?v=53",
+        "./js/lighting.js": "./js/lighting.js?v=53",
+        "./js/mandir.js": "./js/mandir.js?v=53",
+        "./js/materials.js": "./js/materials.js?v=53",
+        "./js/music.js": "./js/music.js?v=53",
+        "./js/nav.js": "./js/nav.js?v=53",
+        "./js/omglyph.js": "./js/omglyph.js?v=53",
+        "./js/plans.js": "./js/plans.js?v=53",
+        "./js/photo.js": "./js/photo.js?v=53",
+        "./js/scale.js": "./js/scale.js?v=53",
+        "./js/site.js": "./js/site.js?v=53",
+        "./js/sun.js": "./js/sun.js?v=53",
+        "./js/units.js": "./js/units.js?v=53",
+        "./js/verify.js": "./js/verify.js?v=53"
       }
     }
   </script>
@@ -130,6 +134,7 @@
   <canvas id="minimap" title="Click to glide there"></canvas>
   <div id="compassWrap" title="North (from the survey map)"><div id="compass"><i></i><span>N</span></div></div>
   <button id="btnReal" title="Photographic render without labels or overlays (Esc to exit)">📷 Realistic view</button>
+  <button id="btnPhoto" title="Path-traced photo of this view: light bounces off walls and ceilings like a professional render (takes about a minute; click anywhere to go back)">✨ Photo render</button>
   <button id="btnWide" title="Wide-angle walk view, as interiors are photographed: 95° lens at 1.35 m camera height (dimensions unchanged)">⤢ Spacious view</button>
   <a id="btnExt" href="exterior.html" title="Exterior design ideas: renders, materials and indicative costs">🏛 Exterior studio</a>
   <button id="btnCar" title="Park a full-size SUV (4.80 m long, 1.84 m tall) on the 21 ft road, for a sense of scale in the outside views">🚗 Car</button>
@@ -153,6 +158,6 @@
   </dialog>
 
   <div id="loading">Loading 3D model…</div>
-  <script type="module" src="js/main.js?v=52"></script>
+  <script type="module" src="js/main.js?v=53"></script>
 </body>
 </html>

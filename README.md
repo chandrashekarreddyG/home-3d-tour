@@ -53,6 +53,13 @@ Both plans (owner request):
   bloom on lamps, a lens vignette, ambient occlusion and a sharper render. It hides the labels, panel, minimap,
   compass, walk markers and dimension overlay, while walking, clicking and the tour keep working. Esc or the
   button exits.
+  - In the realistic view, **✨ Photo render** (top left) path-traces the current view (`js/photo.js`,
+    three-gpu-pathtracer): light bounces between walls, ceilings and furniture, with soft shadows and colour bleeding,
+    like a V-Ray interior render. The visible meshes near the camera are baked to world space and merged into one
+    mesh per material; the sun, a softened sky, soft spot lights at the nearest downlights, points at pendants and
+    chandeliers and a ceiling-sized fill light per nearby room light it. About 4–5 minutes for 320 samples at
+    1600 × 1067, then an edge-preserving denoise. Any click, key or scroll returns to the live view;
+    `window.photoRender({ samples })` starts one from the console.
 - Bird's-eye, dollhouse and whole-site views, plus a first-person walk at 1.6 m eye height.
   - Click the floor to glide; routes go through doorways.
   - W A S D to walk, with collision against walls and furniture.
