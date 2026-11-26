@@ -391,7 +391,6 @@ const WALLS = [
   { dir: 'z', lo: 8.25, hi: 8.625, from: 37, to: 42.25, ops: [door(37.5, 40)] },                                                                          // bed3 toilet | dressing
   { dir: 'x', lo: 11.75, hi: 12.125, from: .75, to: 12.25 },                                                                                              // drawing | puja
   { dir: 'x', lo: 20.625, hi: 21, from: .75, to: 12.25 },                                                                                                 // puja | bed3
-  { dir: 'x', lo: 11.75, hi: 12.125, from: 30, to: 42.25, ops: [{ a: 30.3, b: 33.65, k: 'open', head: 7 }] },                                             // kitchen | dining
   { dir: 'x', lo: 20.625, hi: 21, from: 30, to: 42.25 },                                                                                                  // dining | master
   { dir: 'x', lo: 25.875, hi: 26.25, from: 17.5, to: 29.625 },                                                                                            // hall | bed2
   { dir: 'x', lo: 25.875, hi: 26.25, from: 34.25, to: 42.25, ops: [door(36.95, 39.45)] },                                                                 // master toilet | master
@@ -415,21 +414,21 @@ const FLOORS = [
   ['Living', 12.625, 29.625, .75, 25.875], ['Living', 12.625, 17.125, 25.875, 31.375], ['Living', .75, 12.25, .75, 11.75], ['Living', 30, 42.25, 12.125, 20.625],
   ['Puja', .75, 12.25, 12.125, 20.625],
   ['Bed', .75, 12.25, 21, 37], ['Bed', 8.625, 12.25, 37, 42.25], ['Bed', 17.5, 29.625, 26.25, 42.25], ['Bed', 30, 42.25, 26.25, 42.25], ['Bed', 30, 33.875, 21, 26.25],
-  ['Wet', 30, 42.25, .75, 11.75], ['Wet', .75, 8.25, 37.375, 42.25], ['Wet', 12.625, 17.125, 31.75, 42.25], ['Wet', 34.25, 42.25, 21, 25.875],
+  ['Wet', 30, 42.25, .75, 12.125], ['Wet', .75, 8.25, 37.375, 42.25], ['Wet', 12.625, 17.125, 31.75, 42.25], ['Wet', 34.25, 42.25, 21, 25.875],   // open kitchen: it also takes the strip of the removed Kitchen–Dining wall
 ];
 // rooms for the "where am I" read-out: [name, x0, x1, z0, z1]; names as on the drawing
 const ROOMS = [
   ['Hall', 12.625, 29.625, .75, 25.875], ['Hall', 12.625, 17.125, 25.875, 31.375], ['Drawing Room', .75, 12.25, .75, 11.75],
   ['Pooja', .75, 12.25, 12.125, 20.625], ['Bedroom 3', .75, 12.25, 21, 37], ['Bedroom 3', 8.625, 12.25, 37, 42.25],
   ['Toilet 3', .75, 8.25, 37.375, 42.25], ['Toilet 2', 12.625, 17.125, 31.75, 42.25], ['Bedroom 2', 17.5, 29.625, 26.25, 42.25],
-  ['Kitchen', 30, 42.25, .75, 11.75], ['Dining', 30, 42.25, 12.125, 20.625], ['Master Bedroom', 30, 42.25, 26.25, 42.25],
+  ['Kitchen', 30, 42.25, .75, 12.125], ['Dining', 30, 42.25, 12.125, 20.625], ['Master Bedroom', 30, 42.25, 26.25, 42.25],
   ['Master Bedroom', 30, 33.875, 21, 26.25], ['Toilet 1', 34.25, 42.25, 21, 25.875], ['Side Balcony', -7, 43, -5, 0], ['Front Balcony', -7, 0, 0, 43],
 ];
 // room list and 3D labels: [name, size as written on the drawing, label x, z, stand at x, z, look at x, z]
 const ROOM_LIST = [
   ['Front Balcony', '7′-0″ wide', -3.5, 19, -3.5, 24, -3.2, 4], ['Drawing Room', '11′-0″ × 11′-6″', 6.5, 6.25, 10.8, 3.6, 4, 9.5],
   ['Hall', '25′-1½″ × 17′-0″', 21.1, 13.3, 15.2, 13.4, 25.5, 6.6], ['Pooja', '8′-6″ × 11′-6″', 6.5, 16.4, 10.2, 17.2, 6.2, 12.4],
-  ['Dining', '8′-6″ × 12′-3″', 36.1, 16.4, 31.3, 15, 38, 16.8], ['Kitchen', '11′-0″ × 12′-3″', 36.1, 6.25, 32.2, 10.2, 38.5, 4.5],
+  ['Dining', '8′-6″ × 12′-3″', 36.1, 16.4, 31.3, 15, 38, 16.8], ['Kitchen', '11′-4½″ × 12′-3″', 36.1, 6.25, 34.2, 9.6, 39, 4],
   ['Master Bedroom', '16′-0″ × 12′-3″', 36.1, 34.25, 32.2, 27.4, 38.5, 34.5], ['Toilet 1', '4′-10″ × 8′-0″', 38.25, 23.4, 38.3, 24.9, 40.5, 22],
   ['Bedroom 2', '16′-0″ × 12′-1½″', 23.6, 34.25, 19.3, 28.3, 24.5, 34.5], ['Toilet 2', '10′-6″ × 4′-6″', 14.9, 37, 14.4, 33, 14.8, 41],
   ['Bedroom 3', '16′-0″ × 11′-6″', 6.5, 29, 10.4, 23.8, 5.5, 30.5], ['Toilet 3', '4′-10½″ × 7′-6″', 4.5, 39.8, 7.2, 39.2, 2.5, 40.5],
@@ -799,12 +798,13 @@ function desk(B, P, S, lampMajor = false) {               // 48" x 20" desk, bac
   B.sub(-.2, d + .75, 180, () => { chair(B, P, S, 1); B.collide(1.5, 1.5); });
 }
 
-// ---------- kitchen: U-shaped counter exactly where the plan draws it (24" deep, 36" high)
-function cabRun(B, P, S, len, wallCab = null) {          // run along local x, back at z = 0
+// ---------- open kitchen (owner instruction): no wall between Kitchen and Dining; the counter run along that old wall
+// line stays as a peninsula. Counters 24" deep, 36" high.
+function cabRun(B, P, S, len, wallCab = null, splash = true) {          // run along local x, back at z = 0
   const n = Math.max(1, Math.round(len / 1.65)), dw = len / n, hm = S.leg === 'metal' ? P.metal : S.leg === 'chunky' ? P.wood : P.wood2;
   B.bx(P.black, len, .33, 1.8, 0, 0, .9); B.bx(P.cab, len, 2.55, 1.94, 0, .33, .97);
   for (let i = 0; i < n; i++) { const x = -len / 2 + dw * (i + .5); B.bx(P.cab, dw - .06, 2.4, .05, x, .4, 1.965, S.leg === 'chunky' ? .05 : 0); S.knob ? B.sph(hm, .07, x, 2.5, 2.02, 1, 1, .6, 8) : B.bx(hm, dw * .5, .05, .05, x, 2.55, 2.0); }
-  B.bx(P.counter, len, .12, 2.08, 0, 2.88, 1.04, .02); B.bx(P.splash, len, 1.55, .04, 0, 3.0, .02);
+  B.bx(P.counter, len, .12, 2.08, 0, 2.88, 1.04, .02); if (splash) B.bx(P.splash, len, 1.55, .04, 0, 3.0, .02);
   if (wallCab) {
     const [a, b] = wallCab, wl = b - a, m = Math.max(1, Math.round(wl / 1.5));
     B.bx(P.cab, wl, 2.4, 1.1, (a + b) / 2, 4.55, .55);
@@ -826,10 +826,10 @@ function kitchen(B, P, S) {
   B.at(42.25, 6.25, -90); cabRun(B, P, S, 7, [-3.5, 3.5]);                 // south run
   B.cyl(P.steel, .3, .5, -1.6, 3.0, .9, .26, 14); B.sph(P.steel, .26, -1.6, 3.5, .9, 1, .6, 1, 12); B.torus(SH.black, .2, .03, -1.3, 3.3, .9, 0);   // kettle
   B.bx(S.leg === 'chunky' ? SH.toy[0] : P.steel, .9, .6, .55, .6, 3.0, .7, .1); books(B, P, 2.2, 3.0, .6, 4, true, 40);
-  B.at(39.2, 11.75, 180); cabRun(B, P, S, 6.1);                            // west return in front of the dining partition
+  B.at(39.2, 11.75, 180); cabRun(B, P, S, 6.1, null, false);               // peninsula on the line of the removed wall
   B.bx(P.wood2, 1.1, .5, 1.1, -1.5, 3.0, 1.0, .08); for (let i = 0; i < 4; i++) B.cyl(P.wood, .03, .7, -1.5 + (i % 2) * .3 - .15, 3.4, 1.0 + (i >> 1) * .3 - .15, .03, 5);
   vase(B, P, 1.6, 3.0, .9, .6, P.pot2, 33);
-  B.at(34.9, 11.75, 180);                                                  // fridge at the open end of the return
+  B.at(30, 10, 90);                                                        // fridge against the Hall wall, at the dining end
   B.bx(P.steel, 2.5, 6, 2.25, 0, 0, 1.13, .04); B.bx(SH.black, 2.5, .03, .02, 0, 2.2, 2.26); for (const y of [2.5, .9]) B.bx(SH.black, .06, y > 2 ? 2.4 : 1.0, .08, -.95, y, 2.3);
   B.collide(2.5, 2.3, 0, 1.15);
   B.at(); pendant(B, P, S, 35.4, 6.3, 6.5); rug(B, P, S, 5.5, 2.4, 35.4, 4.2, [P.rug2, P.rug]);
@@ -1056,7 +1056,8 @@ function buildExterior() {
   B.build(extGroup);
 
   // roof slab (5") with the 2 ft cantilever on the two sides away from the roads, open over the stair well
-  box(R, MAT.slab, 0, 45, H, SLAB, -5, 45); box(R, MAT.slab, -7, 0, H, SLAB, -5, WELL.z0); box(R, MAT.slab, -7, 0, H, SLAB, WELL.z1, 45);
+  const sb = H + .03;                                                      // just clear of the ceiling plane, which would otherwise flicker against it
+  box(R, MAT.slab, 0, 45, sb, SLAB, -5, 45); box(R, MAT.slab, -7, 0, sb, SLAB, -5, WELL.z0); box(R, MAT.slab, -7, 0, sb, SLAB, WELL.z1, 45);
   // parapets: plaster on the rear and far side, frameless glass on both road-facing sides
   box(R, MAT.ext, 42.62, 43, SLAB, PARAPET, -5, 43); box(R, MAT.ext, -7, 43, SLAB, PARAPET, 42.62, 43);
   glassParapet(R, 'z', -5, 43, -7, 1); glassParapet(R, 'x', -7, 43, -5, 1);
@@ -1389,7 +1390,7 @@ canvas.addEventListener('pointerup', e => {
 const TOUR = [
   [0, 18.6, -4, 18.6, 8], [1, 18.6, 1.8, 19.5, 10], [2.06, 17.2, 4.4, 9, 5], [3.23, 10.6, 4.3, 5.5, 9.5], [3.92, 11.8, 4.4, 8, 9],
   [5.41, 16.8, 7.5, 25, 9], [6.45, 16.2, 13, 22, 12], [7.9, 13.8, 16.35, 7, 13.5], [8.6, 9.4, 16.7, 6.4, 12.6], [9.35, 9.7, 16.9, 6.4, 12.6], [10.25, 15.5, 16.6, 24, 16.4],
-  [11.61, 24, 16.4, 34, 16.4], [12.79, 31, 15.8, 36, 16.4], [13.77, 32, 13.4, 33.5, 6], [14.9, 32.2, 9.5, 38.5, 5], [15.94, 32, 13, 37, 17],
+  [11.61, 24, 16.4, 34, 16.4], [12.79, 31, 15.8, 36, 16.4], [13.77, 33.6, 13.3, 35, 6], [14.9, 34.2, 9.6, 39, 4.5], [15.94, 33.4, 13, 37, 17],
   [17.08, 29, 17.6, 30, 22], [18.27, 27.4, 22.3, 31, 23.2], [19.18, 31, 23.15, 35, 30], [20.24, 32.2, 27.4, 38.5, 34.5], [21.75, 30.4, 23.2, 24, 23.5],
   [23.48, 20.5, 23.3, 15, 27], [24.73, 15.9, 24.3, 17.5, 28], [25.6, 15.2, 27.4, 19.5, 28.6], [26.62, 19.3, 28.3, 24.5, 34.5], [27.64, 15.3, 27.6, 13.6, 31],
   [28.61, 14.4, 24.5, 10, 24], [29.25, 12.9, 23.2, 6, 28], [30, 9.9, 23.1, 5.5, 30.5],

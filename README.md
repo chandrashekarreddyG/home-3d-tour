@@ -27,8 +27,8 @@ elevation, compound wall and gates, both roads and the neighbouring parcels, all
 - A sun placed for the site from today's date and a time slider (Day and Evening presets; lamps come on after dark).
 - A 30-second tour and three interior styles (Scandinavian, Modern Luxury, Family Friendly).
 
-Its units are feet and it follows the drawing as drawn, so it keeps the Kitchen–Dining wall and the Pooja window and
-has the mandir on the Drawing Room side wall; the owner requests above are in the main walkthrough only.
+Its units are feet. It has the open kitchen (no Kitchen–Dining wall, peninsula on the old wall line). Otherwise it
+follows the drawing: it keeps the Pooja window and has the mandir on the Drawing Room side wall.
 
 ## Accuracy
 
