@@ -814,11 +814,11 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
       addItem(room, `Diwan ${Math.round((b - a) * 1000)}×800 mm`, K.diwan(b - a), NORMAL.n, x, faceOf(room, 'n', x), 0.2);
     }
   }
-  // ---------------- interior design: "Warm luxe" feature walls, screens, display units, chandeliers ----------------
+  // ---------------- interior design extras: "Warm luxe" feature walls etc., or dollhouse.html's props ----------------
   let noFan = new Set();
-  if (interior === 'luxe') {
+  if (interior !== 'standard') {
     const deco = buildInterior({
-      M, rooms, fixtures, furniture: report.furniture, ceil: CEIL,
+      M, rooms, fixtures, furniture: report.furniture, ceil: CEIL, style: interior,
       openings: openingsAll.map((o) => ({ kind: o.kind, vertical: o.vertical, outer: o.outer, sides: o.sides, c: o.c * IN, a: o.a * IN, b: o.b * IN, t: o.t * IN, lo: o.lo, hi: o.hi })),
       walls: plan.walls.map(([x0, z0, x1, z1, t]) => ({ x0: x0 * IN, z0: z0 * IN, x1: x1 * IN, z1: z1 * IN, t: t * IN })),
     });

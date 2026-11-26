@@ -150,7 +150,11 @@ Owner requests built in:
   walls, white marble with grey and gold veins in the living areas, dark walnut in the bedrooms and black marble in
   the toilets, deep-green velvet channel-back sofas on flat gold bases, marble tables on gold frames, taupe beds with
   1.4 m channel headboards, dark walnut wardrobes with long gold pulls, dark-green kitchen cabinets under white marble,
-  dark doors and frames with gold handles, taupe curtains on gold rods and warm 2700 K light. **Warm luxe** follows the owner's sample
+  dark doors and frames with gold handles, taupe curtains on gold rods and warm 2700 K light. Its props are placed by
+  rule in `js/interior.js` (`style: 'dollhouse'`): a bordered rug under each coffee table, a gold globe floor lamp at a
+  sofa end, a fiddle-leaf fig or snake plant in a free corner of every main room, gold-framed abstract prints on the
+  longest free wall, a bookshelf / entry console where a wall run allows, and a gold pendant over the dining table
+  (which replaces that room's fan). **Warm luxe** follows the owner's sample
   designs and is placed by rule from the plan's rooms, walls, openings and furniture (`js/interior.js`), so no wall,
   door or window moves: a backlit-onyx TV wall, a quilted panel wall behind the TV-facing sofa, framed art with brass
   sconces over the other sofas, branch-crystal chandeliers over the coffee tables, a brass medallion screen beside a

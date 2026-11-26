@@ -26,7 +26,7 @@ const texMat = (url, emissive = 0) => {
   return TEX.get(url + emissive);
 };
 
-export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, ceil }) {
+export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, ceil, style = 'luxe' }) {
   const group = new THREE.Group(); // wall-mounted and floor-standing pieces
   const hanging = new THREE.Group(); // chandeliers and pendants (shown with the ceilings, inside views only)
   const items = []; // floor-standing pieces: { room, name, rect, block }
@@ -209,6 +209,230 @@ export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, 
   const tvs = fixtures.filter((q) => q.type === 'tv');
   const sofas = fixtures.filter((q) => q.type === 'sofa');
   const tables = furniture.filter((q) => q.rect && /^Coffee table/.test(q.name));
+
+  // ======================= dollhouse.html "Modern luxury" extras =======================
+  // The props of dollhouse.html's furnish(), placed by rule on this plan: a bordered rug under each coffee table, a
+  // floor lamp at a sofa end, a tall plant in a free corner of every main room, framed abstract prints on the longest
+  // free wall, a bookshelf and an entry console with a round mirror in the hall, and a gold pendant over the dining table.
+  if (style === 'dollhouse') {
+    const rnd = ((s) => () => ((s = (s * 16807) % 2147483647) / 2147483647))(4242);
+    const ART = [M.velvetGreen, M.gold, M.espresso, M.fabTaupe];
+    const BOOK = [M.espresso, M.solid('#7a2e2a', { roughness: 0.8 }), M.fabTaupe, M.velvetGreen, M.gold];
+    const leafA = M.leaf, leafB = M.solid('#7da36a', { roughness: 0.8, flatShading: true });
+    const doorsNear = (x, z, r) => openings.some((o) => ['d', 'dd', 'dt', 'a'].includes(o.kind) && Math.hypot((o.vertical ? o.c : (o.a + o.b) / 2) - x, (o.vertical ? (o.a + o.b) / 2 : o.c) - z) < r);
+    const free = (room, rect, pad = 0.1) => {
+      const r = [rect[0] - pad, rect[1] - pad, rect[2] + pad, rect[3] + pad];
+      return room.rects.some((q) => r[0] >= q[0] && r[2] <= q[2] && r[1] >= q[1] && r[3] <= q[3]) && !furniture.some((f) => f.rect && f.room === room.name && overlaps(f.rect, r)) && !items.some((it) => overlaps(it.rect, r));
+    };
+    const add = (room, name, rect, block = 0.15) => items.push({ room: room.name, name, rect, block });
+    // --- props (local frame, origin on the floor) ---
+    const floorLamp = (x, z) => {
+      box(0.3, 0.025, 0.3, M.gold, x, 0.0125, z);
+      box(0.025, 1.43, 0.025, M.gold, x, 0.74, z);
+      sphere(0.15, M.shade, x, 1.55, z, group);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.01, 8, 40), M.gold);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(x, 1.55, z);
+      group.add(ring);
+    };
+    const plant = (x, z, kind, h = 1.4) => {
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.14, 0.38, 18), kind ? M.gold : M.potBlack);
+      pot.position.set(x, 0.19, z);
+      pot.castShadow = true;
+      group.add(pot);
+      box(0.3, 0.012, 0.3, M.solid('#3a2c22', { roughness: 1 }), x, 0.37, z);
+      if (kind === 0) { // fiddle-leaf fig
+        box(0.03, h - 0.5, 0.03, M.woodDark, x, 0.38 + (h - 0.5) / 2, z);
+        for (let i = 0; i < 22; i++) {
+          const a = rnd() * 6.28, yy = 0.65 + rnd() * (h - 0.7), rr = 0.08 + rnd() * 0.17;
+          const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), i % 3 ? leafA : leafB);
+          leaf.position.set(x + Math.cos(a) * rr, yy, z + Math.sin(a) * rr);
+          leaf.scale.set(1, 0.16, 0.7);
+          leaf.rotation.set(rnd() - 0.5, a, rnd() - 0.5);
+          leaf.castShadow = true;
+          group.add(leaf);
+        }
+      } else { // snake plant
+        for (let i = 0; i < 12; i++) {
+          const a = rnd() * 6.28, hh = (h - 0.4) * (0.55 + rnd() * 0.45), rr = rnd() * 0.1;
+          const blade = new THREE.Mesh(new THREE.ConeGeometry(0.06, hh, 5), i % 3 ? leafA : leafB);
+          blade.position.set(x + Math.cos(a) * rr, 0.38 + hh / 2 - 0.02, z + Math.sin(a) * rr);
+          blade.scale.set(1, 1, 0.3);
+          blade.rotation.set(Math.sin(a) * 0.2, a, -Math.cos(a) * 0.2);
+          blade.castShadow = true;
+          group.add(blade);
+        }
+      }
+    };
+    const art = (side, f, along, w, h, yc, seed) => {
+      put(side, f, w, h, 0.03, M.gold, along, yc);
+      put(side, f, w - 0.06, h - 0.06, 0.01, M.lacquer, along, yc, 0.03);
+      for (let i = 0; i < 4; i++) {
+        const bw = (w - 0.2) * (0.25 + rnd() * 0.4), bh = (h - 0.2) * (0.2 + rnd() * 0.35);
+        const bx = along + (rnd() - 0.5) * (w - 0.16 - bw), by = yc - h / 2 + 0.1 + bh / 2 + rnd() * (h - 0.2 - bh);
+        const mat = ART[(i + seed) % 4];
+        if (i % 2) { // disc
+          const d = new THREE.Mesh(new THREE.CylinderGeometry(bh / 2, bh / 2, 0.006, 24), mat);
+          d.rotation.x = Math.PI / 2;
+          if (vertical(side)) { d.rotation.z = Math.PI / 2; d.position.set(f + sgn[side] * 0.044, by, bx); } else d.position.set(bx, by, f + sgn[side] * 0.044);
+          group.add(d);
+        } else put(side, f, bw, bh, 0.006, mat, bx, by, 0.04 + i * 0.001);
+      }
+    };
+    const bookshelf = (side, f, a0, a1, h = 1.9, d = 0.35) => {
+      const L = a1 - a0, am = (a0 + a1) / 2, cols = Math.max(1, Math.round(L / 0.6)), n = Math.round(h / 0.38);
+      for (let i = 0; i <= cols; i++) put(side, f, 0.03, h, d, M.gold, a0 + 0.015 + ((L - 0.03) / cols) * i, h / 2);
+      put(side, f, L, h, 0.015, M.espresso, am, h / 2);
+      for (let j = 0; j <= n; j++) {
+        const y = 0.08 + ((h - 0.1) / n) * j;
+        put(side, f, L, 0.03, d, M.woodDark, am, y);
+        if (j === n) continue;
+        for (let i = 0; i < cols; i++) {
+          const x0 = a0 + 0.05 + ((L - 0.03) / cols) * i, cw = (L - 0.03) / cols - 0.07, k = (i + j * 2) % 4;
+          if (k === 0 || k === 3) { // row of books
+            let px = x0;
+            for (let b = 0; b < 9 && px + 0.05 < x0 + cw; b++) { const t = 0.028 + rnd() * 0.02, bh = 0.2 + rnd() * 0.08; put(side, f, t, bh, 0.16, BOOK[(b * 3 + i + j) % 5], px + t / 2, y + 0.015 + bh / 2, 0.1); px += t + 0.004; }
+          } else if (k === 1) { // stacked books + vase
+            for (let b = 0; b < 3; b++) put(side, f, 0.22 - rnd() * 0.04, 0.03, 0.16, BOOK[(b + i) % 5], x0 + 0.15, y + 0.03 + b * 0.03, 0.1);
+            const v = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.2, 14), i % 2 ? M.gold : M.potBlack);
+            if (vertical(side)) v.position.set(f + sgn[side] * d * 0.5, y + 0.115, x0 + cw - 0.1); else v.position.set(x0 + cw - 0.1, y + 0.115, f + sgn[side] * d * 0.5);
+            group.add(v);
+          } else { // small plant
+            const px = x0 + cw / 2;
+            const [vx, vz] = vertical(side) ? [f + sgn[side] * d * 0.5, px] : [px, f + sgn[side] * d * 0.5];
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.1, 12), M.potBlack);
+            p.position.set(vx, y + 0.065, vz);
+            group.add(p);
+            for (let q = 0; q < 7; q++) { const a = rnd() * 6.28; const s = sphere(0.045, q % 2 ? leafA : leafB, vx + Math.cos(a) * 0.05, y + 0.14 + rnd() * 0.06, vz + Math.sin(a) * 0.05, group); s.scale.set(1, 0.3, 0.7); }
+          }
+        }
+      }
+    };
+    const consoleTable = (side, f, along) => {
+      const w = 0.9, d = 0.33, h = 0.8;
+      put(side, f, w, 0.03, d, M.luxMarble, along, h - 0.015);
+      for (const s of [-1, 1]) for (const t of [0.03, d - 0.03]) put(side, f, 0.025, h - 0.03, 0.025, M.gold, along + s * (w / 2 - 0.04), (h - 0.03) / 2, t - 0.0125);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.012, 8, 48), M.gold);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(0.32, 48), M.steel);
+      for (const m of [ring, disc]) {
+        m.rotation.y = vertical(side) ? (sgn[side] > 0 ? Math.PI / 2 : -Math.PI / 2) : sgn[side] > 0 ? 0 : Math.PI;
+        if (vertical(side)) m.position.set(f + sgn[side] * (m === disc ? 0.012 : 0.02), 1.4, along); else m.position.set(along, 1.4, f + sgn[side] * (m === disc ? 0.012 : 0.02));
+        group.add(m);
+      }
+      const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.22, 14), M.gold);
+      if (vertical(side)) vase.position.set(f + sgn[side] * d * 0.5, h + 0.11, along - 0.28); else vase.position.set(along - 0.28, h + 0.11, f + sgn[side] * d * 0.5);
+      group.add(vase);
+    };
+    const pendant = (x, z, y) => {
+      box(0.006, ceil - y - 0.15, 0.006, M.gold, x, (ceil + y + 0.15) / 2, z, hanging);
+      sphere(0.12, M.shade, x, y, z);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.01, 8, 40), M.gold);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(x, y, z);
+      hanging.add(ring);
+      box(0.07, 0.06, 0.07, M.gold, x, y + 0.15, z, hanging);
+    };
+
+    // --- rugs under coffee tables (dark field with a gold border), clipped to the room ---
+    for (const t of tables) {
+      const room = byName(t.room);
+      if (!room) continue;
+      const cx = (t.rect[0] + t.rect[2]) / 2, cz = (t.rect[1] + t.rect[3]) / 2;
+      const w = Math.min(2.4, room.main[2] - room.main[0] - 0.6), d = Math.min(2.9, room.main[3] - room.main[1] - 0.6);
+      const x = Math.min(Math.max(cx, room.main[0] + 0.3 + w / 2), room.main[2] - 0.3 - w / 2), z = Math.min(Math.max(cz, room.main[1] + 0.3 + d / 2), room.main[3] - 0.3 - d / 2);
+      box(w, 0.008, d, M.rugDark, x, 0.004, z).castShadow = false;
+      box(w - 0.3, 0.004, d - 0.3, M.gold, x, 0.009, z).castShadow = false;
+      box(w - 0.4, 0.004, d - 0.4, M.rugDark, x, 0.0105, z).castShadow = false;
+    }
+    // --- floor lamp beside the end of the longest sofa in each sitting room ---
+    const seen = new Set();
+    for (const s of [...sofas].sort((p, q) => (q.b - q.a) - (p.b - p.a))) {
+      if (seen.has(s.room)) continue;
+      const room = byName(s.room);
+      const side = { s: 'n', n: 's', e: 'w', w: 'e' }[s.facing], into = sgn[side] * 0.5;
+      for (const end of [s.a - 0.32, s.b + 0.32]) {
+        const [x, z] = s.axis === 'z' ? [end, s.back + into] : [s.back + into, end];
+        const rect = [x - 0.16, z - 0.16, x + 0.16, z + 0.16];
+        if (!free(room, rect, 0.12) || doorsNear(x, z, 1.0)) continue;
+        floorLamp(x, z);
+        add(room, 'Floor lamp Ø300 mm, 1.6 m (gold, globe shade)', rect, 0.1);
+        seen.add(s.room);
+        break;
+      }
+    }
+    // --- a tall plant in a free corner of each main room ---
+    rooms.filter((r) => !r.outdoor && r.tour && ['tile', 'wood', 'kitchen'].includes(r.finish)).forEach((room, i) => {
+      const r = room.main, corners = [[r[0] + 0.4, r[1] + 0.4], [r[2] - 0.4, r[1] + 0.4], [r[0] + 0.4, r[3] - 0.4], [r[2] - 0.4, r[3] - 0.4]];
+      for (const [x, z] of corners) {
+        const rect = [x - 0.2, z - 0.2, x + 0.2, z + 0.2];
+        if (!free(room, rect, 0.15) || doorsNear(x, z, 1.1)) continue;
+        plant(x, z, i % 2, i % 2 ? 1.25 : 1.4);
+        add(room, `${i % 2 ? 'Snake plant' : 'Fiddle-leaf fig'} in a Ø380 mm pot`, rect, 0.1);
+        break;
+      }
+    });
+    // --- bookshelf: the first sitting room with a free run ≥ 1.7 m that is not its TV wall ---
+    for (const room of rooms.filter((r) => /Hall|Living|Great|Drawing/.test(r.name) && !r.outdoor)) {
+      const tv = tvs.find((t) => t.room === room.name);
+      let runBest = null;
+      for (const side of ['n', 's', 'w', 'e']) {
+        if (tv && tv.side === side) continue;
+        const f = { n: room.main[1], s: room.main[3], w: room.main[0], e: room.main[2] }[side];
+        for (const [p, q] of freeRuns(side, f, ...(vertical(side) ? [room.main[1], room.main[3]] : [room.main[0], room.main[2]]))) {
+          if (q - p < 1.7) continue;
+          const L = Math.min(1.8, q - p - 0.3), a0 = (p + q) / 2 - L / 2, a1 = a0 + L;
+          const rect = vertical(side) ? [Math.min(f, f + sgn[side] * 0.35), a0, Math.max(f, f + sgn[side] * 0.35), a1] : [a0, Math.min(f, f + sgn[side] * 0.35), a1, Math.max(f, f + sgn[side] * 0.35)];
+          if (free(room, rect, 0.3) && (!runBest || q - p > runBest.len)) runBest = { side, f, a0, a1, rect, len: q - p };
+        }
+      }
+      if (!runBest) continue;
+      bookshelf(runBest.side, runBest.f, runBest.a0, runBest.a1);
+      add(room, `Bookshelf ${Math.round((runBest.a1 - runBest.a0) * 1000)}×350×1900 mm (gold frame, walnut shelves)`, runBest.rect, 0.15);
+      break;
+    }
+    // --- framed prints: the longest free wall run of each main room (not the TV wall, not behind the bed) ---
+    const beds = fixtures.filter((q) => q.type === 'bed');
+    let seed = 1;
+    for (const room of rooms.filter((r) => !r.outdoor && r.tour && ['tile', 'wood'].includes(r.finish))) {
+      const tv = tvs.find((t) => t.room === room.name), bed = beds.find((b) => b.room === room.name);
+      let best = null;
+      for (const side of ['n', 's', 'w', 'e']) {
+        if ((tv && tv.side === side) || (bed && bed.side === side)) continue;
+        const f = { n: room.main[1], s: room.main[3], w: room.main[0], e: room.main[2] }[side];
+        for (const [p, q] of freeRuns(side, f, ...(vertical(side) ? [room.main[1], room.main[3]] : [room.main[0], room.main[2]]))) {
+          // skip runs fully behind tall furniture (wardrobes)
+          const along = (p + q) / 2, probe = vertical(side) ? [f + sgn[side] * 0.05, along - 0.3, f + sgn[side] * 0.5, along + 0.3] : [along - 0.3, f + sgn[side] * 0.05, along + 0.3, f + sgn[side] * 0.5];
+          const pr = [Math.min(probe[0], probe[2]), Math.min(probe[1], probe[3]), Math.max(probe[0], probe[2]), Math.max(probe[1], probe[3])];
+          const tall = furniture.some((u) => u.rect && u.room === room.name && /Wardrobe|Crockery|unit/.test(u.name) && overlaps(u.rect, pr)) || items.some((it) => it.room === room.name && /Bookshelf|console/.test(it.name) && overlaps(it.rect, pr));
+          if (!tall && (!best || q - p > best.len)) best = { side, f, p, q, len: q - p };
+        }
+      }
+      if (!best || best.len < 1.0) continue;
+      const w = Math.min(1.4, best.len - 0.3), h = w > 1.1 ? 0.8 : 0.7;
+      art(best.side, best.f, (best.p + best.q) / 2, w, h, 1.5, seed++);
+    }
+    for (const o of openings.filter((q) => q.kind === 'dd' && q.outer)) {
+      const room = rooms.find((r) => !r.outdoor && o.sides.includes(r.name));
+      if (!room) continue;
+      const side = o.vertical ? (Math.abs(o.c - room.main[0]) < Math.abs(o.c - room.main[2]) ? 'w' : 'e') : Math.abs(o.c - room.main[1]) < Math.abs(o.c - room.main[3]) ? 'n' : 's';
+      const f = faceOf(room, side, (o.a + o.b) / 2);
+      for (const along of [o.b + 0.62, o.a - 0.62]) {
+        const rect = vertical(side) ? [Math.min(f, f + sgn[side] * 0.33), along - 0.45, Math.max(f, f + sgn[side] * 0.33), along + 0.45] : [along - 0.45, Math.min(f, f + sgn[side] * 0.33), along + 0.45, Math.max(f, f + sgn[side] * 0.33)];
+        if (clearRects(side, f, along - 0.5, along + 0.5, 0.2, 1.9).length !== 1 || !free(room, rect, 0.15)) continue;
+        consoleTable(side, f, along);
+        add(room, 'Entry console 900×330×800 mm with a Ø640 mm round mirror', rect, 0.1);
+        break;
+      }
+    }
+    // --- gold pendant over the dining table ---
+    for (const d of furniture.filter((q) => q.rect && /^(Dining table|Round dining table)/.test(q.name))) {
+      const room = byName(d.room);
+      const tx = (d.rect[0] + d.rect[2]) / 2, tz = (d.rect[1] + d.rect[3]) / 2;
+      pendant(tx, tz, 1.95);
+      if (room && Math.hypot(tx - room.center[0], tz - room.center[1]) < 1.3) { noFan.add(room.name); notes.push(`${room.name}: pendant over the table in place of the ceiling fan (dollhouse interior).`); }
+    }
+    return { group, hanging, items, noFan, notes };
+  }
 
   // ---------- sofas: quilted wall, artwork, sconces, chandelier ----------
   const lit = new Set();
