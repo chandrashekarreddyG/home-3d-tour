@@ -86,8 +86,9 @@ function subtractRect(r, h) {
 // 'level' = plinth under the house only, verandahs flush with the paved yard (car parking under the front verandah)
 export function buildModel(plan, M, onLabelClick, opts = {}) {
   const VY = opts.plinth === 'house' ? GROUND + 0.15 : opts.plinth === 'level' ? GROUND + 0.004 : 0; // verandah floor (house floor = 0)
-  const interior = opts.interior === 'luxe' ? 'luxe' : 'standard';
+  const interior = ['luxe', 'dollhouse'].includes(opts.interior) ? opts.interior : 'standard';
   const K = kit(M, interior);
+  const SH = K.shell; // door, handle, curtain-rod and curtain materials of the chosen interior
   const { ox, oy, kx, kz } = plan.map;
   const pxX = (p) => (p - ox) * kx; // drawing px → inches
   const pxZ = (p) => (p - oy) * kz;
@@ -326,7 +327,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
             }
             const off = sgn * (tM / 2 + 0.12);
             const rodY = DOOR_H + 0.09;
-            const rod = place(L + 0.5, 0.02, 0.02, M.chrome, mid, rodY, off, false);
+            const rod = place(L + 0.5, 0.02, 0.02, SH.rod, mid, rodY, off, false);
             rod.castShadow = false;
             const pw = Math.min(0.55, L * 0.35 + 0.15), ph = rodY - 0.03;
             for (const end of [-1, 1]) {
@@ -350,14 +351,14 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
       if (o.kind === 'a') return;
       const sw = o.kind === 'dd' ? (o.swing === '-' ? -1 : 1) : o.swing[1] === '-' ? -1 : 1;
       const faceOff = sw * (tM / 2 - 0.05); // frame flush with the swing-side face
-      const fMat = outer || o.kind === 'dd' ? M.teak : M.walnut;
+      const fMat = SH.frame || (outer || o.kind === 'dd' ? M.teak : M.walnut);
       place(FRAME, o.hi, 0.1, fMat, aM + FRAME / 2, o.hi / 2, faceOff);
       place(FRAME, o.hi, 0.1, fMat, bM - FRAME / 2, o.hi / 2, faceOff);
       place(L, FRAME, 0.1, fMat, mid, o.hi - FRAME / 2, faceOff);
       for (const ja of [aM + FRAME / 2, bM - FRAME / 2]) {
         colliders.push({ r: vertical ? [cM + faceOff - 0.05, ja - FRAME / 2, cM + faceOff + 0.05, ja + FRAME / 2] : [ja - FRAME / 2, cM + faceOff - 0.05, ja + FRAME / 2, cM + faceOff + 0.05], clear: 0.22, wall: true });
       }
-      const leafMat = o.kind === 'dt' ? M.white : outer || o.kind === 'dd' ? M.teak : M.oak;
+      const leafMat = o.kind === 'dt' ? SH.toilet : outer || o.kind === 'dd' ? SH.main : SH.leaf;
       const clear = L - 2 * FRAME;
       // main (outer) entrances: one wide designer leaf in the same opening. It hinges on the end with the shorter
       // free pier (to the next cross wall or opening), so the latch side keeps the wider pier for the entrance
@@ -395,8 +396,8 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
           }
         } else {
           for (const s of [-1, 1]) {
-            const h = K.box(0.02, 0.02, 0.13, M.chrome, s * (lt / 2 + 0.03), 1.0, sw * (lw - 0.08));
-            g.add(h, K.box(0.03, 0.06, 0.006, M.chrome, s * (lt / 2 + 0.005), 1.0, sw * (lw - 0.08)));
+            const h = K.box(0.02, 0.02, 0.13, SH.handle, s * (lt / 2 + 0.03), 1.0, sw * (lw - 0.08));
+            g.add(h, K.box(0.03, 0.06, 0.006, SH.handle, s * (lt / 2 + 0.005), 1.0, sw * (lw - 0.08)));
           }
         }
         // leaf stands open at 90°, its back against the hinge jamb; local +z points along the swing

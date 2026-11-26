@@ -175,9 +175,10 @@ function loadPlan(id) {
   MD = buildModel(plan, M, (room) => { stopTour(); goToRoom(room); }, { plinth: plinthExtent, interior: interiorStyle });
   document.querySelectorAll('#plinthOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === plinthExtent));
   document.querySelectorAll('#interiorOpts button').forEach((b) => b.classList.toggle('on', b.dataset.id === interiorStyle));
-  $('interiorNote').textContent = interiorStyle === 'luxe'
-    ? 'Warm luxe, from your sample designs: backlit onyx TV wall, quilted panel wall behind the sofa, brass medallion screen at the entrance, branch-crystal chandeliers, arched display unit, palm-mural dining arches with a ring chandelier, greige gloss kitchen with a hanging herb shelf, and feature walls with globe pendants behind every bed. Best seen in Walk in with the cove lights in the evening.'
-    : 'Standard: plain painted walls with a simple TV feature wall, laminate wardrobes and kitchen.';
+  $('interiorNote').textContent = {
+    luxe: 'Warm luxe, from your sample designs: backlit onyx TV wall, quilted panel wall behind the sofa, brass medallion screen at the entrance, branch-crystal chandeliers, arched display unit, palm-mural dining arches with a ring chandelier, greige gloss kitchen with a hanging herb shelf, and feature walls with globe pendants behind every bed. Best seen in Walk in with the cove lights in the evening.',
+    dollhouse: 'Modern luxury, as dollhouse.html: warm-stone walls, white marble with gold veins in the living areas and dark walnut in the bedrooms, deep-green velvet channel-back sofas on gold bases, marble tables on gold frames, taupe beds with tall channel headboards and gold-stemmed lamps, dark walnut wardrobes with long gold pulls, dark-green kitchen under white marble, dark doors and frames, taupe curtains on gold rods, warm 2700 K light. Try the evening.',
+  }[interiorStyle] || 'Standard: plain painted walls with a simple TV feature wall, laminate wardrobes and kitchen.';
   $('plinthNote').textContent = {
     house: 'Plinth under the house only (1849 sft): the verandahs sit on a 150 mm apron, about 1′ below the rooms, with two granite steps up to each door and a podium under the stair.',
     level: MD.parking
@@ -726,15 +727,21 @@ document.querySelectorAll('#plinthOpts button').forEach((b) => b.addEventListene
   loadPlan(MD.plan.id);
   $('btnStreet').click();
 }));
-// interior design: standard, or "Warm luxe" from the owner's sample designs (?interior=luxe); luxe brings the cove
-// ceiling lighting with it
-let interiorStyle = ['standard', 'luxe'].find((v) => v === new URLSearchParams(location.search).get('interior')) || 'standard';
-if (interiorStyle === 'luxe') finish.light = 'cove';
+// interior design: standard, "Warm luxe" from the owner's sample designs (?interior=luxe) or dollhouse.html's
+// "Modern luxury" (?interior=dollhouse). Each brings its own floors, wall colour and lighting preset.
+const INTERIOR_PRESET = {
+  luxe: { light: 'cove' },
+  dollhouse: { floor: 'luxury', paintIn: 'stone', light: 'down', temp: '2700' },
+  standard: { floor: 'white', paintIn: 'ivory', light: 'down' },
+};
+let interiorStyle = ['standard', 'luxe', 'dollhouse'].find((v) => v === new URLSearchParams(location.search).get('interior')) || 'standard';
+Object.assign(finish, INTERIOR_PRESET[interiorStyle]);
 document.querySelectorAll('#interiorOpts button').forEach((b) => b.addEventListener('click', () => {
   if (interiorStyle === b.dataset.id) return;
   interiorStyle = b.dataset.id;
-  if (interiorStyle === 'luxe') finish.light = 'cove';
+  Object.assign(finish, INTERIOR_PRESET[interiorStyle]);
   loadPlan(MD.plan.id);
+  applyPaint();
 }));
 let lastStyle = null;
 for (const e of ELEVATIONS.filter((q) => q.id !== 'none')) {

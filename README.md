@@ -145,8 +145,13 @@ Owner requests built in:
   - The 21 ft road side tower rises to the same height and carries a flat painted Shanku · Namam · Chakra panel
     (the owner's line artwork, `textures/emblems/shanku-namam-chakra.png`) in a slim gold frame. It sits above the
     slab bands and has the same soft halo after dark.
-- **Interior design** switch in the Finishes panel (`?interior=luxe`). **Warm luxe** follows the owner's sample
-  designs and is placed by rule from each plan's rooms, walls, openings and furniture (`js/interior.js`), so no wall,
+- **Interior design** switch in the Finishes panel (`?interior=luxe` / `?interior=dollhouse`). **Modern luxury · as
+  dollhouse** reproduces the Modern Luxury style of `dollhouse.html` on this plan (`kit(M, 'dollhouse')`): warm-stone
+  walls, white marble with grey and gold veins in the living areas, dark walnut in the bedrooms and black marble in
+  the toilets, deep-green velvet channel-back sofas on flat gold bases, marble tables on gold frames, taupe beds with
+  1.4 m channel headboards, dark walnut wardrobes with long gold pulls, dark-green kitchen cabinets under white marble,
+  dark doors and frames with gold handles, taupe curtains on gold rods and warm 2700 K light. **Warm luxe** follows the owner's sample
+  designs and is placed by rule from the plan's rooms, walls, openings and furniture (`js/interior.js`), so no wall,
   door or window moves: a backlit-onyx TV wall, a quilted panel wall behind the TV-facing sofa, framed art with brass
   sconces over the other sofas, branch-crystal chandeliers over the coffee tables, a brass medallion screen beside a
   main double door that opens into a sitting room, an arched display unit in a sitting room without a TV, backlit

@@ -35,9 +35,16 @@ export const SIZES = {
 };
 
 // style 'luxe' = the "Warm luxe" interior from the owner's samples: boucle sofas, channel-stitched grey beds, carved
-// wardrobe shutters, a backlit-onyx TV wall, a marble dining top with grey chairs and greige gloss kitchen shutters
+// wardrobe shutters, a backlit-onyx TV wall, a marble dining top with grey chairs and greige gloss kitchen shutters.
+// style 'dollhouse' = dollhouse.html's Modern Luxury: deep-green velvet channel-back sofa on a flat gold base, marble
+// tops on gold frames, taupe fabric beds with a 1.4 m channel headboard, dark walnut wardrobes with long gold pulls,
+// dark-green kitchen cabinets under white marble, taupe curtains, dark doors and frames.
 export function kit(M, style = 'standard') {
-  const luxe = style === 'luxe';
+  const luxe = style === 'luxe', doll = style === 'dollhouse';
+  // door and curtain materials for the house shell (build.js)
+  const shell = doll
+    ? { frame: M.espresso, leaf: M.wardDark, main: M.wardDark, toilet: M.wardDark, handle: M.gold, rod: M.gold, curtain: M.curtainTaupe }
+    : { frame: null, leaf: M.oak, main: M.teak, toilet: M.white, handle: M.chrome, rod: M.chrome, curtain: M.curtain };
   const box = (w, h, d, mat, x, y, z, shadow = true) => {
     const m = new THREE.Mesh(boxGeo(w, h, d), mat);
     m.position.set(x, y, z);
@@ -78,19 +85,21 @@ export function kit(M, style = 'standard') {
     const head = 0.08;
     g.add(box(fw - 0.1, 0.08, fl - 0.15, M.black, 0, 0.04, head + fl / 2)); // recessed plinth
     if (luxe) g.add(rounded(fw, 0.3, fl, 0.05, M.fabricGrey, 0, 0.23, head + fl / 2)); // upholstered frame
+    else if (doll) { g.add(box(fw, 0.04, fl, M.gold, 0, 0.1, head + fl / 2)); g.add(rounded(fw + 0.08, 0.29, fl + 0.06, 0.03, M.fabTaupe, 0, 0.265, head + fl / 2)); } // gold plinth, taupe upholstered frame
     else g.add(box(fw, 0.27, fl, M.walnut, 0, 0.215, head + fl / 2));
     g.add(rounded(w, 0.22, l, 0.04, M.sheet, 0, 0.46, head + 0.05 + l / 2));
-    g.add(rounded(w + 0.04, 0.05, l * 0.68, 0.02, M.duvet, 0, 0.585, head + 0.05 + l - l * 0.34));
-    g.add(rounded(w + 0.05, 0.055, 0.45, 0.02, luxe ? M.chairGrey : M.linenDark, 0, 0.6, head + 0.05 + l - 0.35));
+    g.add(rounded(w + 0.04, 0.05, l * 0.68, 0.02, doll ? M.duvetTaupe : M.duvet, 0, 0.585, head + 0.05 + l - l * 0.34));
+    g.add(rounded(w + 0.05, 0.055, 0.45, 0.02, luxe ? M.chairGrey : doll ? M.velvetGreen : M.linenDark, 0, 0.6, head + 0.05 + l - 0.35));
     const np = size === 'king' ? 3 : 2;
     for (let i = 0; i < np; i++) {
       const px = (i - (np - 1) / 2) * (w / np);
-      g.add(rounded(w / np - 0.06, 0.13, 0.42, 0.05, i === 1 && np === 3 ? (luxe ? M.sage : M.velvet) : M.sheet, px, 0.64, head + 0.3));
+      g.add(rounded(w / np - 0.06, 0.13, 0.42, 0.05, i === 1 && np === 3 ? (luxe ? M.sage : doll ? M.gold : M.velvet) : M.sheet, px, 0.64, head + 0.3));
     }
-    if (luxe) {
-      // channel-stitched headboard: vertical padded flutes
-      const hw = w + 0.3, n = Math.round(hw / 0.16);
-      for (let i = 0; i < n; i++) g.add(rounded(hw / n - 0.008, 1.15, head, 0.03, M.fabricGrey, -hw / 2 + (i + 0.5) * (hw / n), 0.68, head / 2));
+    if (luxe || doll) {
+      // channel-stitched headboard: vertical padded flutes (dollhouse: 1.4 m tall in taupe with a gold cap)
+      const hw = w + (doll ? 0.37 : 0.3), hh = doll ? 1.4 : 1.15, n = Math.round(hw / (doll ? 0.26 : 0.16)), hm = luxe ? M.fabricGrey : M.fabTaupe;
+      for (let i = 0; i < n; i++) g.add(rounded(hw / n - 0.006, hh, head, doll ? 0.015 : 0.03, hm, -hw / 2 + (i + 0.5) * (hw / n), 0.1 + hh / 2, head / 2));
+      if (doll) g.add(box(hw + 0.02, 0.03, head + 0.02, M.gold, 0, 0.1 + hh + 0.015, head / 2));
     } else {
       g.add(box(w + 0.3, 1.05, head, M.linen, 0, 0.62, head / 2)); // upholstered headboard
       g.add(box(w + 0.34, 0.04, head + 0.02, M.walnut, 0, 1.16, head / 2));
@@ -98,19 +107,20 @@ export function kit(M, style = 'standard') {
     const ns = SIZES.nightstand;
     for (const s of [-1, 1]) {
       const x = s * (fw / 2 + 0.06 + ns.w / 2);
-      g.add(box(ns.w, ns.h - 0.05, ns.d, luxe ? M.lacquer : M.walnut, x, 0.05 + (ns.h - 0.05) / 2, ns.d / 2));
+      g.add(box(ns.w, ns.h - 0.05, ns.d, luxe ? M.lacquer : doll ? M.woodDark : M.walnut, x, 0.05 + (ns.h - 0.05) / 2, ns.d / 2));
       g.add(box(ns.w - 0.03, 0.005, 0.005, M.black, x, 0.3, ns.d + 0.0025, false));
+      if (doll) { g.add(box(ns.w, 0.012, ns.d, M.gold, x, ns.h, ns.d / 2)); g.add(box(ns.w - 0.06, 0.03, ns.d - 0.06, M.gold, x, 0.015, ns.d / 2)); } // gold top and base
       if (luxe) { // bedside pendants hang above (interior.js); a small vase with dried stems on the table
         g.add(cyl(0.05, 0.04, 0.2, M.lacquer, x, ns.h + 0.1, ns.d / 2));
         for (let k = 0; k < 5; k++) g.add(box(0.006, 0.3, 0.006, M.walnut, x + (k - 2) * 0.02, ns.h + 0.33, ns.d / 2));
         continue;
       }
-      g.add(cyl(0.06, 0.08, 0.28, M.white, x, ns.h + 0.14, ns.d / 2));
+      g.add(cyl(0.06, 0.08, 0.28, doll ? M.gold : M.white, x, ns.h + 0.14, ns.d / 2));
       const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.22, 28, 1, true), M.shade);
       shade.position.set(x, ns.h + 0.38, ns.d / 2);
       g.add(shade);
     }
-    const rug = new THREE.Mesh(new THREE.PlaneGeometry(w + (luxe ? 1.4 : 1.1), luxe ? 2.2 : 1.7), luxe ? M.rugWave : M.rug);
+    const rug = new THREE.Mesh(new THREE.PlaneGeometry(w + (luxe ? 1.4 : 1.1), luxe ? 2.2 : 1.7), luxe ? M.rugWave : doll ? M.rugDark : M.rug);
     rug.rotation.x = -Math.PI / 2;
     rug.position.set(0, 0.006, head + fl - (luxe ? 0.75 : 0.55));
     rug.receiveShadow = true;
@@ -145,14 +155,16 @@ export function kit(M, style = 'standard') {
       }
       return { g, foot: [-len / 2, 0, len / 2, depth] };
     }
-    g.add(box(len, height - 0.1, depth, M.laminateBeige, 0, 0.1 + (height - 0.1) / 2, depth / 2));
+    g.add(box(len, height - 0.1, depth, doll ? M.wardDark : M.laminateBeige, 0, 0.1 + (height - 0.1) / 2, depth / 2));
     const n = Math.max(2, Math.round(len / 0.5));
     const sw = len / n;
     for (let i = 1; i < n; i++) g.add(box(0.004, height - 0.12, 0.004, M.black, -len / 2 + i * sw, 0.1 + (height - 0.1) / 2, depth + 0.002, false));
-    g.add(box(len, 0.004, 0.004, M.black, 0, 2.0, depth + 0.002, false)); // loft line
+    if (doll) g.add(box(len - 0.03, 0.09, 0.015, M.gold, 0, 0.1, depth + 0.003)); // gold kick plate
+    else g.add(box(len, 0.004, 0.004, M.black, 0, 2.0, depth + 0.002, false)); // loft line
     for (let i = 0; i < n; i++) {
       const x = -len / 2 + (i + 0.5) * sw + (i % 2 ? -1 : 1) * (sw / 2 - 0.05);
-      g.add(box(0.018, 0.9, 0.02, M.alu, x, 1.05, depth + 0.01));
+      if (doll) g.add(box(0.015, 0.98, 0.018, M.gold, x, 1.1, depth + 0.012)); // 3′-2″ gold pull
+      else g.add(box(0.018, 0.9, 0.02, M.alu, x, 1.05, depth + 0.01));
     }
     return { g, foot: [-len / 2, 0, len / 2, depth] };
   }
@@ -174,19 +186,25 @@ export function kit(M, style = 'standard') {
   function sofa(len) {
     const d = SIZES.sofaDepth;
     const g = new THREE.Group();
-    const arm = 0.16;
-    const [base, body, cush] = luxe ? [M.boucle, M.boucle, [M.sage, M.chairGrey]] : [M.linenDark, M.linen, [M.velvet, M.velvet]];
-    for (const x of [-len / 2 + 0.06, len / 2 - 0.06]) for (const z of [0.08, d - 0.08]) g.add(cyl(0.02, 0.015, 0.1, luxe ? M.black : M.walnut, x, 0.05, z, 10));
+    const arm = doll ? 0.15 : 0.16;
+    const [base, body, cush] = luxe ? [M.boucle, M.boucle, [M.sage, M.chairGrey]] : doll ? [M.velvetGreen, M.velvetGreen, [M.gold, M.fabTaupe]] : [M.linenDark, M.linen, [M.velvet, M.velvet]];
+    if (doll) g.add(box(len - 0.1, 0.06, d - 0.1, M.gold, 0, 0.03, d / 2)); // flat gold plinth
+    else for (const x of [-len / 2 + 0.06, len / 2 - 0.06]) for (const z of [0.08, d - 0.08]) g.add(cyl(0.02, 0.015, 0.1, luxe ? M.black : M.walnut, x, 0.05, z, 10));
     g.add(box(len, 0.2, d, base, 0, 0.2, d / 2));
     g.add(rounded(len, 0.55, 0.2, 0.05, body, 0, 0.55, 0.1)); // back frame
-    g.add(rounded(arm, 0.36, d, 0.04, body, -len / 2 + arm / 2, 0.48, d / 2));
-    g.add(rounded(arm, 0.36, d, 0.04, body, len / 2 - arm / 2, 0.48, d / 2));
+    const armH = doll ? 0.6 : 0.36; // dollhouse: arms as tall as the back
+    g.add(rounded(arm, armH, d, 0.04, body, -len / 2 + arm / 2, 0.3 + armH / 2, d / 2));
+    g.add(rounded(arm, armH, d, 0.04, body, len / 2 - arm / 2, 0.3 + armH / 2, d / 2));
     const seats = Math.max(1, Math.round((len - 2 * arm) / 0.65));
     const sw = (len - 2 * arm) / seats;
     for (let i = 0; i < seats; i++) {
       const x = -len / 2 + arm + sw * (i + 0.5);
       g.add(rounded(sw - 0.01, 0.12, d - 0.24, 0.05, body, x, SIZES.seatH - 0.06, 0.22 + (d - 0.24) / 2));
-      g.add(rounded(sw - 0.03, 0.42, 0.16, 0.06, body, x, 0.66, 0.26));
+      if (!doll) g.add(rounded(sw - 0.03, 0.42, 0.16, 0.06, body, x, 0.66, 0.26));
+    }
+    if (doll) { // channel back: 150 mm vertical flutes
+      const inner = len - 2 * arm, m = Math.round(inner / 0.15);
+      for (let i = 0; i < m; i++) g.add(rounded(inner / m - 0.01, 0.42, 0.08, 0.03, body, -inner / 2 + (inner / m) * (i + 0.5), 0.68, 0.2));
     }
     if (len > 1.2) for (const s of [-1, 1]) g.add(rounded(0.4, 0.4, 0.12, 0.06, cush[s > 0 ? 0 : 1], s * (len / 2 - arm - 0.28), 0.66, 0.38));
     return { g, foot: [-len / 2, 0, len / 2, d] };
@@ -204,6 +222,14 @@ export function kit(M, style = 'standard') {
       g.add(cyl(0.06, 0.05, 0.16, M.lacquer, w * 0.2, 0.5, 0));
       return { g, foot: [-w / 2, -d / 2, w / 2, d / 2] };
     }
+    if (doll) { // marble slab on two gold sled frames, a gold stretcher between them
+      g.add(box(w, 0.04, d, M.luxMarble, 0, 0.385, 0));
+      for (const sx of [-1, 1]) { g.add(box(0.025, 0.365, d - 0.1, M.gold, sx * (w / 2 - 0.09), 0.1825, 0)); g.add(box(0.025, 0.025, d - 0.1, M.gold, sx * (w / 2 - 0.09), 0.0125, 0)); }
+      g.add(box(w - 0.18, 0.02, 0.025, M.gold, 0, 0.15, 0));
+      g.add(box(0.24, 0.05, 0.18, M.espresso, -w * 0.15, 0.43, 0));
+      g.add(cyl(0.06, 0.05, 0.16, M.gold, w * 0.2, 0.485, 0));
+      return { g, foot: [-w / 2, -d / 2, w / 2, d / 2] };
+    }
     g.add(box(w, 0.035, d, M.walnut, 0, 0.4, 0));
     g.add(box(w - 0.1, 0.02, d - 0.1, M.walnut, 0, 0.12, 0));
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(0.04, 0.38, 0.04, M.black, sx * (w / 2 - 0.05), 0.2, sz * (d / 2 - 0.05)));
@@ -217,6 +243,7 @@ export function kit(M, style = 'standard') {
   const TVS = [[55, 1.218, 0.685], [50, 1.107, 0.623], [43, 0.952, 0.535]];
   function tvWall(P) {
     if (luxe) return tvWallLuxe(P);
+    if (doll) return tvUnitDoll(P);
     const [inch, tw, th] = TVS.find(([, w]) => w <= P - 0.15) || TVS[TVS.length - 1];
     const g = new THREE.Group();
     const H = 2.4, t = 0.025, cw = Math.min(P - 0.05, 1.8), cd = 0.35, ch = 0.28, c0 = 0.3;
@@ -234,6 +261,24 @@ export function kit(M, style = 'standard') {
     for (const x of [-cw / 6, cw / 6]) g.add(box(0.004, ch - 0.04, 0.004, M.black, x, c0 + ch / 2, t + cd + 0.002, false));
     g.add(box(cw - 0.06, 0.01, 0.01, M.lamp, 0, c0 - 0.006, t + cd - 0.05, false)); // under-console glow
     return { g, foot: [-P / 2, 0, P / 2, t + cd], size: [P, t + cd], tv: { inch, w: tw, h: th, y: ty, console: [cw, cd, ch, c0], panel: [P, H] } };
+  }
+  // dollhouse.html Modern Luxury media unit: a low dark-walnut cabinet (1.68 m × 0.43 m × 0.49 m) on a flat gold base
+  // with a marble top and gold-framed drawer fronts, the TV on a plain wall above it; no feature panel
+  function tvUnitDoll(P) {
+    const [inch, tw, th] = TVS.find(([, w]) => w <= P - 0.15) || TVS[TVS.length - 1];
+    const g = new THREE.Group();
+    const cw = Math.min(P - 0.2, 1.68), cd = 0.43, ch = 0.49, c0 = 0.14;
+    g.add(box(cw - 0.1, c0, cd - 0.1, M.gold, 0, c0 / 2, cd / 2));
+    g.add(box(cw, ch - c0, cd, M.woodDark, 0, c0 + (ch - c0) / 2, cd / 2));
+    for (let i = 0; i < 3; i++) g.add(box(cw / 3 - 0.03, ch - c0 - 0.05, 0.012, i === 1 ? M.espresso : M.wardDark, (i - 1) * (cw / 3), c0 + (ch - c0) / 2, cd + 0.006));
+    for (let i = 0; i < 3; i++) g.add(box(0.2, 0.012, 0.012, M.gold, (i - 1) * (cw / 3), c0 + (ch - c0) / 2, cd + 0.015));
+    g.add(box(cw + 0.03, 0.025, cd + 0.03, M.luxMarble, 0, ch + 0.0125, cd / 2));
+    const ty = ch + 0.45 + th / 2; // screen centre
+    g.add(box(tw + 0.01, th + 0.01, 0.02, M.black, 0, ty, 0.02));
+    g.add(box(tw, th, 0.03, M.screen, 0, ty, 0.035));
+    g.add(cyl(0.05, 0.04, 0.2, M.potBlack, -cw / 2 + 0.25, ch + 0.125, cd / 2)); // vase
+    g.add(box(0.26, 0.04, 0.18, M.gold, cw / 2 - 0.3, ch + 0.045, cd / 2)); // books
+    return { g, foot: [-P / 2, 0, P / 2, cd], size: [P, cd], tv: { inch, w: tw, h: th, y: ty, console: [cw, cd, ch - c0, c0], panel: [P, ty + th / 2 + 0.1] } };
   }
   // Warm luxe TV wall (from the samples): a light stone slab behind the screen between two backlit onyx panels, with
   // vertical LED lines at the joints, up to the 2.75 m cove line; a floating white lacquer console with a walnut top
@@ -264,10 +309,12 @@ export function kit(M, style = 'standard') {
   function chair() {
     const c = SIZES.chair;
     const g = new THREE.Group();
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(luxe ? 0.025 : 0.035, c.seat - 0.04, luxe ? 0.025 : 0.035, luxe ? M.black : M.walnut, sx * (c.w / 2 - 0.03), (c.seat - 0.04) / 2, sz * (c.d / 2 - 0.03)));
-    if (luxe) { // upholstered grey chair with a tall rounded back
-      g.add(rounded(c.w, 0.09, c.d, 0.04, M.chairGrey, 0, c.seat - 0.02, 0));
-      g.add(rounded(c.w + 0.02, c.back - c.seat + 0.08, 0.07, 0.04, M.chairGrey, 0, c.seat + (c.back - c.seat) / 2 + 0.02, c.d / 2 - 0.03));
+    const slim = luxe || doll;
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(slim ? 0.025 : 0.035, c.seat - 0.04, slim ? 0.025 : 0.035, luxe ? M.black : doll ? M.gold : M.walnut, sx * (c.w / 2 - 0.03), (c.seat - 0.04) / 2, sz * (c.d / 2 - 0.03)));
+    if (slim) { // upholstered chair with a tall rounded back (luxe grey, dollhouse taupe)
+      const fm = luxe ? M.chairGrey : M.fabTaupe;
+      g.add(rounded(c.w, 0.09, c.d, 0.04, fm, 0, c.seat - 0.02, 0));
+      g.add(rounded(c.w + 0.02, c.back - c.seat + 0.08, 0.07, 0.04, fm, 0, c.seat + (c.back - c.seat) / 2 + 0.02, c.d / 2 - 0.03));
       return g;
     }
     g.add(rounded(c.w, 0.06, c.d, 0.02, M.linen, 0, c.seat - 0.02, 0));
@@ -291,6 +338,10 @@ export function kit(M, style = 'standard') {
       if (luxe) { // white marble top on slim black legs
         g.add(box(w + 0.1, 0.04, l + 0.2, M.slabWhite, 0, 0.74, 0));
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(0.04, 0.72, 0.04, M.black, sx * (w / 2 - 0.08), 0.36, sz * (l / 2 - 0.1)));
+      } else if (doll) { // marble slab on two gold pedestal frames with a stretcher
+        g.add(box(w + 0.04, 0.04, l + 0.06, M.luxMarble, 0, 0.74, 0));
+        for (const sz of [-1, 1]) { g.add(box(w - 0.4, 0.7, 0.15, M.gold, 0, 0.36, sz * (l / 2 - 0.3))); g.add(box(w - 0.3, 0.025, 0.5, M.gold, 0, 0.0125, sz * (l / 2 - 0.3))); }
+        g.add(box(0.06, 0.06, l - 0.9, M.gold, 0, 0.5, 0));
       } else {
         g.add(box(w, 0.035, l, M.oak, 0, 0.74, 0));
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) g.add(box(0.06, 0.72, 0.06, M.walnut, sx * (w / 2 - 0.06), 0.36, sz * (l / 2 - 0.08)));
@@ -343,12 +394,12 @@ export function kit(M, style = 'standard') {
     const d = SIZES.counterDepth, H = SIZES.counterH;
     const g = new THREE.Group();
     g.add(box(len, 0.1, d - 0.06, M.black, 0, 0.05, (d - 0.06) / 2));
-    g.add(box(len, H - 0.12, d - 0.02, luxe ? M.greige : M.laminateBeige, 0, 0.1 + (H - 0.12) / 2, (d - 0.02) / 2));
+    g.add(box(len, H - 0.12, d - 0.02, luxe ? M.greige : doll ? M.cabGreen : M.laminateBeige, 0, 0.1 + (H - 0.12) / 2, (d - 0.02) / 2));
     const n = Math.max(1, Math.round(len / 0.6));
     for (let i = 1; i < n; i++) g.add(box(0.004, H - 0.14, 0.004, M.black, -len / 2 + (i * len) / n, 0.1 + (H - 0.12) / 2, d - 0.018, false));
-    for (let i = 0; i < n; i++) g.add(box((len / n) * 0.6, 0.015, 0.02, luxe ? M.black : M.alu, -len / 2 + ((i + 0.5) * len) / n, H - 0.1, d - 0.01));
-    g.add(box(len, 0.02, d + 0.02, luxe ? M.quartz : M.granite, 0, H - 0.01, (d + 0.02) / 2));
-    if (opts.backsplash) g.add(box(len, SIZES.upperFrom - H, 0.008, luxe ? M.marble : M.bathTile, 0, H + (SIZES.upperFrom - H) / 2, 0.004, false));
+    for (let i = 0; i < n; i++) g.add(box((len / n) * 0.6, 0.015, 0.02, luxe ? M.black : doll ? M.gold : M.alu, -len / 2 + ((i + 0.5) * len) / n, H - 0.1, d - 0.01));
+    g.add(box(len, 0.02, d + 0.02, luxe ? M.quartz : doll ? M.luxMarble : M.granite, 0, H - 0.01, (d + 0.02) / 2));
+    if (opts.backsplash) g.add(box(len, SIZES.upperFrom - H, 0.008, luxe ? M.marble : doll ? M.luxMarble : M.bathTile, 0, H + (SIZES.upperFrom - H) / 2, 0.004, false));
     return { g, foot: [-len / 2, 0, len / 2, d] };
   }
   function upper(len) {
@@ -356,7 +407,7 @@ export function kit(M, style = 'standard') {
     const g = new THREE.Group();
     // luxe: greige gloss shutters with a black-framed glass display bay at the right-hand end
     const bay = luxe && len > 1.4 ? 0.5 : 0;
-    g.add(box(len - bay, y1 - y0, d, luxe ? M.greige : M.laminateBeige, -bay / 2, (y0 + y1) / 2, d / 2));
+    g.add(box(len - bay, y1 - y0, d, luxe ? M.greige : doll ? M.cabGreen : M.laminateBeige, -bay / 2, (y0 + y1) / 2, d / 2));
     if (bay) {
       const bx = len / 2 - bay / 2;
       g.add(box(bay, y1 - y0, 0.02, M.walnut, bx, (y0 + y1) / 2, 0.01));
@@ -368,6 +419,7 @@ export function kit(M, style = 'standard') {
     }
     const n = Math.max(1, Math.round(len / 0.5));
     for (let i = 1; i < n; i++) if (-len / 2 + (i * len) / n < len / 2 - bay - 0.05) g.add(box(0.004, y1 - y0 - 0.02, 0.004, M.black, -len / 2 + (i * len) / n, (y0 + y1) / 2, d + 0.002, false));
+    if (doll) for (let i = 0; i < n; i++) g.add(box(0.012, 0.3, 0.015, M.gold, -len / 2 + ((i + 0.5) * len) / n + (i % 2 ? -1 : 1) * (len / n / 2 - 0.05), y0 + 0.2, d + 0.01)); // gold pulls
     g.add(box(len, 0.02, 0.02, M.lamp, 0, y0 - 0.01, d - 0.05, false)); // under-cabinet LED strip
     return { g };
   }
@@ -500,7 +552,7 @@ export function kit(M, style = 'standard') {
       p.setZ(i, Math.sin((x / width) * Math.PI * 2 * Math.max(2, width / 0.09)) * 0.035);
     }
     geo.computeVertexNormals();
-    const m = new THREE.Mesh(geo, M.curtain);
+    const m = new THREE.Mesh(geo, shell.curtain);
     m.castShadow = true;
     m.receiveShadow = true;
     return m;
@@ -511,10 +563,10 @@ export function kit(M, style = 'standard') {
     const g = new THREE.Group();
     const drop = (top - bottom) * 0.4, folds = 4;
     g.add(box(width, 0.03, 0.04, M.alu, 0, top - 0.015, 0));
-    g.add(box(width, drop, 0.012, M.curtain, 0, top - 0.03 - drop / 2, 0.004));
-    for (let k = 0; k < folds; k++) g.add(box(width, 0.035, 0.03, M.curtain, 0, top - 0.03 - drop + (k * drop) / folds + 0.02, 0.01));
+    g.add(box(width, drop, 0.012, shell.curtain, 0, top - 0.03 - drop / 2, 0.004));
+    for (let k = 0; k < folds; k++) g.add(box(width, 0.035, 0.03, shell.curtain, 0, top - 0.03 - drop + (k * drop) / folds + 0.02, 0.01));
     return g;
   }
 
-  return { bed, wardrobe, crockery, sofa, coffeeTable, tvWall, dining, plant, diwan, counter, upper, hob, sink, fridge, wc, vanity, showerGlass, showerHead, fan, downlight, curtainPanel, romanBlind, box, cyl };
+  return { shell, bed, wardrobe, crockery, sofa, coffeeTable, tvWall, dining, plant, diwan, counter, upper, hob, sink, fridge, wc, vanity, showerGlass, showerHead, fan, downlight, curtainPanel, romanBlind, box, cyl };
 }

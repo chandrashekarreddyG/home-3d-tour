@@ -330,6 +330,22 @@ export function makeMaterials(renderer) {
     slabWhite: veined('#f4f2ee', (R) => `rgba(${150 + R() * 30},${154 + R() * 30},${160 + R() * 30},${0.15 + R() * 0.3})`, 53),
     // backlit onyx: cream slab with amber veins, glowing softly from behind
     onyx: veined('#f1e6d2', (R) => `rgba(${170 + R() * 50},${120 + R() * 40},${60 + R() * 30},${0.15 + R() * 0.35})`, 77, { emissive: '#ffd6a0', emissiveIntensity: 0.55 }),
+    // "Modern luxury" palette, the colours of dollhouse.html's Modern Luxury style: white marble with grey and gold
+    // veins, dark walnut, deep-green velvet, taupe fabric, brushed gold, dark-green kitchen cabinets, black marble wet floors
+    luxMarble: veined('#f2efe9', (R) => (R() < 0.12 ? `rgba(201,164,92,${0.12 + R() * 0.15})` : `rgba(${140 + R() * 30},${136 + R() * 30},${132 + R() * 30},${0.08 + R() * 0.16})`), 21, { roughness: 0.22, envMapIntensity: 1.2 }),
+    blackMarble: veined('#2b2c2f', (R) => (R() < 0.2 ? `rgba(201,164,92,${0.2 + R() * 0.25})` : `rgba(200,200,200,${0.12 + R() * 0.25})`), 23, { roughness: 0.3, envMapIntensity: 1.2 }),
+    walnutDark: pbr('laminate_floor_02', { color: '#8a5f42', roughness: 0.6 }),
+    gold: solid('#c9a45c', { metalness: 0.95, roughness: 0.28 }),
+    velvetGreen: pbr('velour_velvet', { useDiff: false, color: '#1f4b45', normalScale: 0.6 }),
+    fabTaupe: pbr('rough_linen', { useDiff: false, color: '#d9d0c0', normalScale: 0.9 }),
+    duvetTaupe: pbr('rough_linen', { useDiff: false, color: '#d8cfc0', normalScale: 0.6 }),
+    curtainTaupe: pbr('rough_linen', { useDiff: false, color: '#8c8172', normalScale: 0.6, side: THREE.DoubleSide }),
+    woodDark: pbr('walnut_veneer', { color: '#9a6a48', roughness: 0.55 }),
+    espresso: solid('#2c1f17', { roughness: 0.55 }),
+    wardDark: solid('#3d2a1e', { roughness: 0.5 }),
+    cabGreen: solid('#23302c', { roughness: 0.5 }),
+    rugDark: solid('#3a393c', { roughness: 1 }),
+    potBlack: solid('#26262a', { roughness: 0.6 }),
     // grey rug with soft wave lines (2 m repeat)
     rugWave: (() => {
       const N = 512, c = document.createElement('canvas');
@@ -433,6 +449,7 @@ export const FLOORS = [
   { id: 'terrazzo', name: 'Terrazzo', blurb: 'Warm grey terrazzo right through the house (toilets keep anti-skid tiles).', map: { tile: 'terrazzo', kitchen: 'terrazzo', wood: 'terrazzo' } },
   { id: 'oxide', name: 'Red oxide tiles', blurb: 'Hand-made red oxide tiles (Athangudi / Kerala style) indoors and on the verandahs.', map: { tile: 'terracotta', kitchen: 'terracotta', wood: 'terracotta', stone: 'terracotta' } },
   { id: 'wood', name: 'Oak throughout', blurb: 'Oak laminate in the living areas and bedrooms, and 600 × 600 vitrified tiles in the kitchen.', map: { tile: 'wood', kitchen: 'vitBeige' } },
+  { id: 'luxury', name: 'White marble + dark walnut', blurb: 'White marble with grey and gold veins in the living areas, kitchen and pooja, dark walnut in the bedrooms, black marble in the toilets (the dollhouse.html Modern Luxury floors).', map: { tile: 'luxMarble', kitchen: 'luxMarble', marble: 'luxMarble', wood: 'walnutDark', bath: 'blackMarble' } },
 ];
 
 // Wall paint colours: subtle, rich emulsion shades (approximate sRGB of the paint card, matt finish).
@@ -446,6 +463,7 @@ export const PAINTS_IN = [
   { id: 'sage', name: 'Sage mist', hex: '#dfe3d4', blurb: 'Pale grey-green; restful in bedrooms and the pooja room.' },
   { id: 'blush', name: 'Blush clay', hex: '#ecdbd0', blurb: 'Muted pink-clay; warm and rich in the evening light.' },
   { id: 'mist', name: 'Morning mist', hex: '#dee3e5', blurb: 'Pale blue-grey; airy and cool in west-facing rooms.' },
+  { id: 'stone', name: 'Warm stone', hex: '#e7e1d6', blurb: 'Warm grey-beige; the dollhouse.html Modern Luxury wall colour, made for dark wood and gold.' },
 ];
 export const PAINTS_EXT = [
   { id: 'design', name: 'Design colour', hex: null, blurb: 'The colour that comes with the chosen elevation idea.' },
