@@ -17,6 +17,19 @@ Owner requests built in:
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 
+**Lightweight page:** https://chandrashekarreddyg.github.io/home-3d-tour/dollhouse.html is one self-contained HTML
+file (about 120 KB, 40 KB gzipped) that loads only Three.js from the CDN: no textures, models, audio or modules. It
+opens on the same view as the landing page, the house on its surveyed site with the Floating frame · glass parapet
+elevation, compound wall and gates, both roads and the neighbouring parcels, all drawn in code. It has:
+- Whole site, Dollhouse, Bird's-eye and Walk in, plus the Front, Side and Corner views, a Roof switch, room tags and a
+  room list (click to step inside), a minimap, a compass and a dimensions overlay.
+- Walking with collision, click-the-floor to glide, drag to look, and the staircase up to the terrace.
+- A sun placed for the site from today's date and a time slider (Day and Evening presets; lamps come on after dark).
+- A 30-second tour and three interior styles (Scandinavian, Modern Luxury, Family Friendly).
+
+Its units are feet and it follows the drawing as drawn, so it keeps the Kitchen–Dining wall and the Pooja window and
+has the mandir on the Drawing Room side wall; the owner requests above are in the main walkthrough only.
+
 ## Accuracy
 
 - **1 world unit = 1 metre.** Feet and inches are converted exactly (1″ = 25.4 mm).
@@ -195,5 +208,6 @@ python3 -m http.server 8000   # open http://localhost:8000
 | `js/sun.js` | solar position |
 | `js/main.js` | camera modes, interaction, UI |
 | `js/lighting.js` | lighting designs (downlights, profiles, cove, pendants) |
+| `dollhouse.html` | lightweight single-file version (units in feet, everything inline) |
 
 To regenerate `VALIDATION.md`, run `measurementReport()` in the browser console.

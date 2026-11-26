@@ -2,25 +2,93 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Padma Reddy Ganna Residence - Ground Floor 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Padma Reddy Residence · Lightweight 3D</title>
+<meta name="description" content="Single-file 3D model of the Padma Reddy residence (Plan-2) on its site: exterior, furnished interior, walk-through and tour.">
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #e4ebf0; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #2b2a28; }
-  #c, #fade { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-  #fade { pointer-events: none; opacity: 0; }
-  #top { position: fixed; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: flex-start; pointer-events: none; }
-  .bar { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 2px 14px rgba(0,0,0,.14); pointer-events: auto; }
-  .bar button { border: 0; background: transparent; padding: 8px 14px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 600; color: #3a3833; cursor: pointer; white-space: nowrap; }
-  .bar button:hover { background: rgba(0,0,0,.07); }
-  .bar button.on { background: #2f2d2a; color: #fff; }
-  #styles button { padding: 10px 18px; font-size: 15px; }
-  #banner { position: fixed; left: 0; right: 0; top: 38%; text-align: center; font-size: clamp(40px, 8vw, 110px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.6); opacity: 0; transition: opacity .35s ease; pointer-events: none; }
+  :root { --bg: rgba(20,24,30,.82); --fg: #f2f4f6; --muted: #a9b3bd; --line: rgba(255,255,255,.12); --accent: #ffb703; --accent2: #fb8500; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #dce7ef; color: var(--fg); }
+  #c, #fade { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #fade { pointer-events: none; opacity: 0; z-index: 2; }
+  #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 3; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  #panel { position: fixed; top: 12px; left: 12px; bottom: 12px; width: 290px; background: var(--bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; transform: translateX(calc(-100% - 20px)); transition: transform .25s ease; z-index: 10; }
+  body.panel-open #panel { transform: none; }
+  #panel header { padding: 16px 16px 8px 54px; }
+  #panel h1 { margin: 0; font-size: 17px; letter-spacing: .2px; }
+  #panel .sub { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+  #panel section { padding: 10px 16px; border-top: 1px solid var(--line); flex-shrink: 0; }
+  #panel h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; }
+  .note { margin: 8px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+  .note:first-of-type { margin-top: 0; }
+  .note a, .link { color: var(--accent); }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; background: rgba(255,255,255,.06); padding: 3px; border-radius: 9px; }
+  .seg button { flex: 1 1 40%; border: 0; background: transparent; padding: 7px 6px; border-radius: 7px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .seg button.on { background: var(--accent); color: #1b1b1b; font-weight: 600; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .btns button { border: 1px solid var(--line); background: rgba(255,255,255,.06); padding: 8px; border-radius: 8px; font-size: 13px; }
+  .btns button:hover { background: rgba(255,255,255,.12); }
+  .btns button.primary, .btns button.on { background: var(--accent); color: #1b1b1b; border-color: transparent; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; margin-top: 9px; font-size: 12.5px; }
+  .chk { display: flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; }
+  .chk input, #sunTime { accent-color: var(--accent); }
+  .link { background: none; border: 0; padding: 0; font-size: 12.5px; }
+  .link:hover { text-decoration: underline; }
+  #sunTime { width: 100%; margin: 10px 0 0; }
+  #rooms { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  #rooms button { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border: 0; background: transparent; padding: 6px 9px; border-radius: 7px; text-align: left; font-size: 13px; }
+  #rooms button small { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  #rooms button:hover { background: rgba(255,255,255,.08); }
+  #rooms button.on { background: rgba(255,183,3,.2); box-shadow: inset 3px 0 0 var(--accent); }
+  .help { padding: 10px 16px 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); line-height: 1.45; flex-shrink: 0; }
+  .help p { margin: 0 0 5px; }
+  .help b { color: var(--fg); font-weight: 600; }
+  kbd { display: inline-block; min-width: 17px; padding: 0 4px; margin: 0 1px; border: 1px solid var(--line); border-radius: 4px; font: 10.5px ui-monospace, monospace; text-align: center; background: rgba(255,255,255,.06); }
+  #panelToggle { position: fixed; top: 20px; left: 20px; z-index: 11; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; }
+
+  #topbar { position: fixed; top: 20px; right: 82px; z-index: 6; display: flex; gap: 10px; align-items: center; }
+  #topbar button, #topbar a { height: 34px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; box-shadow: 0 3px 12px rgba(0,0,0,.18); display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; }
+  #topbar button:hover, #topbar a:hover, #topbar button.on { background: var(--accent); color: #1b1b1b; }
+  #topbar #btnTour { height: 42px; padding: 0 20px; border: 0; background: var(--accent); color: #1b1b1b; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,.28); }
+  #topbar #btnTour.on { background: #e8542a; color: #fff; }
+  #compassWrap { position: fixed; right: 14px; top: 14px; width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 3px 12px rgba(0,0,0,.15); z-index: 5; }
+  #compass { position: absolute; inset: 0; }
+  #compass i { position: absolute; left: 50%; top: 5px; margin-left: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid #d9362b; }
+  #compass span { position: absolute; left: 0; right: 0; top: 22px; text-align: center; font-weight: 700; font-size: 12px; color: #222; }
+  #minimap { position: fixed; right: 14px; bottom: 14px; width: 210px; height: 220px; z-index: 5; background: rgba(255,255,255,.85); border-radius: 12px; border: 1px solid rgba(0,0,0,.08); box-shadow: 0 4px 18px rgba(0,0,0,.12); cursor: crosshair; }
+  #fps { position: fixed; right: 236px; bottom: 16px; z-index: 5; font-size: 11px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.75); pointer-events: none; font-variant-numeric: tabular-nums; }
+
+  #hud { position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px; text-align: center; pointer-events: none; z-index: 5; max-width: calc(100vw - 480px); }
+  body.panel-open #hud { left: calc(50% + 40px); max-width: calc(100vw - 580px); }
+  #where { display: flex; width: fit-content; flex-direction: column; align-items: center; gap: 1px; background: var(--bg); padding: 7px 18px; border-radius: 10px; margin: 0 auto 7px; }
+  #where:empty { display: none; }
+  #where b { font-size: 16px; }
+  #where span { font-size: 11.5px; color: var(--muted); }
+  #hint { font-size: 12px; color: #1f2a33; background: rgba(255,255,255,.78); padding: 5px 12px; border-radius: 99px; display: inline-block; }
+  #hint:empty { display: none; }
+  #banner { position: fixed; left: 0; right: 0; top: 38%; z-index: 7; text-align: center; font-size: clamp(40px, 8vw, 110px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.6); opacity: 0; transition: opacity .35s ease; pointer-events: none; }
   #banner.show { opacity: 1; }
-  #room { position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%); padding: 10px 26px; border-radius: 999px; background: rgba(25,24,22,.72); color: #fff; font-size: 20px; font-weight: 600; letter-spacing: .02em; opacity: 0; transition: opacity .3s ease; pointer-events: none; white-space: nowrap; }
-  #room.show { opacity: 1; }
-  #hint { position: fixed; left: 14px; bottom: 12px; font-size: 12.5px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.75); pointer-events: none; max-width: 60vw; }
-  #fps { position: fixed; right: 14px; bottom: 12px; font-size: 12px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.75); pointer-events: none; font-variant-numeric: tabular-nums; }
-  #err { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 40px; text-align: center; font-size: 16px; background: #f3efe8; }
+
+  .rlabel, .slabel, .dlabel { position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; }
+  .rlabel { pointer-events: auto; border: 0; display: flex; flex-direction: column; align-items: center; background: rgba(20,24,30,.78); color: #fff; padding: 4px 9px; border-radius: 8px; font-size: 12px; font-weight: 600; line-height: 1.2; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .rlabel span { font-size: 10.5px; font-weight: 400; color: #cfd6dc; }
+  .rlabel:hover { background: var(--accent); color: #1b1b1b; }
+  .rlabel:hover span { color: #3a3a3a; }
+  .slabel { display: flex; flex-direction: column; align-items: center; color: #222; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px rgba(255,255,255,.9); }
+  .slabel span { font-size: 11px; font-weight: 400; color: #4a4a4a; }
+  .slabel.home { background: #d9362b; color: #fff; text-shadow: none; padding: 4px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .slabel.home span { color: #ffe3df; }
+  .dlabel { background: #fff; color: #c0271d; border: 1px solid #d9362b; padding: 1px 6px; border-radius: 5px; font-size: 11.5px; font-weight: 700; }
+  #err { position: fixed; inset: 0; z-index: 20; display: none; align-items: center; justify-content: center; padding: 40px; text-align: center; font-size: 16px; background: #f3efe8; color: #222; }
+
+  @media (max-width: 760px) {
+    #minimap { width: 120px; height: 126px; }
+    #fps, #btnLiving { display: none !important; }
+    #hud, body.panel-open #hud { left: 50%; max-width: calc(100vw - 150px); bottom: 12px; transform: translateX(calc(-50% - 62px)); }
+    #topbar { right: 78px; gap: 6px; }
+  }
 </style>
 <script type="importmap">
 { "imports": {
@@ -29,30 +97,75 @@
 } }
 </script>
 </head>
-<body>
+<body class="panel-open">
 <canvas id="c"></canvas>
 <canvas id="fade"></canvas>
-<div id="top">
-  <div class="bar" id="views">
-    <button id="bDoll" class="on">Dollhouse</button>
-    <button id="bLiving">Living Room</button>
-    <button id="bWalk">Walk</button>
-    <button id="bTour">Tour</button>
-  </div>
-  <div class="bar" id="styles">
-    <button data-style="scandi" class="on">Scandinavian</button>
-    <button data-style="luxury">Modern Luxury</button>
-    <button data-style="family">Family Friendly</button>
-  </div>
-  <div class="bar" id="times">
-    <button data-time="day" class="on">Day</button>
-    <button data-time="evening">Evening</button>
-  </div>
+<div id="labels"></div>
+
+<aside id="panel">
+  <header>
+    <h1>Padma Reddy Residence</h1>
+    <p class="sub">Lightweight 3D · 1 unit = 1 ft</p>
+  </header>
+  <section>
+    <h2>Design</h2>
+    <p class="note">Plan-2, from PADMA REDDY GANNA.pdf: 43′-0″ × 43′-0″ house on the 56′-1″ × 59′-1″ site at Yellareddypet. Plinth 1849 sft, slab 2400 sft, 9′-0″ ceilings.</p>
+    <p class="note"><a href="./#p2">Full walkthrough with elevations, finishes and reports →</a></p>
+  </section>
+  <section>
+    <h2>View</h2>
+    <div class="btns">
+      <button id="btnSite">Whole site</button>
+      <button id="btnHouse">Dollhouse</button>
+      <button id="btnPlan">Bird's-eye</button>
+      <button id="btnWalk" class="primary">Walk in</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="chkRoof" checked> Roof</label>
+      <label class="chk"><input type="checkbox" id="chkLabels" checked> Labels</label>
+      <label class="chk"><input type="checkbox" id="chkDims"> Dimensions</label>
+    </div>
+    <div class="row">
+      <span><button id="btnFront" class="link">Front view</button> · <button id="btnSide" class="link">Side view</button> · <button id="btnStreet" class="link">Corner view</button></span>
+    </div>
+  </section>
+  <section>
+    <h2>Interior style</h2>
+    <div class="seg" id="styles">
+      <button data-style="scandi" class="on">Scandinavian</button>
+      <button data-style="luxury">Modern Luxury</button>
+      <button data-style="family">Family Friendly</button>
+    </div>
+  </section>
+  <section>
+    <h2>Sunlight at the site</h2>
+    <div class="seg" id="times">
+      <button data-time="day" class="on">Day</button>
+      <button data-time="evening">Evening</button>
+    </div>
+    <input type="range" id="sunTime" min="330" max="1230" step="5" value="570" aria-label="Time of day">
+    <p id="sunInfo" class="note"></p>
+  </section>
+  <section>
+    <h2>Rooms</h2>
+    <ul id="rooms"></ul>
+  </section>
+  <footer class="help">
+    <p><b>Overview</b> drag to orbit, scroll to zoom, right-drag to pan, click a room to step inside.</p>
+    <p><b>Inside</b> click the floor to glide, drag to look, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to walk, <kbd>Shift</kbd> faster, <kbd>Esc</kbd> back out. Walls and furniture stop you; the staircase leads to the terrace.</p>
+  </footer>
+</aside>
+<button id="panelToggle" aria-label="Toggle panel">☰</button>
+
+<div id="topbar">
+  <button id="btnTour" title="30-second tour through every room, starting at the main door">▶ Video tour</button>
+  <button id="btnLiving" title="Stand inside the living room">Living room</button>
 </div>
-<div id="banner"></div>
-<div id="room"></div>
-<div id="hint"></div>
+<div id="compassWrap" title="North, from the survey map"><div id="compass"><i></i><span>N</span></div></div>
+<canvas id="minimap" title="Click to go there"></canvas>
 <div id="fps"></div>
+<div id="hud"><div id="where"></div><div id="hint"></div></div>
+<div id="banner"></div>
 <div id="err">Could not load Three.js from the CDN. Check your internet connection and reload.</div>
 <script>addEventListener('error', e => { if (!window.__ok && /module|import|three/i.test(String(e.message || e.target?.src || ''))) document.getElementById('err').style.display = 'flex'; }, true);</script>
 <script type="module">
@@ -82,10 +195,10 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false;            // static scene: re-render the shadow map only when the look changes
 const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xe4ebf0);
-scene.fog = new THREE.Fog(0xe4ebf0, 130, 330);   // melts the ground plane into the sky
+scene.background = new THREE.Color(0xc2d1de);
+scene.fog = new THREE.FogExp2(0xc2d1de, .0013);  // light aerial haze over the far fields
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
-const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 1, 700);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 6000);
 
 // ---------- procedural textures (canvas drawn in code, no image files)
 const hex = c => '#' + new THREE.Color(c).getHexString();
@@ -247,7 +360,13 @@ const MAT = {
   frost: flag(std(0xeef4f6, .6, 0, { transparent: true, opacity: .8, emissive: 0xdfeef5, emissiveIntensity: .3 }), { noCast: 1, order: 3 }),
   shower: flag(std(0xdfeef2, .05, 0, { transparent: true, opacity: .22, depthWrite: false }), { noCast: 1, order: 3 }),
   floorLiving: std(0xffffff, .55), floorBed: std(0xffffff, .6), floorWet: std(0xffffff, .35), floorPuja: std(0xffffff, .5),
-  plinth: lam(0xcfc8ba), stone: std(0xcfc9bd, .9), ground: lam(0xb9c4a6),
+  // exterior and site: fixed colours of the "Floating frame · glass parapet" elevation
+  plinth: lam(0xa59a8b), stone: std(0xb9b4aa, .8), ext: lam(0xe9e7e2), white: lam(0xf7f6f2), charcoal: lam(0x5f605e), slab: lam(0xd9d4cb),
+  steel: std(0x1e2022, .45, .6), rail: std(0x24272b, .5, .5), kerb: lam(0xd9362b), teak: std(0x8a5a2b, .55), gold: std(0xd9a842, .35, .9),
+  pglass: flag(std(0xdfeef3, .05, 0, { transparent: true, opacity: .2, depthWrite: false }), { noCast: 1, order: 3 }),
+  paving: std(0xffffff, .9), asphalt: std(0xffffff, .95), earth: lam(0xb3a488), grass: lam(0x808a55), soil: lam(0x8f6257), strip: lam(0xdcc06a),
+  trunk: lam(0x5b4030), tree: [lam(0x56803c), lam(0x668f45), lam(0x4a7234)],
+  lampGlow: flag(new THREE.MeshBasicMaterial({ color: 0xfff1d6 }), { noCast: 1 }),
   ceiling: flag(lam(0xffffff, { emissive: 0xffffff, emissiveIntensity: .3 }), { noCast: 1 }),
   ceilLight: flag(std(0xffffff, .6, 0, { emissive: 0xfff0d0, emissiveIntensity: .8 }), { noCast: 1 }),
   blob: flag(new THREE.MeshBasicMaterial({ map: blobTex, color: 0x000000, opacity: .34, ...decal }), { noCast: 1, noRecv: 1, order: 1 }),
@@ -298,12 +417,23 @@ const FLOORS = [
   ['Bed', .75, 12.25, 21, 37], ['Bed', 8.625, 12.25, 37, 42.25], ['Bed', 17.5, 29.625, 26.25, 42.25], ['Bed', 30, 42.25, 26.25, 42.25], ['Bed', 30, 33.875, 21, 26.25],
   ['Wet', 30, 42.25, .75, 11.75], ['Wet', .75, 8.25, 37.375, 42.25], ['Wet', 12.625, 17.125, 31.75, 42.25], ['Wet', 34.25, 42.25, 21, 25.875],
 ];
+// rooms for the "where am I" read-out: [name, x0, x1, z0, z1]; names as on the drawing
 const ROOMS = [
-  ['Hall / Living Room', 12.625, 29.625, .75, 25.875], ['Passage', 12.625, 17.125, 25.875, 31.375], ['Drawing Room', .75, 12.25, .75, 11.75],
-  ['Puja Room', .75, 12.25, 12.125, 20.625], ['Bedroom 3', .75, 12.25, 21, 37], ['Bedroom 3 Dressing', 8.625, 12.25, 37, 42.25],
-  ['Bedroom 3 Toilet', .75, 8.25, 37.375, 42.25], ['Common Toilet', 12.625, 17.125, 31.75, 42.25], ['Bedroom 2', 17.5, 29.625, 26.25, 42.25],
-  ['Kitchen', 30, 42.25, .75, 11.75], ['Dining Room', 30, 42.25, 12.125, 20.625], ['Master Bedroom', 30, 42.25, 26.25, 42.25],
-  ['Master Bedroom', 30, 33.875, 21, 26.25], ['Master Toilet', 34.25, 42.25, 21, 25.875], ['Front Verandah', -7, 43, -5, 0], ['North Verandah', -7, 0, 0, 43],
+  ['Hall', 12.625, 29.625, .75, 25.875], ['Hall', 12.625, 17.125, 25.875, 31.375], ['Drawing Room', .75, 12.25, .75, 11.75],
+  ['Pooja', .75, 12.25, 12.125, 20.625], ['Bedroom 3', .75, 12.25, 21, 37], ['Bedroom 3', 8.625, 12.25, 37, 42.25],
+  ['Toilet 3', .75, 8.25, 37.375, 42.25], ['Toilet 2', 12.625, 17.125, 31.75, 42.25], ['Bedroom 2', 17.5, 29.625, 26.25, 42.25],
+  ['Kitchen', 30, 42.25, .75, 11.75], ['Dining', 30, 42.25, 12.125, 20.625], ['Master Bedroom', 30, 42.25, 26.25, 42.25],
+  ['Master Bedroom', 30, 33.875, 21, 26.25], ['Toilet 1', 34.25, 42.25, 21, 25.875], ['Side Balcony', -7, 43, -5, 0], ['Front Balcony', -7, 0, 0, 43],
+];
+// room list and 3D labels: [name, size as written on the drawing, label x, z, stand at x, z, look at x, z]
+const ROOM_LIST = [
+  ['Front Balcony', '7′-0″ wide', -3.5, 19, -3.5, 24, -3.2, 4], ['Drawing Room', '11′-0″ × 11′-6″', 6.5, 6.25, 10.8, 3.6, 4, 9.5],
+  ['Hall', '25′-1½″ × 17′-0″', 21.1, 13.3, 15.2, 13.4, 25.5, 6.6], ['Pooja', '8′-6″ × 11′-6″', 6.5, 16.4, 10.2, 17.2, 6.2, 12.4],
+  ['Dining', '8′-6″ × 12′-3″', 36.1, 16.4, 31.3, 15, 38, 16.8], ['Kitchen', '11′-0″ × 12′-3″', 36.1, 6.25, 32.2, 10.2, 38.5, 4.5],
+  ['Master Bedroom', '16′-0″ × 12′-3″', 36.1, 34.25, 32.2, 27.4, 38.5, 34.5], ['Toilet 1', '4′-10″ × 8′-0″', 38.25, 23.4, 38.3, 24.9, 40.5, 22],
+  ['Bedroom 2', '16′-0″ × 12′-1½″', 23.6, 34.25, 19.3, 28.3, 24.5, 34.5], ['Toilet 2', '10′-6″ × 4′-6″', 14.9, 37, 14.4, 33, 14.8, 41],
+  ['Bedroom 3', '16′-0″ × 11′-6″', 6.5, 29, 10.4, 23.8, 5.5, 30.5], ['Toilet 3', '4′-10½″ × 7′-6″', 4.5, 39.8, 7.2, 39.2, 2.5, 40.5],
+  ['Side Balcony', '5′-0″ wide', 21.5, -2.5, 33, -3, 8, -2.4], ['Terrace', 'via the staircase · +9′-5″', 21.5, 21.5, 24, 22, -8, -6],
 ];
 const CEIL_LIGHTS = [[21, 7.5], [21, 20], [6.5, 6.2], [6.5, 16.4], [6.5, 29], [23.5, 34], [35.5, 6.3], [36, 34], [38.2, 23.4], [14.9, 37], [4.5, 39.8], [14.9, 28.6], [32, 23.6]];
 
@@ -330,6 +460,7 @@ function buildShell() {
     const piece = (a, b, y0, y1) => {
       if (b - a < 1e-3) return;
       put(MAT.wall, b - a, y1 - y0, t, (a + b) / 2, y0, c);
+      if (w.inside) put(MAT.ext, b - a, y1 - y0, .04, (a + b) / 2, y0, w.inside > 0 ? w.lo - .02 : w.hi + .02);   // exterior paint
       if (y0 > 0) return;
       shellCol.push(X ? { x0: a, x1: b, z0: w.lo, z1: w.hi } : { x0: w.lo, x1: w.hi, z0: a, z1: b });
       for (const s of (w.inside ? [w.inside] : [-1, 1])) put(MAT.trim, b - a, .33, .05, (a + b) / 2, 0, s > 0 ? w.hi + .025 : w.lo - .025);   // skirting
@@ -372,15 +503,9 @@ function buildShell() {
   }
   B.at();
   for (const [type, x0, x1, z0, z1] of FLOORS) floorPatch(MAT['floor' + type], x0, x1, z0, z1);
-  // plinth (also the door thresholds), verandahs, entry steps, external staircase, ground
-  B.bx(MAT.plinth, 43, 1.2, 43, 21.5, -1.215, 21.5);
-  B.bx(MAT.stone, 50, 1.14, 5, 18, -1.2, -2.5); B.bx(MAT.stone, 7, 1.14, 43, -3.5, -1.2, 21.5);
-  B.bx(MAT.stone, 7, .76, 1.1, 18.6, -1.2, -5.55); B.bx(MAT.stone, 7, .38, 1.1, 18.6, -1.2, -6.65);
-  for (let i = 0; i < 13; i++) B.bx(MAT.stone, 3.4, .69 * (i + 1), .84, -1.9, -.06, 39.6 - i * .84);
-  shellCol.push({ x0: -3.6, x1: -.2, z0: 28.7, z1: 40.1 });
-  // keep walkers on the verandahs when they step outside
+  for (const x of [-.02, 43.02]) for (const z of [.375, 42.625]) B.bx(MAT.ext, .04, H, .75, x, 0, z);   // exterior paint on the corner returns
+  // keep walkers on the balconies when they step outside
   shellCol.push({ x0: -9, x1: -7, z0: -7, z1: 45 }, { x0: -9, x1: 45, z0: -7, z1: -5 }, { x0: 43, x1: 45, z0: -7, z1: 0 }, { x0: -9, x1: 0, z0: 43, z1: 45 });
-  const ground = new THREE.CircleGeometry(170, 48); ground.rotateX(-PI / 2); B.add(MAT.ground, ground, 21.5, -1.2, 21.5);
   B.build(shellGroup);
 
   // ceiling and ceiling lights: shown only when the camera is inside (the dollhouse view has the roof cut away)
@@ -388,9 +513,6 @@ function buildShell() {
   const cg = new THREE.PlaneGeometry(43, 43); cg.rotateX(PI / 2); C.add(MAT.ceiling, cg, 21.5, H, 21.5);
   for (const [x, z] of CEIL_LIGHTS) C.cyl(MAT.ceilLight, .55, .07, x, H - .08, z, .55, 24);
   C.build(ceilGroup);
-  // invisible roof that still casts shadows, so sunlight enters only through the windows and doors
-  roofMesh = new THREE.Mesh(new THREE.BoxGeometry(43.3, .3, 43.3), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
-  roofMesh.position.set(21.5, H + .2, 21.5); roofMesh.castShadow = false; scene.add(roofMesh);
   ceilGroup.visible = false;
 }
 
@@ -398,33 +520,33 @@ function buildShell() {
 const STYLES = {
   scandi: {
     name: 'Scandinavian',
-    shell: { wall: 0xf3efe7, trim: 0xfaf8f3, frame: 0xf8f6f1, door: 0xe6d6b8, knob: 0x2e2e2e, curtain: 0xe9e1d0, rod: 0x2e2e2e, plinth: 0xd6d0c2, stone: 0xcbc5b8 },
+    shell: { wall: 0xf3efe7, trim: 0xfaf8f3, frame: 0xf8f6f1, door: 0xe6d6b8, knob: 0x2e2e2e, curtain: 0xe9e1d0, rod: 0x2e2e2e },
     floors: () => ({ Living: woodTex(0xdbc7a4, 0xc7ae88, 11), Bed: woodTex(0xdbc7a4, 0xc7ae88, 12), Wet: tileTex(0xece8df, 0xe4dfd4, 8, 0xcfc9bd, 3), Puja: tileTex(0xf1ede4, 0xf1ede4, 4, 0xd9d3c6, 4) }),
     c: { wood: 0xd3b483, wood2: 0xb98f5e, fab: 0xcfc8ba, fab2: 0xa9b59a, linen: 0xf6f2ea, duvet: 0xeee7d9, blanket: 0xc98f6b, cush: [0xa9b59a, 0xc98f6b, 0xe3c98a], rug: 0xece5d6, rug2: 0xd8cdb8,
       metal: 0x2e2e2e, cab: 0xbdd0b2, counter: 0xf4f2ed, splash: 0xfbfaf6, pot: 0xe9e3d6, pot2: 0xc98f6b, shade: 0xf7ecd6, ward: 0xf4f1ea, art: [0xa9b59a, 0xc98f6b, 0xe3c98a, 0x51605a], book: [0xc98f6b, 0x7f927e, 0xe7dcc4, 0x51605a, 0xd9b76a], mandir: 0xfaf7f0 },
     metalRough: .5, metalness: .55, counterMarble: false,
     f: { r: .06, leg: 'taper', sofaLeg: .5, arm: .36, armH: .55, back: 'cushion', bedHead: 3.3, headR: .12, rugR: .15, tableR: .14, knob: false },
-    light: { sun: 0xfff0d8, sunI: 2.5, hemiSky: 0xf7f3ea, hemiGround: 0xdccfb8, hemiI: 1.0, exposure: 1.0, lamp: 0xffd6a0, lampI: 1, sky: 0xe6edf1, ground: 0xb7c4a6, env: .35 },
+    light: { sun: 0xfff0d8, sunI: 2.5, hemiSky: 0xf7f3ea, hemiGround: 0xdccfb8, hemiI: 1.0, exposure: 1.0, lamp: 0xffd6a0, lampI: 1, env: .35 },
   },
   luxury: {
     name: 'Modern Luxury',
-    shell: { wall: 0xe7e1d6, trim: 0x2a2420, frame: 0x2f2823, door: 0x3d2a1e, knob: 0xc9a45c, curtain: 0x8c8172, rod: 0xc9a45c, plinth: 0x8f8a82, stone: 0x77726b },
+    shell: { wall: 0xe7e1d6, trim: 0x2a2420, frame: 0x2f2823, door: 0x3d2a1e, knob: 0xc9a45c, curtain: 0x8c8172, rod: 0xc9a45c },
     floors: () => ({ Living: marbleTex(0xf2efe9, 0x8f8a84, 0xc9a45c, 21, 2), Bed: woodTex(0x5b3e2b, 0x3c281b, 22), Wet: marbleTex(0x2b2c2f, 0xc8c8c8, 0xc9a45c, 23, 4), Puja: marbleTex(0xf6f3ee, 0xb0aaa2, 0xc9a45c, 24, 0) }),
     c: { wood: 0x4a3222, wood2: 0x2c1f17, fab: 0x1f4b45, fab2: 0xd9d0c0, linen: 0xf4f0ea, duvet: 0xd8cfc0, blanket: 0x1f4b45, cush: [0xc9a45c, 0xe8e0d2, 0x16302d], rug: 0x3a393c, rug2: 0xc9a45c,
       metal: 0xc9a45c, cab: 0x23302c, counter: 0xf2efe9, splash: 0xf2efe9, pot: 0x26262a, pot2: 0xc9a45c, shade: 0xf3e2c0, ward: 0x3d2a1e, art: [0x1f4b45, 0xc9a45c, 0x1c1c1f, 0xe8e0d2], book: [0x1c1c1f, 0x7a2e2a, 0xe8e0d2, 0x1f4b45, 0xc9a45c], mandir: 0xf6f3ee },
     metalRough: .28, metalness: .95, counterMarble: true,
     f: { r: .025, leg: 'metal', sofaLeg: .2, arm: .5, armH: 1.35, back: 'channel', bedHead: 4.6, headR: .06, rugR: .02, tableR: .04, knob: false },
-    light: { sun: 0xffd6a2, sunI: 2.2, hemiSky: 0xe9dfd0, hemiGround: 0x9a8a78, hemiI: .8, exposure: .97, lamp: 0xffc070, lampI: 1.25, sky: 0xd9d3ca, ground: 0x9aa08c, env: .42 },
+    light: { sun: 0xffd6a2, sunI: 2.2, hemiSky: 0xe9dfd0, hemiGround: 0x9a8a78, hemiI: .8, exposure: .97, lamp: 0xffc070, lampI: 1.25, env: .42 },
   },
   family: {
     name: 'Family Friendly',
-    shell: { wall: 0xfdf7ea, trim: 0xffffff, frame: 0xffffff, door: 0x9fd8c4, knob: 0xf6c445, curtain: 0xfde9a9, rod: 0xffffff, plinth: 0xe3d9c6, stone: 0xd9cfbd },
+    shell: { wall: 0xfdf7ea, trim: 0xffffff, frame: 0xffffff, door: 0x9fd8c4, knob: 0xf6c445, curtain: 0xfde9a9, rod: 0xffffff },
     floors: () => ({ Living: woodTex(0xe6c48d, 0xd2a96d, 31), Bed: woodTex(0xe6c48d, 0xd2a96d, 32), Wet: tileTex(0xffffff, 0x9bd0ee, 8, 0xdfe7ea, 33), Puja: tileTex(0xfff6dc, 0xffe9ae, 4, 0xe8dcbb, 34) }),
     c: { wood: 0xe6c896, wood2: 0xf2785c, fab: 0x4fa6a8, fab2: 0xf6c445, linen: 0xffffff, duvet: 0x8fc9ee, blanket: 0xf2785c, cush: [0xf2785c, 0xf6c445, 0x7cc47f], rug: 0x8fc9ee, rug2: 0xfff3cf,
       metal: 0xf5f5f2, cab: 0x9fd8c4, counter: 0xffffff, splash: 0xfff3cf, pot: 0xf6c445, pot2: 0x6fb6e8, shade: 0xfff1c4, ward: 0xffffff, art: [0xf2785c, 0x6fb6e8, 0xf6c445, 0x7cc47f], book: [0xf2785c, 0x6fb6e8, 0xf6c445, 0x7cc47f, 0xb48ad6], mandir: 0xfffaf0 },
     metalRough: .55, metalness: .1, counterMarble: false,
     f: { r: .2, leg: 'chunky', sofaLeg: .3, arm: .7, armH: .7, back: 'cushion', bedHead: 3.6, headR: 1.6, rugR: 2.2, tableR: 1.2, knob: true },
-    light: { sun: 0xfff7e6, sunI: 2.7, hemiSky: 0xffffff, hemiGround: 0xf0dcb4, hemiI: 1.15, exposure: 1.03, lamp: 0xffe0b0, lampI: 1, sky: 0xdff0fb, ground: 0xb4d49c, env: .4 },
+    light: { sun: 0xfff7e6, sunI: 2.7, hemiSky: 0xffffff, hemiGround: 0xf0dcb4, hemiI: 1.15, exposure: 1.03, lamp: 0xffe0b0, lampI: 1, env: .4 },
   },
 };
 // materials shared by all styles
@@ -849,30 +971,278 @@ function buildStyle(key) {
   return built[key] = { key, st, P, group, col: B.col, lamps: B.lamps.filter(l => l.major), floors: st.floors() };
 }
 
-// ---------- lighting
+
+// ---------- exterior: plinth, balconies, staircase, roof slab, parapets and the "Floating frame · glass parapet"
+// elevation. G.P Road is on the -x side (7 ft front balcony), the 21 ft road on the -z side (5 ft side balcony).
+const G = -1.5, SLAB = 9 + 5 / 12, PARAPET = SLAB + 3, TOWER = 17.01;   // yard level (1'-6" plinth), slab top, parapet top, tower top
+const WELL = { x0: -6.96, x1: 0, z0: 29.24, z1: 39.25, mid: -3.48, land: 35.8 }, RISER = SLAB / 18, TREAD = .8202;   // dog-leg stair: 18 risers of 6.28"
+const extGroup = new THREE.Group(), roofGroup = new THREE.Group();
+scene.add(extGroup, roofGroup);
+const box = (B, mat, x0, x1, y0, y1, z0, z1) => B.bx(mat, x1 - x0, y1 - y0, z1 - z0, (x0 + x1) / 2, y0, (z0 + z1) / 2);
+// screen of vertical slats in a vertical plane: runs a0..a1 along `along` ('x' or 'z') at position p on the other axis
+function slats(B, along, a0, a1, y0, y1, p, n, mat = MAT.white) {
+  const T = .33, R = .26, L = a1 - a0, m = (a0 + a1) / 2;
+  const put = (la, h, pa, y) => along === 'x' ? B.bx(mat, la, h, T, pa, y, p) : B.bx(mat, T, h, la, p, y, pa);
+  put(L, R, m, y0); put(L, R, m, y1 - R); put(R, y1 - y0, a0 + R / 2, y0); put(R, y1 - y0, a1 - R / 2, y0);
+  for (let i = 1; i <= n; i++) put(.164, y1 - y0 - 2 * R, a0 + R + (L - 2 * R) * i / (n + 1), y0 + R);
+}
+// metal railing: top rail on posts
+function railing(B, along, a0, a1, p, y, h = 3) {
+  const L = a1 - a0, n = Math.max(1, Math.round(L / .42)), put = (la, hh, pa, yy) => along === 'x' ? B.bx(MAT.rail, la, hh, .1, pa, yy, p) : B.bx(MAT.rail, .1, hh, la, p, yy, pa);
+  put(L, .12, (a0 + a1) / 2, y + h - .12);
+  for (let i = 0; i <= n; i++) put(.07, h - .12, a0 + L * i / n, y);
+}
+// frameless glass parapet: white curb, clear panes, steel cap
+function glassParapet(B, along, a0, a1, edge, s) {      // `edge` = outer line; s = +1 if the terrace is on the + side
+  const put = (mat, la, h, lc, pa, y, pc) => along === 'x' ? B.bx(mat, la, h, lc, pa, y, pc) : B.bx(mat, lc, h, la, pc, y, pa);
+  const L = a1 - a0, n = Math.round(L / 4.9), c = edge + s * .19;
+  put(MAT.white, L, .33, .38, (a0 + a1) / 2, SLAB, c);
+  for (let i = 0; i < n; i++) put(MAT.pglass, L / n - .04, 2.57, .05, a0 + L * (i + .5) / n, SLAB + .33, c);
+  put(MAT.steel, L, .1, .13, (a0 + a1) / 2, PARAPET - .1, c);
+}
+function emblemTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = ANISO; return t;
+}
+// Om medallion: the Om at the centre of a spiral of tapering arcs, ink on cream
+const omTex = () => emblemTex(512, 512, (g, s) => {
+  g.fillStyle = '#f7f6f2'; g.fillRect(0, 0, s, s); g.translate(s / 2, s / 2); g.fillStyle = g.strokeStyle = '#1b1b1d'; g.lineCap = 'round';
+  for (let i = 0; i < 13; i++) {
+    const R = s * (.2 + i * .0205), a0 = -2.2 + i * .1, sweep = 4.3 - i * .08;
+    for (let k = 0; k < 40; k++) { g.lineWidth = Math.max(.6, s * .013 * Math.sin(PI * (k + .5) / 40)); g.beginPath(); g.arc(0, 0, R, a0 + sweep * k / 40, a0 + sweep * (k + 1.15) / 40); g.stroke(); }
+  }
+  g.font = `bold ${s * .27}px "Noto Sans Devanagari", "Kohinoor Devanagari", "Nirmala UI", "Mangal", serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ॐ', s * .01, s * .02);
+});
+// Shanku · Namam · Chakra panel, drawn as line art
+const sncTex = () => emblemTex(1024, 468, (g, w, h) => {
+  g.fillStyle = '#f7f6f2'; g.fillRect(0, 0, w, h); g.strokeStyle = '#1b1b1d'; g.fillStyle = '#1b1b1d'; g.lineJoin = g.lineCap = 'round';
+  const flames = (cx, cy, R) => { for (let i = 0; i < 4; i++) { const a = PI / 4 + i * PI / 2; g.beginPath(); g.moveTo(cx + Math.cos(a - .16) * R, cy + Math.sin(a - .16) * R); g.quadraticCurveTo(cx + Math.cos(a + .05) * R * 1.32, cy + Math.sin(a + .05) * R * 1.32, cx + Math.cos(a) * R * 1.42, cy + Math.sin(a) * R * 1.42); g.quadraticCurveTo(cx + Math.cos(a + .2) * R * 1.2, cy + Math.sin(a + .2) * R * 1.2, cx + Math.cos(a + .16) * R, cy + Math.sin(a + .16) * R); g.fill(); } };
+  // chakra
+  let cx = w * .19, cy = h * .52, R = h * .27; g.lineWidth = 7;
+  flames(cx, cy, R * 1.05); g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke(); g.lineWidth = 4; g.beginPath(); g.arc(cx, cy, R * .8, 0, 7); g.stroke();
+  for (let i = 0; i < 12; i++) { const a = i * PI / 6; g.beginPath(); g.moveTo(cx + Math.cos(a) * R * .22, cy + Math.sin(a) * R * .22); g.lineTo(cx + Math.cos(a) * R * .8, cy + Math.sin(a) * R * .8); g.stroke(); }
+  g.beginPath(); g.arc(cx, cy, R * .22, 0, 7); g.stroke(); g.beginPath(); g.arc(cx, cy, R * .07, 0, 7); g.fill();
+  // namam: white U with a red centre line
+  cx = w * .5; g.lineWidth = 46; g.beginPath(); g.moveTo(cx - w * .075, h * .16); g.quadraticCurveTo(cx - w * .03, h * .8, cx, h * .86); g.quadraticCurveTo(cx + w * .03, h * .8, cx + w * .075, h * .16); g.stroke();
+  g.strokeStyle = '#ffffff'; g.lineWidth = 32; g.stroke(); g.fillStyle = '#c8271e'; g.beginPath(); g.moveTo(cx, h * .2); g.quadraticCurveTo(cx + w * .028, h * .52, cx, h * .76); g.quadraticCurveTo(cx - w * .028, h * .52, cx, h * .2); g.fill();
+  // shanku (conch)
+  cx = w * .81; g.strokeStyle = g.fillStyle = '#1b1b1d'; flames(cx, cy, R * 1.05); g.fillStyle = '#f7f6f2'; g.lineWidth = 7;
+  g.beginPath(); g.moveTo(cx - R * .1, cy - R * 1.05); g.bezierCurveTo(cx + R * 1.1, cy - R * .95, cx + R * 1.05, cy + R * .35, cx + R * .1, cy + R * 1.2); g.bezierCurveTo(cx - R * .45, cy + R * .7, cx - R * 1.1, cy + R * .2, cx - R * .1, cy - R * 1.05); g.fill(); g.stroke();
+  g.lineWidth = 4; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(cx - R * (.5 - i * .1), cy - R * (.45 - i * .32)); g.quadraticCurveTo(cx + R * .1, cy - R * (.75 - i * .34), cx + R * (.78 - i * .12), cy - R * (.3 - i * .3)); g.stroke(); }
+  g.beginPath(); g.arc(cx + R * .12, cy - R * .78, R * .2, 2.4, 6.6); g.stroke();
+});
+function buildExterior() {
+  const B = new Batch().at(), R = new Batch().at();
+  // plinth under the whole slab area: the balconies are level with the rooms
+  box(B, MAT.plinth, 0, 43, G, -.015, 0, 43); box(B, MAT.plinth, 0, 43, G, -.1, -5, 0); box(B, MAT.plinth, -7, 0, G, -.1, -5, 43);
+  box(B, MAT.stone, 0, 43, -.1, -.03, -5, 0); box(B, MAT.stone, -7, 0, -.1, -.03, -5, 43);
+  // granite steps from the side (main) door towards the side gate
+  box(B, MAT.stone, 15.87, 21.45, G, -.5, -5.98, -5); box(B, MAT.stone, 15.38, 21.94, G, -1, -6.97, -5.98);
+  // dog-leg staircase: flight 1 beside the house climbs away from the 21 ft road, flight 2 returns to the terrace
+  for (let i = 0; i < 8; i++) {
+    box(B, MAT.stone, WELL.mid + .19, 0, 0, (i + 1) * RISER, WELL.z0 + i * TREAD, WELL.z0 + (i + 1) * TREAD);
+    box(B, MAT.stone, WELL.x0, WELL.mid - .19, (9 + i) * RISER, (10 + i) * RISER, WELL.land - (i + 1) * TREAD, WELL.land - i * TREAD + .1);
+  }
+  box(B, MAT.stone, WELL.x0, 0, 9 * RISER - .5, 9 * RISER, WELL.land, WELL.z1); box(B, MAT.ext, WELL.mid - .19, WELL.mid + .19, 0, 8, WELL.z0, WELL.land);
+  box(B, MAT.teak, WELL.mid - .22, WELL.mid + .22, 8, 8.14, WELL.z0, WELL.land);
+  // charcoal bands over the two entrance doors and surrounds round the road-facing windows
+  box(B, MAT.charcoal, 14.7, 22.6, 7.22, 9, -.11, -.04); box(B, MAT.charcoal, -.11, -.04, 7.22, 9, 2.2, 11.1);
+  for (const w of WALLS) if (w.inside === 1) for (const o of w.ops) if (o.k === 'win') {
+    const X = w.dir === 'x', put = (la, h, pa, y) => X ? B.bx(MAT.charcoal, la, h, .3, pa, y, -.19) : B.bx(MAT.charcoal, .3, h, la, -.19, y, pa);
+    put(o.b - o.a + .46, .23, (o.a + o.b) / 2, o.sill - .23); put(o.b - o.a + .46, .23, (o.a + o.b) / 2, o.head);
+    put(.23, o.head - o.sill, o.a - .115, o.sill); put(.23, o.head - o.sill, o.b + .115, o.sill);
+  }
+  for (const x of [16.7, 20.6]) R.cyl(MAT.lampGlow, .2, .03, x, 8.96, -2.5, .2, 12);   // soffit downlights at the main door
+  B.build(extGroup);
+
+  // roof slab (5") with the 2 ft cantilever on the two sides away from the roads, open over the stair well
+  box(R, MAT.slab, 0, 45, H, SLAB, -5, 45); box(R, MAT.slab, -7, 0, H, SLAB, -5, WELL.z0); box(R, MAT.slab, -7, 0, H, SLAB, WELL.z1, 45);
+  // parapets: plaster on the rear and far side, frameless glass on both road-facing sides
+  box(R, MAT.ext, 42.62, 43, SLAB, PARAPET, -5, 43); box(R, MAT.ext, -7, 43, SLAB, PARAPET, 42.62, 43);
+  glassParapet(R, 'z', -5, 43, -7, 1); glassParapet(R, 'x', -7, 43, -5, 1);
+  railing(R, 'z', WELL.z0, WELL.z1, .1, SLAB); railing(R, 'x', WELL.x0 + .4, .1, WELL.z1 + .1, SLAB); railing(R, 'x', WELL.mid, .1, WELL.z0 - .1, SLAB);
+  // floating frame: white band at slab level along both roads, closed by a full-height fin at each far end
+  box(R, MAT.white, -7.98, -7, 8.104, 9.908, -5.98, 43.98); box(R, MAT.white, -7, 43, 8.104, 9.908, -5.98, -5);
+  box(R, MAT.white, -7.98, 0, G, 9.908, 43, 43.98); box(R, MAT.white, 43, 43.98, G, 9.908, -5.98, 0);
+  // stair tower on G.P Road with the Om medallion
+  slats(R, 'z', 29.07, 39.41, G, TOWER, -7.26, 23); slats(R, 'x', -7.4, WELL.mid, G, SLAB, 29.07, 8); slats(R, 'x', WELL.mid, 0, 7.22, SLAB, 29.07, 7);
+  const om = new THREE.CylinderGeometry(3.3, 3.3, .14, 48);
+  R.add(flag(std(0xffffff, .7, 0, { map: omTex() }), {}), om, -7.52, 13.38, 34.24, 0, 0, PI / 2);
+  R.add(MAT.gold, new THREE.TorusGeometry(3.32, .07, 8, 64), -7.6, 13.38, 34.24, 0, PI / 2);
+  // tower on the 21 ft road closing the rear end of the side balcony, with the Shanku · Namam · Chakra panel
+  slats(R, 'x', 33.85, 43.98, G, TOWER, -5.26, 22); slats(R, 'z', -5.43, 0, G, TOWER, 44.24, 11); box(R, MAT.charcoal, 33.84, 44.45, TOWER, TOWER + .39, -5.59, .07);
+  R.add(flag(std(0xffffff, .7, 0, { map: sncTex() }), {}), new THREE.PlaneGeometry(9.14, 4.17), 38.915, 13.38, -5.5, 0, PI);
+  for (const dy of [-2.13, 2.13]) box(R, MAT.gold, 34.3, 43.53, 13.38 + dy - .04, 13.38 + dy + .04, -5.56, -5.48);
+  for (const dx of [-4.6, 4.6]) box(R, MAT.gold, 38.915 + dx - .04, 38.915 + dx + .04, 11.21, 15.55, -5.56, -5.48);
+  R.build(roofGroup);
+}
+
+// ---------- compound and survey site. Survey frame (feet): u along G.P Road, v away from it; the Padma Reddy
+// plot is (0,0)-(56.08,59.08). World: x = v - 13.958, z = 45.5 - u.
+const SV = (u, v) => [v - 13.958, 45.5 - u];
+const SP = { A: [0, 0], Bin: [56.08, 0], B: [63.25, 0], C: [56.08, 59.08], D1: [0, 59.08], D: [0, 61.25], A1: [-1.5, 0], AD44: [0, 44.25], S20b: [-6.75, 44.25],
+  S40tl: [-14.58, 44.25], S40bl: [-19.42, 61.25], T1: [-18.5, 73.25], T2: [45.8, 71], T2o: [54.2, 70.6], T3: [47.8, 123.5], T4: [-13.3, 129.55],
+  M1: [31.2, 125.14], M2: [38.3, 198], M3: [-5.2, 202.85], Rend: [59.7, 195.7], R21: [85.8, 0] };
+const PARCELS = [   // [label, sub, kind, ...points]
+  ['G. Thirupathi Reddy', '03 Gts 19 SqYds', 'soil', 'T1', 'T2', 'T3', 'T4'], ['G. Thirumal Reddy', '03 Gts 01 SqYds', 'soil', 'T4', 'M1', 'M2', 'M3'],
+  ['', '68 SqYds', 'strip', 'M1', 'T3', 'M2'], ['', '20 SqYds', 'strip', 'A1', 'A', 'AD44', 'S20b'], ['', '07 SqYds', 'strip', 'D1', 'C', 'D'],
+  ['', '40 SqYds', 'strip', 'S40tl', 'AD44', 'D', 'S40bl'], ['', '16 SqYds', 'strip', 'T2', 'T2o', 'T3'],
+  ['12 ft Road', '', 'earth', 'S40bl', 'C', 'T2o', 'T1'], ['21 ft Road', '04 Gts 81 SqYds', 'earth', 'B', 'R21', 'Rend', 'M2', 'T3', 'T2o', 'C'],
+];
+const SITE_LABELS = [['G. Padma Reddy', '03 Gts 06 SqYds · 56′-1″ × 59′-1″', 15.6, 16, 17.5, 'home'], ['G.P Road', '', -24, 0, 17.5], ['23 SqYds', '', 12, 0, -13.5]];
+const DIMS = [   // [x0, z0, x1, z1, y, text]
+  [-9.6, 0, -9.6, 43, .2, '43′-0″'], [0, -8.4, 43, -8.4, .2, '43′-0″'], [-9.6, -5, -9.6, 0, .2, '5′-0″'], [-7, -8.4, 0, -8.4, .2, '7′-0″'],
+  [-15.6, -10.58, -15.6, 45.5, -1.3, '56′-1″ plot'], [-13.96, 47.3, 45.125, 47.3, -1.3, '59′-1″ plot'],
+  [-7, 46.6, 45, 46.6, SLAB + .2, '52′-0″ slab'], [46.6, -5, 46.6, 45, SLAB + .2, '50′-0″ slab'],
+];
+const siteLabels = [], dimGroup = new THREE.Group();
+dimGroup.visible = false; scene.add(dimGroup);
+let skyMat = null;
+function flatGeo(pts, y) {            // horizontal polygon from [x, z] points, facing up, UVs in world feet / 8
+  const g = new THREE.ShapeGeometry(new THREE.Shape(pts.map(p => new THREE.Vector2(p[0], -p[1]))));
+  g.rotateX(-PI / 2); g.translate(0, y, 0);
+  const p = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 8, p.getZ(i) / 8);
+  return g;
+}
+// compound wall from a to b: 3 ft solid wall with a 2 ft bar railing, gate piers and black bar gates at `gates` ([from, to] along the run)
+function compoundRun(B, a, b, gates = []) {
+  const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  B.at(a[0], a[1], THREE.MathUtils.radToDeg(Math.atan2(-(b[1] - a[1]), b[0] - a[0])));
+  const d = s => _v.set(L / 2, 0, s).applyMatrix4(B.T).distanceToSquared(_s.set(15.6, 0, 16));
+  const o = d(.38) < d(-.38) ? .38 : -.38;                       // keep the outer face on the plot line
+  const solid = (s0, s1) => {
+    const len = s1 - s0, m = (s0 + s1) / 2; if (len < .05) return;
+    B.bx(MAT.ext, len, 3, .755, m, G, o); B.bx(MAT.rail, len, .13, .13, m, G + 4.87, o);
+    for (let n = Math.max(1, Math.round(len / .394)), i = 0; i < n; i++) B.bx(MAT.rail, .072, 1.9, .072, s0 + len * (i + .5) / n, G + 3, o);
+  };
+  let cur = 0;
+  for (const [g0, g1] of gates) {
+    solid(cur, g0 - .49); cur = g1 + .49;
+    for (const s of [g0 - .49, g1 + .49]) B.bx(MAT.ext, .984, 5.49, .984, s, G, o);
+    for (const y of [G + .33, G + 4.56]) B.bx(MAT.rail, g1 - g0 - .1, .13, .13, (g0 + g1) / 2, y, o);
+    for (let n = Math.round((g1 - g0) / .36), i = 0; i <= n; i++) B.bx(MAT.rail, i === n / 2 || i % n === 0 ? .16 : .072, 4.43, .072, g0 + .05 + (g1 - g0 - .1) * i / n, G + .26, o);
+  }
+  solid(cur, L); B.at();
+}
+function tree(B, x, z, s, r) {
+  B.cyl(MAT.trunk, .5 * s, 9.8 * s, x, -1.9, z, .35 * s, 7);
+  for (let i = 0; i < 4; i++) {
+    const R = (5.2 + r() * 3.3) * s, g = new THREE.IcosahedronGeometry(R, 1);
+    B.add(MAT.tree[i % 3], g, x + (r() - .5) * 7 * s, -1.9 + (9 + r() * 5) * s, z + (r() - .5) * 7 * s);
+  }
+}
+function buildSite() {
+  const B = new Batch().at();
+  const A = [45.125, -10.58], Bc = [-13.96, -17.75], C = [-13.96, 45.5], D = [45.125, 45.5];   // compound corners; A-Bc runs on the 21 ft road edge
+  B.add(MAT.paving, flatGeo([A, Bc, C, D], G));
+  compoundRun(B, Bc, C, [[9.08, 17.33]]); compoundRun(B, A, Bc, [[33.79, 38.57]]); compoundRun(B, A, D); compoundRun(B, D, C);
+  // red kerb on the surveyed plot line: along G.P Road and along the old plot edge inside the compound
+  box(B, MAT.kerb, -14.4, -13.96, G, G + .2, -17.75, 45.5); box(B, MAT.kerb, -13.96, 45.125, G, G + .2, -10.81, -10.35);
+  // water sump and three bores on the 23 SqYds strip
+  box(B, MAT.slab, -7.96, -.38, G, G + .49, -15.33, -10.79); box(B, MAT.charcoal, -5.2, -3.2, G + .49, G + .53, -14.1, -12.1);
+  for (const [x, z] of [[.96, -12.92], [-9.54, -15.33], [-11.58, -12.29]]) { B.bx(MAT.slab, 1.3, .26, 1.3, x, G, z); B.cyl(MAT.white, .26, 1.48, x, G + .26, z, .26, 12); B.cyl(MAT.charcoal, .31, .16, x, G + 1.74, z, .31, 12); }
+  // roads, neighbouring parcels and open ground
+  const ground = new THREE.CircleGeometry(2600, 64); ground.rotateX(-PI / 2); B.add(MAT.grass, ground, 20, -1.96, 20);
+  B.add(MAT.asphalt, flatGeo([SV(-70, -20), SV(140, -20), SV(140, 0), SV(-70, 0)], -1.72));
+  for (let z = -92; z < 114; z += 9.84) box(B, MAT.white, -24.16, -23.76, -1.72, -1.7, z, z + 4.92);
+  PARCELS.forEach(([label, sub, kind, ...pts], i) => {
+    const poly = pts.map(k => SV(...SP[k]));
+    B.add(MAT[kind], flatGeo(poly, kind === 'earth' ? -1.86 : kind === 'soil' ? -1.8 : -1.76 + i * .004));
+    const cx = poly.reduce((s, p) => s + p[0], 0) / poly.length, cz = poly.reduce((s, p) => s + p[1], 0) / poly.length;
+    siteLabels.push([label || sub, label ? sub : '', cx, 0, cz]);
+  });
+  siteLabels.push(...SITE_LABELS);
+  const r = rng(4242), q = ['T4', 'M1', 'M2', 'M3'].map(k => SV(...SP[k]));
+  for (let i = 0; i < 6; i++) {
+    const a = .15 + r() * .7, b = .15 + r() * .7, lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
+    const p = lerp(lerp(q[0], q[1], a), lerp(q[3], q[2], a), b);
+    tree(B, p[0], p[1], .8 + r() * .5, r);
+  }
+  B.build(extGroup);
+
+  // dimension overlay
+  const pts = [];
+  for (const [x0, z0, x1, z1, y] of DIMS) {
+    const dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz), nx = -dz / L * .6, nz = dx / L * .6;
+    pts.push(x0, y, z0, x1, y, z1, x0 - nx, y, z0 - nz, x0 + nx, y, z0 + nz, x1 - nx, y, z1 - nz, x1 + nx, y, z1 + nz);
+  }
+  const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  dimGroup.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xd9362b, depthTest: false, fog: false })));
+
+  // sky: gradient dome with soft clouds, drawn on a canvas
+  const sky = ctex(512, (g, h, w) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    [[0, '#3a6fb0'], [.3, '#6d9bd0'], [.46, '#b4cde6'], [.5, '#c2d1de'], [1, '#c2d1de']].forEach(([p, c]) => gr.addColorStop(p, c));
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    const r = rng(9);
+    for (let i = 0; i < 30; i++) {           // clouds between about 8° and 40° up; 1 px is twice as tall as wide in angle
+      const cx = r() * w, cy = h * (.27 + r() * .19), sc = .5 + r() * 1.1;
+      for (let k = 0; k < 18; k++) {
+        const x = cx + (r() - .5) * 190 * sc, y = cy + (r() - .5) * 12 * sc - Math.abs(x - cx) * .02, R = (7 + r() * 12) * sc;
+        for (const ox of [-w, 0, w]) {
+          g.setTransform(2.6, 0, 0, 1, x + ox, y);
+          const rg = g.createRadialGradient(0, -R * .25, 0, 0, 0, R); rg.addColorStop(0, 'rgba(255,255,255,.75)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+          g.fillStyle = rg; g.fillRect(-R, -R, R * 2, R * 2);
+        }
+      }
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+  }, 2048);
+  skyMat = new THREE.MeshBasicMaterial({ map: sky, side: THREE.BackSide, fog: false, depthWrite: false });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(4500, 40, 20), skyMat); dome.renderOrder = -1; scene.add(dome);
+  MAT.paving.map = tileTex(0xb8b3aa, 0xaeaaa1, 4, 0x8f8b84, 51);
+  MAT.asphalt.map = ctex(256, (g, s) => { const r = rng(3); g.fillStyle = '#55585b'; g.fillRect(0, 0, s, s); for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${r() < .5 ? '255,255,255' : '0,0,0'},${.03 + r() * .07})`; g.fillRect(r() * s, r() * s, 1 + r() * 2, 1 + r() * 2); } });
+}
+
+// ---------- lighting: the sun is placed for the site (18°22′23.68″N 78°38′48.17″E) from today's date and the time slider (IST)
+const SITE = { lat: 18 + 22 / 60 + 23.68 / 3600, lon: 78 + 38 / 60 + 48.17 / 3600 };
+const NORTH = new THREE.Vector2(-.8821, .4711);            // survey-map north as world (x, z): G.P Road is on the north side
 const hemi = new THREE.HemisphereLight(0xffffff, 0xc9b79a, 1);
 const sun = new THREE.DirectionalLight(0xfff0d8, 3);
 sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.radius = 4; sun.shadow.bias = -.0006; sun.shadow.normalBias = .06;
-Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 10, far: 220 });
-sun.target.position.set(21.5, 0, 21.5);
+Object.assign(sun.shadow.camera, { left: -56, right: 56, top: 56, bottom: -56, near: 10, far: 300 });
+sun.target.position.set(17, 0, 17);
 scene.add(hemi, sun, sun.target);
 const lampLights = Array.from({ length: 8 }, () => { const l = new THREE.PointLight(0xffd6a0, 0, 26, 1.6); l.visible = false; scene.add(l); return l; });
-let roofMesh = null, night = 0, nightTarget = 0, inside = false;
-const cA = new THREE.Color(), cB = new THREE.Color(), NIGHT_SKY = new THREE.Color(0x121826), MOON = new THREE.Color(0x8fa6d6);
-function placeSun() {            // high sun for the cut-away dollhouse, lower sun inside so it rakes through the windows
-  const el = rad(inside ? 40 : 60), az = rad(-38);   // from the south-east: east is -z, south is +x
-  sun.position.set(21.5 + Math.cos(el) * Math.sin(-az) * 110, Math.sin(el) * 110, 21.5 - Math.cos(el) * Math.cos(az) * 110);
-  renderer.shadowMap.needsUpdate = true;
+const DAY_MIN = 570, EVENING_MIN = 1150;                   // 9:30 am and 7:10 pm
+let minutes = DAY_MIN, minutesTarget = DAY_MIN, night = 0, sunUp = 1;
+const cA = new THREE.Color(), cB = new THREE.Color(), MOON = new THREE.Color(0x8fa6d6), NIGHT_SKY = new THREE.Color(0x121826);
+function solar(min) {                                       // sun elevation and azimuth (clockwise from north), radians
+  const now = new Date(), n = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 864e5);
+  const b = 2 * PI * (n - 81) / 364, eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+  const dec = rad(-23.44) * Math.cos(2 * PI * (n + 10) / 365), lat = rad(SITE.lat);
+  const h = rad((min + eot + 4 * (SITE.lon - 82.5)) / 4 - 180);   // hour angle; IST is the time of the 82.5°E meridian
+  return { el: Math.asin(Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(h)),
+    az: Math.atan2(Math.sin(h), Math.cos(h) * Math.sin(lat) - Math.tan(dec) * Math.cos(lat)) + PI };
+}
+const COMPASS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+function setTime(min) {
+  minutes = min;
+  const { el, az } = solar(min), up = el > rad(1.5);
+  // after sunset a dim moon takes over from a fixed direction
+  const e = up ? el : rad(48), a = up ? az : rad(300), east = Math.cos(e) * Math.sin(a), north = Math.cos(e) * Math.cos(a);
+  sun.position.set(17 + (north * NORTH.x - east * NORTH.y) * 150, Math.sin(e) * 150, 17 + (north * NORTH.y + east * NORTH.x) * 150);
+  night = Math.min(1, Math.max(0, (rad(4) - el) / rad(10)));
+  sunUp = Math.min(1, Math.max(0, el / rad(14)));
+  const hh = Math.floor(min / 60), mm = String(Math.round(min % 60)).padStart(2, '0');
+  document.getElementById('sunInfo').textContent = `${(hh + 11) % 12 + 1}:${mm} ${hh < 12 ? 'am' : 'pm'} IST · ` + (el > 0
+    ? `sun ${Math.round(el / PI * 180)}° above the horizon, from the ${COMPASS[Math.round(az / (PI / 4)) % 8]}` : 'after dark: lamps on');
+  document.getElementById('sunTime').value = Math.round(min);
+  document.querySelectorAll('#times button').forEach(b => b.classList.toggle('on', (b.dataset.time === 'evening') === (night > .5)));
+  applyLook(); renderer.shadowMap.needsUpdate = true;
 }
 function applyLook() {           // everything that depends on style + time of day
   if (!current) return;
   const L = current.st.light, n = night, d = 1 - n;
-  sun.color.copy(cA.set(L.sun)).lerp(MOON, n); sun.intensity = L.sunI * d + .22 * n;
-  hemi.color.copy(cA.set(L.hemiSky)).lerp(cB.set(0x33405e), n); hemi.groundColor.copy(cA.set(L.hemiGround)).lerp(cB.set(0x191512), n); hemi.intensity = L.hemiI * d + .2 * n;
-  scene.background.copy(cA.set(L.sky)).lerp(NIGHT_SKY, n); MAT.ground.color.copy(cA.set(L.ground)).lerp(cB.set(0x1a2118), n * .8);
-  scene.environmentIntensity = L.env * d + .08 * n; renderer.toneMappingExposure = L.exposure * (1 + .12 * n); scene.fog.color.copy(scene.background);
-  MAT.glass.emissive.set(0xcfe6f5).lerp(cB.set(0x0a1020), n); MAT.glass.emissiveIntensity = .3; MAT.frost.emissiveIntensity = .3 * d + .03;
-  MAT.pool.opacity = .16 * d; MAT.ceilLight.emissive.set(L.lamp); MAT.ceilLight.emissiveIntensity = .5 + 1.6 * n; MAT.ceiling.emissiveIntensity = .3 * d + .1;
+  const out = mode === 'orbit' || (mode === 'fly' && !flyInside) ? 1 : 0;   // seen from outside after dark: brighter moonlight, lit windows
+  sun.color.copy(cA.set(L.sun)).lerp(cB.set(0xff9a4d), (1 - sunUp) * .7 * d).lerp(MOON, n); sun.intensity = L.sunI * (.25 + .75 * sunUp) * d + (.22 + .5 * out) * n;
+  hemi.color.copy(cA.set(L.hemiSky)).lerp(cB.set(0x33405e), n); hemi.groundColor.copy(cA.set(L.hemiGround)).lerp(cB.set(0x191512), n); hemi.intensity = L.hemiI * (.6 + .4 * sunUp) * d + (.2 + .3 * out) * n;
+  skyMat.color.setScalar(1).lerp(cB.set(0x1a2233), n); scene.fog.color.set(0xc2d1de).lerp(NIGHT_SKY, n * .93); scene.background.copy(scene.fog.color);
+  scene.environmentIntensity = L.env * d + .08 * n; renderer.toneMappingExposure = L.exposure * (1 + .12 * n);
+  MAT.glass.emissive.set(0xcfe6f5).lerp(cB.set(out ? L.lamp : 0x0a1020), n); MAT.glass.emissiveIntensity = .3 + 1.1 * out * n; MAT.glass.opacity = .28 + .55 * out * n; MAT.frost.emissiveIntensity = .3 * d + .03 + .8 * out * n;
+  MAT.pool.opacity = .16 * d * sunUp; MAT.ceilLight.emissive.set(L.lamp); MAT.ceilLight.emissiveIntensity = .5 + 1.6 * n; MAT.ceiling.emissiveIntensity = .3 * d + .1;
+  MAT.lampGlow.color.set(0xfff1d6).multiplyScalar(.55 + .45 * n);
   current.P.shade.emissiveIntensity = .22 + 1.5 * n; current.P.glow.opacity = .55 * n;
   const on = n > .01;
   lampLights.forEach((l, i) => { const p = current.lamps[i]; l.visible = on && !!p; if (p) { l.position.set(p.x, p.y, p.z); l.color.set(L.lamp); l.intensity = 34 * L.lampI * n; } });
@@ -890,48 +1260,78 @@ function applyStyle(key) {
   document.querySelectorAll('#styles button').forEach(b => b.classList.toggle('on', b.dataset.style === key));
 }
 
-// ---------- camera modes: orbit (dollhouse), walk (first person), tour (scripted), fly (transition)
+// ---------- camera modes: orbit (overviews), walk (first person), tour (scripted), fly (transition)
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(21.5, 1, 21.5); controls.enableDamping = true; controls.dampingFactor = .08;
-controls.minDistance = 14; controls.maxDistance = 190; controls.maxPolarAngle = rad(82); controls.autoRotateSpeed = .5;
-const DOLL_POS = new THREE.Vector3(21.5, 68, 62), LIVING = { pos: [15.2, 13.4], look: [25.5, 6.6] }, DOOR = { pos: [18.6, 3.4], look: [19.2, 12] };
-let mode = 'orbit', yaw = 0, pitch = 0, fly = null, tourT = 0, intro = true;
-const keys = new Set(), $ = id => document.getElementById(id);
+controls.enableDamping = true; controls.dampingFactor = .08; controls.minDistance = 10; controls.maxDistance = 900; controls.maxPolarAngle = .48 * PI;
+const $ = id => document.getElementById(id), keys = new Set(), V3 = (a) => new THREE.Vector3(...a);
+// overviews, as on the full walkthrough: [camera position, target]
+const VIEWS = {
+  street: [[-54.97, 16.4, -51.59], [21.5, 5.25, 25.8], 'Plan-2'], site: [[-64.67, 192.7, -58.69], [87.47, 0, 12.31], 'Whole site'],
+  house: [[-26.93, 49.45, 2.33], [18.22, 0, 19.53], 'Dollhouse'], plan: [[18.1, 114.7, 19.53], [18.22, 0, 19.53], "Bird's-eye"],
+  front: [[-45.13, 9.84, 16.21], [0, 7.22, 16.21], 'Front · G.P Road'], side: [[17.96, 10.5, -59.8], [17.96, 7.87, 0], 'Side · 21 ft Road'],
+  corner: [[-36.92, 5.58, -33.55], [17.2, 7.22, 19.35], 'Corner view'],
+};
+const SITE_TITLE = 'Yellareddypet (V), Yellareddypet (M), Rajanna Siricilla Dist.';
+const LIVING = [15.2, 13.4, 25.5, 6.6], DOOR = [-5.6, 4.3, 6, 4.3];   // stand at x, z, look at x, z
+let mode = 'orbit', view = 'street', yaw = 0, pitch = 0, fly = null, tourT = 0, floorH = 0, roofOn = true, flyInside = false;
 const HINTS = {
-  orbit: 'Drag to rotate · right-drag to pan · scroll to zoom',
-  walk: 'Arrow keys or WASD to move · click, then move the mouse to look (or drag) · Shift to go faster · Esc frees the mouse',
-  tour: '30-second tour · press Tour again or any view button to stop', fly: '',
+  orbit: 'Drag to orbit · scroll to zoom · right-drag to pan · click a room to step inside',
+  walk: 'Click the floor to glide · drag to look · W A S D or arrow keys to walk · Shift faster · Esc back out',
+  tour: '30-second tour · press the tour button again to stop', fly: '',
 };
 function setMode(m) {
-  mode = m; controls.enabled = m === 'orbit'; if (m !== 'orbit') controls.autoRotate = false;
-  if (m !== 'walk' && document.pointerLockElement) document.exitPointerLock();
-  $('hint').textContent = HINTS[m]; $('room').classList.toggle('show', m === 'walk' || m === 'tour');
-  for (const [id, k] of [['bDoll', 'orbit'], ['bWalk', 'walk'], ['bTour', 'tour']]) $(id).classList.toggle('on', m === k);
+  mode = m; controls.enabled = m === 'orbit';
+  $('hint').textContent = HINTS[m]; $('btnTour').classList.toggle('on', m === 'tour'); $('btnTour').textContent = m === 'tour' ? '■ Stop tour' : '▶ Video tour';
+  document.body.dataset.mode = m; applyRoof(); applyLook();
 }
-function setInside(v) {
-  if (v === inside) return;
-  inside = v; ceilGroup.visible = v; roofMesh.castShadow = v; placeSun();
+function applyRoof() {                        // the roof and ceilings are always there when the camera is inside
+  const show = roofOn || mode === 'walk' || mode === 'tour' || (mode === 'fly' && flyInside);
+  if (roofGroup.visible === show) return;
+  roofGroup.visible = ceilGroup.visible = show; renderer.shadowMap.needsUpdate = true;
 }
-function facing(pos, look) { const dx = look[0] - pos[0], dz = look[1] - pos[1]; return Math.atan2(-dx, -dz); }
-function flyTo(pos, quat, fov, near, done, dur = 2.2) {
-  setMode('fly');
+function setRoof(on) { roofOn = on; $('chkRoof').checked = on; applyRoof(); }
+function layout() {                           // keep the scene centred in the area beside the open panel
+  const W = innerWidth, Hh = innerHeight, off = document.body.classList.contains('panel-open') && W > 760 ? 151 : 0;
+  camera.aspect = W / Hh; if (off) camera.setViewOffset(W, Hh, -off, 0, W, Hh); else camera.clearViewOffset();
+  camera.updateProjectionMatrix(); renderer.setSize(W, Hh);
+}
+function flyTo(pos, quat, fov, near, done, dur = 2, inside = false) {
+  flyInside = inside; setMode('fly');
   fly = { t: 0, dur, p0: camera.position.clone(), q0: camera.quaternion.clone(), f0: camera.fov, p1: pos, q1: quat, f1: fov, near, done };
 }
-function goDollhouse(dur = 2) {
-  intro = false;
-  const m = new THREE.Matrix4().lookAt(DOLL_POS, controls.target, camera.up);
-  flyTo(DOLL_POS.clone(), new THREE.Quaternion().setFromRotationMatrix(m), 42, 1, () => setMode('orbit'), dur);
+function goView(name, dur = 1.8) {
+  const [p, t] = VIEWS[name], target = V3(t), free = (innerWidth - (document.body.classList.contains('panel-open') && innerWidth > 760 ? 302 : 0)) / innerHeight;
+  const pos = V3(p).sub(target).multiplyScalar(Math.max(1, 1.25 / free) * (name === 'site' || name === 'house' ? 1.15 : 1)).add(target);
+  view = name; if (name === 'house') setRoof(false); else if (name !== 'plan') setRoof(true);
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(pos, target, camera.up));
+  const done = () => { controls.target.copy(target); floorH = 0; setMode('orbit'); };
+  if (!dur) { camera.position.copy(pos); camera.quaternion.copy(q); camera.fov = 45; camera.near = 1; camera.updateProjectionMatrix(); done(); controls.update(); }
+  else flyTo(pos, q, 45, 1, done, dur);
 }
-function goWalk(spot, dur = 2.2) {
-  intro = false;
-  const y = facing(spot.pos, spot.look), p = -.07;
-  flyTo(new THREE.Vector3(spot.pos[0], EYE, spot.pos[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(p, y, 0, 'YXZ')), 68, .25, () => { yaw = y; pitch = p; setMode('walk'); }, dur);
+function goWalk(x, z, lx, lz, h = 0, dur = 2) {
+  const y = Math.atan2(x - lx, z - lz), p = -.06;
+  flyTo(new THREE.Vector3(x, EYE + h, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(p, y, 0, 'YXZ')), 68, .25, () => { yaw = y; pitch = p; floorH = h; setMode('walk'); }, dur, true);
 }
+const goRoom = name => { const r = ROOM_LIST.find(r => r[0] === name); if (r) goWalk(r[4], r[5], r[6], r[7], name === 'Terrace' ? SLAB : 0); };
+function walkFromCamera() { const e = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ'); yaw = e.y; pitch = e.x; setMode('walk'); }
 
-// ---------- collision: the walker is a 1.4 ft wide circle tested against wall and furniture boxes
-const RADIUS = .7;
-function blocked(x, z) {
-  for (const list of [shellCol, current.col]) for (const b of list) {
+// ---------- collision: the walker is a 1.4 ft wide circle tested against wall and furniture boxes. The floor height
+// under the walker follows the staircase; a move that would change it by more than a step is refused, which keeps
+// the walker on the treads, off the open stair well and inside the terrace parapets.
+const RADIUS = .7, STEP = 1.1;
+const terraceCol = [{ x0: -9, x1: -6.62, z0: -7, z1: 46 }, { x0: 42.62, x1: 46, z0: -7, z1: 46 }, { x0: -9, x1: 46, z0: -7, z1: -4.62 }, { x0: -9, x1: 46, z0: 42.62, z1: 46 }];
+const inWell = (x, z) => x > WELL.x0 && x < WELL.x1 && z > WELL.z0 && z < WELL.z1;
+function floorAt(x, z, h) {
+  if (!inWell(x, z)) return h > 7 ? SLAB : 0;
+  if (z >= WELL.land) return 9 * RISER;
+  const t = (z - WELL.z0) / (WELL.land - WELL.z0);
+  return 9 * RISER * (x > WELL.mid ? t : 2 - t);
+}
+function blocked(x, z, h = 0) {
+  if (Math.abs(floorAt(x, z, h) - h) > STEP) return true;
+  if (inWell(x, z))            // on the stair: stay off its closed edges and the spine wall between the flights
+    return x < WELL.x0 + 1.05 || x > WELL.x1 - .6 || z > WELL.z1 - .6 || (z < WELL.land - .4 && Math.abs(x - WELL.mid) < .6);
+  for (const list of h > 7 ? [terraceCol] : [shellCol, current.col]) for (const b of list) {
     const dx = x - Math.max(b.x0, Math.min(x, b.x1)), dz = z - Math.max(b.z0, Math.min(z, b.z1));
     if (dx * dx + dz * dz < RADIUS * RADIUS) return true;
   }
@@ -940,27 +1340,52 @@ function blocked(x, z) {
 function walkStep(dt) {
   const f = (keys.has('ArrowUp') || keys.has('KeyW') ? 1 : 0) - (keys.has('ArrowDown') || keys.has('KeyS') ? 1 : 0);
   const s = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0);
+  const p = camera.position;
   if (f || s) {
     const sp = (keys.has('ShiftLeft') || keys.has('ShiftRight') ? 10 : 5.5) * dt / Math.hypot(f, s);
     let mx = (-Math.sin(yaw) * f + Math.cos(yaw) * s) * sp, mz = (-Math.cos(yaw) * f - Math.sin(yaw) * s) * sp;
     const n = Math.ceil(Math.hypot(mx, mz) / .25); mx /= n; mz /= n;
     for (let i = 0; i < n; i++) {                       // per-axis test lets the walker slide along walls
-      if (!blocked(camera.position.x + mx, camera.position.z)) camera.position.x += mx;
-      if (!blocked(camera.position.x, camera.position.z + mz)) camera.position.z += mz;
+      if (!blocked(p.x + mx, p.z, floorH)) p.x += mx;
+      if (!blocked(p.x, p.z + mz, floorH)) p.z += mz;
+      floorH = floorAt(p.x, p.z, floorH);
     }
   }
-  camera.position.y = EYE; camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  p.y += (EYE + floorH - p.y) * (1 - Math.exp(-dt * 12)); camera.rotation.set(pitch, yaw, 0, 'YXZ');
 }
 function look(dx, dy) { if (mode !== 'walk') return; yaw -= dx * .0024; pitch = Math.max(-1.2, Math.min(1.2, pitch - dy * .0024)); }
-canvas.addEventListener('click', () => { if (mode === 'walk' && !document.pointerLockElement) { try { canvas.requestPointerLock()?.catch?.(() => {}); } catch { /* drag-to-look still works */ } } });
-addEventListener('mousemove', e => { if (document.pointerLockElement === canvas) look(e.movementX, e.movementY); else if (e.buttons & 1 && e.target === canvas) look(-e.movementX, -e.movementY); });
-addEventListener('keydown', e => { keys.add(e.code); if (e.code.startsWith('Arrow')) e.preventDefault(); if (mode === 'walk' || mode === 'orbit') intro = false; });
+canvas.addEventListener('pointermove', e => {          // drag to look, mouse or touch
+  if (!down || (e.pointerType === 'mouse' && !(e.buttons & 1))) return;
+  look(down[3] - e.clientX, down[4] - e.clientY); down[3] = e.clientX; down[4] = e.clientY;
+});
+addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName) && e.target.type !== 'checkbox') return;
+  keys.add(e.code); if (e.code.startsWith('Arrow')) e.preventDefault();
+  if (e.code === 'Escape' && (mode === 'walk' || mode === 'tour')) goView(view);
+});
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
-for (const ev of ['pointerdown', 'wheel']) canvas.addEventListener(ev, () => { intro = false; controls.autoRotate = false; }, { passive: true });
+// a click (not a drag) steps into the room under it in an overview, or glides to that spot on the floor while walking
+let down = null;
+canvas.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY, performance.now(), e.clientX, e.clientY]; });
+canvas.addEventListener('pointercancel', () => { down = null; });
+canvas.addEventListener('pointerup', e => {
+  const d = down; down = null;
+  if (!d || Math.hypot(e.clientX - d[0], e.clientY - d[1]) > 5 || performance.now() - d[2] > 450 || e.button) return;
+  const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, 1 - e.clientY / innerHeight * 2), camera);
+  if (mode === 'walk') {       // the first surface under the pointer must be floor at the walker's level, so no wall is in the way
+    const hit = ray.intersectObjects([shellGroup, extGroup, roofGroup, current.group], true)[0], p = hit && hit.point;
+    if (!hit || hit.face.normal.y < .9 || Math.abs(p.y - floorH) > .5 || blocked(p.x, p.z, floorH)) return;
+    return flyTo(new THREE.Vector3(p.x, EYE + floorH, p.z), camera.quaternion.clone(), 68, .25, () => setMode('walk'), Math.min(1.6, Math.max(.35, hit.distance / 9)), true);
+  }
+  if (mode !== 'orbit') return;
+  const y = roofOn ? SLAB : 1, t = (y - ray.ray.origin.y) / ray.ray.direction.y; if (!(t > 0)) return;
+  const x = ray.ray.origin.x + ray.ray.direction.x * t, z = ray.ray.origin.z + ray.ray.direction.z * t, r = ROOMS.find(r => x >= r[1] && x <= r[2] && z >= r[3] && z <= r[4]);
+  if (r) goRoom(r[0]);
+});
 
-// ---------- 30-second tour: [time s, camera x, z, look-at x, z]. Front door -> living -> drawing ->
-// puja -> dining -> kitchen -> master bedroom -> bedroom 2 -> bedroom 3.
+// ---------- 30-second tour: [time s, camera x, z, look-at x, z]. Main door -> hall -> drawing -> pooja -> dining ->
+// kitchen -> master bedroom -> bedroom 2 -> bedroom 3.
 const TOUR = [
   [0, 18.6, -4, 18.6, 8], [1, 18.6, 1.8, 19.5, 10], [2.06, 17.2, 4.4, 9, 5], [3.23, 10.6, 4.3, 5.5, 9.5], [3.92, 11.8, 4.4, 8, 9],
   [5.41, 16.8, 7.5, 25, 9], [6.45, 16.2, 13, 22, 12], [7.9, 13.8, 16.35, 7, 13.5], [8.6, 9.4, 16.7, 6.4, 12.6], [9.35, 9.7, 16.9, 6.4, 12.6], [10.25, 15.5, 16.6, 24, 16.4],
@@ -969,11 +1394,11 @@ const TOUR = [
   [23.48, 20.5, 23.3, 15, 27], [24.73, 15.9, 24.3, 17.5, 28], [25.6, 15.2, 27.4, 19.5, 28.6], [26.62, 19.3, 28.3, 24.5, 34.5], [27.64, 15.3, 27.6, 13.6, 31],
   [28.61, 14.4, 24.5, 10, 24], [29.25, 12.9, 23.2, 6, 28], [30, 9.9, 23.1, 5.5, 30.5],
 ];
-const TOUR_LEN = 30, _q2 = new THREE.Quaternion(), _look = new THREE.Vector3(), _mm = new THREE.Matrix4();
+const TOUR_LEN = 30, _q2 = new THREE.Quaternion(), _look = new THREE.Vector3(), _mm = new THREE.Matrix4(), _tp = [0, 0], _tl = [0, 0];
 // Catmull-Rom with the keyframe times as knots (Barry-Goldman): smooth in position and speed
 function tourAt(T, o, out) {
   let i = 0; while (i < TOUR.length - 2 && TOUR[i + 1][0] <= T) i++;
-  const K = j => { if (j < 0) { const a = TOUR[0], b = TOUR[1]; return [2 * a[0] - b[0], 2 * a[1] - b[1], 2 * a[2] - b[2], 2 * a[3] - b[3], 2 * a[4] - b[4]]; } if (j >= TOUR.length) { const a = TOUR.at(-1), b = TOUR.at(-2); return a.map((v, k) => 2 * v - b[k]); } return TOUR[j]; };
+  const K = j => j < 0 ? TOUR[0].map((v, k) => 2 * v - TOUR[1][k]) : j >= TOUR.length ? TOUR.at(-1).map((v, k) => 2 * v - TOUR.at(-2)[k]) : TOUR[j];
   const p = [K(i - 1), K(i), K(i + 1), K(i + 2)], t = p.map(k => k[0]);
   for (let c = 0; c < 2; c++) {
     const v = p.map(k => k[o + c]), L = (a, b, ta, tb) => a + (b - a) * (T - ta) / (tb - ta);
@@ -982,24 +1407,91 @@ function tourAt(T, o, out) {
   }
   return out;
 }
-const _tp = [0, 0], _tl = [0, 0];
 function tourStep(dt, snap = false) {
   tourT = Math.min(TOUR_LEN, tourT + dt);
   tourAt(tourT, 1, _tp); tourAt(tourT, 3, _tl);
   camera.position.set(_tp[0], EYE, _tp[1]);
   _q2.setFromRotationMatrix(_mm.lookAt(camera.position, _look.set(_tl[0], 4.4, _tl[1]), camera.up));
-  snap ? camera.quaternion.copy(_q2) : camera.quaternion.slerp(_q2, 1 - Math.exp(-dt * 5));
-  if (tourT >= TOUR_LEN) { const e = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ'); yaw = e.y; pitch = e.x; setMode('walk'); }
+  if (snap) camera.quaternion.copy(_q2); else camera.quaternion.slerp(_q2, 1 - Math.exp(-dt * 5));
+  if (tourT >= TOUR_LEN) walkFromCamera();
 }
 function startTour() {
-  intro = false; fly = null;
-  crossFade(() => { setMode('tour'); setInside(true); camera.fov = 68; camera.near = .25; camera.updateProjectionMatrix(); tourT = 0; tourStep(0, true); });
+  fly = null; floorH = 0;
+  crossFade(() => { setMode('tour'); camera.fov = 68; camera.near = .25; camera.updateProjectionMatrix(); tourT = 0; tourStep(0, true); });
 }
 function roomAt(x, z) {
-  if (mode === 'tour' && z < 1.4) return 'Front Door';
-  for (const [name, x0, x1, z0, z1] of ROOMS) if (x >= x0 - .4 && x <= x1 + .4 && z >= z0 - .4 && z <= z1 + .4) return name;
-  return '';
+  if (floorH > 7) return 'Terrace';
+  if (inWell(x, z)) return 'Staircase';
+  if (mode === 'tour' && z < .8) return 'Main Door';
+  const r = ROOMS.find(r => x >= r[1] - .4 && x <= r[2] + .4 && z >= r[3] - .4 && z <= r[4] + .4);
+  return r ? r[0] : '';
 }
+
+// ---------- labels: room tags (click to step inside), survey labels on the whole-site view, dimension tags
+const labelRoot = $('labels'), labels = [];
+function addLabel(cls, title, sub, x, y, z, kind, onclick) {
+  const el = document.createElement(onclick ? 'button' : 'div'); el.className = cls;
+  el.append(title); if (sub) { const s = document.createElement('span'); s.textContent = sub; el.append(s); }
+  if (onclick) el.onclick = onclick;
+  el.style.display = 'none'; labelRoot.append(el); labels.push({ el, p: new THREE.Vector3(x, y, z), kind: title === 'Terrace' ? 'roof' : kind, shown: false });
+}
+function buildLabels() {
+  for (const [name, size, x, z] of ROOM_LIST) addLabel('rlabel', name, size, x, name === 'Terrace' ? SLAB + 1 : name.includes('Balcony') ? 2 : 4.6, z, 'room', () => goRoom(name));
+  for (const [title, sub, x, y, z, cls] of siteLabels) addLabel('slabel' + (cls ? ' ' + cls : ''), title, sub, x, y, z, 'site');
+  for (const [x0, z0, x1, z1, y, text] of DIMS) addLabel('dlabel', text, '', (x0 + x1) / 2, y, (z0 + z1) / 2, 'dim');
+}
+function updateLabels() {
+  const orbit = mode === 'orbit' || (mode === 'fly' && !flyInside), y = camera.position.y, dims = $('chkDims').checked, W = innerWidth, Hh = innerHeight;
+  const near = camera.position.distanceTo(_s.set(21.5, 0, 21.5)) < 150;      // room tags only while the house is large enough on screen
+  const on = { room: orbit && $('chkLabels').checked && !dims && y > 14 && near, site: orbit && $('chkLabels').checked && y > 140, dim: orbit && dims };
+  on.roof = on.room && roofGroup.visible;
+  for (const l of labels) {
+    let show = on[l.kind];
+    if (show) { _v.copy(l.p).project(camera); show = _v.z < 1 && Math.abs(_v.x) < 1.1 && Math.abs(_v.y) < 1.1; }
+    if (show !== l.shown) { l.shown = show; l.el.style.display = show ? '' : 'none'; }
+    if (show) l.el.style.transform = `translate(-50%,-50%) translate(${((_v.x + 1) * W / 2).toFixed(1)}px,${((1 - _v.y) * Hh / 2).toFixed(1)}px)`;
+  }
+}
+
+// ---------- minimap of the plot (G.P Road at the bottom); click to stand there
+const mini = $('minimap'), mg = mini.getContext('2d'), MB = { x0: -15.5, x1: 46.6, z0: -19, z1: 47 };
+let miniBase = null, miniK = 1, miniT = 0;
+const mx = z => (z - MB.z0) * miniK, my = x => (MB.x1 - x) * miniK;
+function drawMiniBase() {
+  const dpr = Math.min(devicePixelRatio || 1, 2), w = mini.clientWidth, h = mini.clientHeight;
+  mini.width = w * dpr; mini.height = h * dpr; miniK = Math.min(w / (MB.z1 - MB.z0), h / (MB.x1 - MB.x0)) * dpr;
+  miniBase = document.createElement('canvas'); miniBase.width = mini.width; miniBase.height = mini.height;
+  const g = miniBase.getContext('2d'), rect = (c, x0, x1, z0, z1) => { g.fillStyle = c; g.fillRect(mx(z0), my(x1), (z1 - z0) * miniK, (x1 - x0) * miniK); };
+  g.fillStyle = 'rgba(200,190,170,.55)'; g.beginPath(); [[45.125, -10.58], [-13.96, -17.75], [-13.96, 45.5], [45.125, 45.5]].forEach(([x, z], i) => g[i ? 'lineTo' : 'moveTo'](mx(z), my(x))); g.fill();
+  rect('#c9c2b6', 0, 43, -5, 0); rect('#c9c2b6', -7, 0, -5, 43); rect('#8f8a82', WELL.x0, WELL.x1, WELL.z0, WELL.z1);
+  const FC = { Living: '#efe5d3', Bed: '#d6b58f', Wet: '#d4d0c6', Puja: '#f6f3ee' };
+  for (const [type, x0, x1, z0, z1] of FLOORS) rect(FC[type], x0 - .4, x1 + .4, z0 - .4, z1 + .4);
+  for (const w of WALLS) {
+    const X = w.dir === 'x', seg = (c, a, b) => X ? rect(c, a, b, w.lo, w.hi) : rect(c, w.lo, w.hi, a, b);
+    seg('#3b3a37', w.from, w.to);
+    for (const o of w.ops || []) seg(o.k === 'win' || o.k === 'vent' ? '#6fb3d6' : '#efe5d3', o.a, o.b);
+  }
+  // north arrow
+  const ax = mini.width - 16 * dpr, ay = 16 * dpr, nx = NORTH.y, ny = -NORTH.x, L = 9 * dpr;
+  g.fillStyle = '#d9362b'; g.beginPath(); g.moveTo(ax + nx * L, ay + ny * L); g.lineTo(ax - nx * L * .6 - ny * L * .5, ay - ny * L * .6 + nx * L * .5); g.lineTo(ax - nx * L * .6 + ny * L * .5, ay - ny * L * .6 - nx * L * .5); g.fill();
+}
+function drawMini() {
+  mg.clearRect(0, 0, mini.width, mini.height); mg.drawImage(miniBase, 0, 0);
+  const p = camera.position, d = camera.getWorldDirection(_v), a = Math.atan2(-d.x, d.z), x = mx(p.z), y = my(p.x), s = mini.width / 210;
+  if (x < 0 || y < 0 || x > mini.width || y > mini.height) return;
+  mg.fillStyle = 'rgba(255,123,0,.28)'; mg.beginPath(); mg.moveTo(x, y); mg.arc(x, y, 26 * s, a - .5, a + .5); mg.fill();
+  mg.fillStyle = '#ff7b00'; mg.beginPath(); mg.arc(x, y, 4.5 * s, 0, 7); mg.fill(); mg.strokeStyle = '#fff'; mg.lineWidth = 1.5 * s; mg.stroke();
+}
+mini.addEventListener('click', e => {
+  const r = mini.getBoundingClientRect(), k = miniK * r.width / mini.width, z = (e.clientX - r.left) / k + MB.z0, x = MB.x1 - (e.clientY - r.top) / k;
+  for (let i = 0; i < 60; i++) {            // nearest free spot within about 3 ft
+    const a = i * 2.4, rr = Math.sqrt(i) * .4, px = x + Math.cos(a) * rr, pz = z + Math.sin(a) * rr;
+    if (px > -7 && px < 43 && pz > -5 && pz < 43 && !inWell(px, pz) && !blocked(px, pz, 0)) {
+      const d = camera.getWorldDirection(_v), walking = mode === 'walk' && floorH < 1;
+      return goWalk(px, pz, walking ? px + d.x : 21.5, walking ? pz + d.z : 21.5, 0, 1.4);
+    }
+  }
+});
 
 // ---------- cross-fade: the last frame is copied to an overlay canvas which then fades out over the new look
 const fadeC = $('fade'), fadeG = fadeC.getContext('2d');
@@ -1018,28 +1510,48 @@ function chooseStyle(key) {
   $('banner').textContent = STYLES[key].name; $('banner').classList.add('show');
   clearTimeout(bannerTimer); bannerTimer = setTimeout(() => $('banner').classList.remove('show'), 2000);
 }
+
+// ---------- controls
 document.querySelectorAll('#styles button').forEach(b => b.onclick = () => chooseStyle(b.dataset.style));
-document.querySelectorAll('#times button').forEach(b => b.onclick = () => { nightTarget = b.dataset.time === 'evening' ? 1 : 0; document.querySelectorAll('#times button').forEach(o => o.classList.toggle('on', o === b)); });
-$('bDoll').onclick = () => goDollhouse();
-$('bLiving').onclick = () => goWalk(LIVING);
-$('bWalk').onclick = () => goWalk(DOOR);
-$('bTour').onclick = () => mode === 'tour' ? (() => { const e = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ'); yaw = e.y; pitch = e.x; setMode('walk'); })() : startTour();
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+document.querySelectorAll('#times button').forEach(b => b.onclick = () => { minutesTarget = b.dataset.time === 'evening' ? EVENING_MIN : DAY_MIN; });
+$('sunTime').oninput = e => { minutesTarget = +e.target.value; setTime(minutesTarget); };
+for (const [id, name] of [['btnSite', 'site'], ['btnHouse', 'house'], ['btnPlan', 'plan'], ['btnFront', 'front'], ['btnSide', 'side'], ['btnStreet', 'corner']]) $(id).onclick = () => goView(name);
+$('btnWalk').onclick = () => goWalk(...DOOR);
+$('btnLiving').onclick = () => goWalk(...LIVING);
+$('btnTour').onclick = () => mode === 'tour' ? walkFromCamera() : startTour();
+$('chkRoof').onchange = e => setRoof(e.target.checked);
+$('chkDims').onchange = e => { dimGroup.visible = e.target.checked; };
+$('panelToggle').onclick = () => { document.body.classList.toggle('panel-open'); layout(); };
+addEventListener('resize', () => { layout(); drawMiniBase(); });
+const roomButtons = ROOM_LIST.map(([name, size]) => {
+  const li = document.createElement('li'), b = document.createElement('button'), s = document.createElement('small');
+  b.append(name); s.textContent = size; b.append(s); b.onclick = () => goRoom(name); li.append(b); $('rooms').append(li);
+  return [name, b];
+});
+function updateWhere() {
+  const inside = mode === 'walk' || mode === 'tour', name = inside ? roomAt(camera.position.x, camera.position.z) : VIEWS[view][2];
+  const sub = inside ? (ROOM_LIST.find(r => r[0] === name) || [])[1] || '' : SITE_TITLE, key = name + sub;
+  if ($('where').dataset.key === key) return;
+  $('where').dataset.key = key; $('where').replaceChildren();
+  if (name) { const b = document.createElement('b'), s = document.createElement('span'); b.textContent = name; s.textContent = sub; $('where').append(b, s); }
+  for (const [n, b] of roomButtons) b.classList.toggle('on', inside && n === name);
+}
 
 // ---------- start
-buildShell();
-applyStyle('scandi');
-camera.position.copy(DOLL_POS); controls.update(); controls.autoRotate = true; placeSun(); setMode('orbit');
+if (innerWidth <= 760) document.body.classList.remove('panel-open');
+buildShell(); buildExterior(); buildSite(); buildLabels();
+applyStyle('scandi'); setTime(DAY_MIN);
+layout(); drawMiniBase(); goView('street', 0);
 const idle = window.requestIdleCallback || (f => setTimeout(f, 600));
 idle(() => { buildStyle('luxury'); idle(() => buildStyle('family')); });   // pre-build the other styles so switching is instant
+if (new URLSearchParams(location.search).has('debug')) window.home3d = { THREE, camera, scene, renderer, blocked, floorAt, tourAt, TOUR, ROOM_LIST, goView, goWalk, state: () => ({ mode, view, style: current.key, minutes, night, roofOn, floorH, tourT, pixelRatio }) };
 
-const clock = new THREE.Clock();
-let introT = 0, fpsT = 0, fpsN = 0, slow = 0;
+const clock = new THREE.Clock(), _r = new THREE.Vector3(), _u = new THREE.Vector3();
+let fpsT = 0, fpsN = 0, slow = 0;
 function frame() {
   requestAnimationFrame(frame);
   const raw = clock.getDelta(), dt = Math.min(raw, .05);
-  if (intro && mode === 'orbit' && (introT += dt) > 5) goWalk(LIVING, 3);   // above first, then inside the living room
-  if (night !== nightTarget) { night += Math.sign(nightTarget - night) * Math.min(Math.abs(nightTarget - night), dt / 1.2); applyLook(); }
+  if (minutes !== minutesTarget) setTime(minutes + Math.sign(minutesTarget - minutes) * Math.min(Math.abs(minutesTarget - minutes), dt * 400));
   if (mode === 'orbit') controls.update();
   else if (mode === 'walk') walkStep(dt);
   else if (mode === 'tour') tourStep(dt);
@@ -1050,10 +1562,13 @@ function frame() {
     camera.fov = fly.f0 + (fly.f1 - fly.f0) * k; camera.near = fly.near; camera.updateProjectionMatrix();
     if (fly.t >= 1) { const d = fly.done; fly = null; d(); }
   }
-  setInside(camera.position.y < H + .5 && mode !== 'orbit');
-  if (mode === 'walk' || mode === 'tour') $('room').textContent = roomAt(camera.position.x, camera.position.z);
+  updateLabels(); updateWhere();
+  // compass: where survey north points on screen
+  camera.matrixWorld.extractBasis(_r, _u, _v); _u.sub(_v);
+  $('compass').style.transform = `rotate(${Math.atan2(NORTH.x * _r.x + NORTH.y * _r.z, NORTH.x * _u.x + NORTH.y * _u.z)}rad)`;
+  if ((miniT += raw) > .12) { miniT = 0; drawMini(); }
   renderer.render(scene, camera);
-  // frame-rate guard: if the laptop cannot hold ~60 FPS, lower the render resolution a step at a time
+  // frame-rate guard: if the device cannot hold ~60 FPS, lower the render resolution a step at a time
   fpsN++; fpsT += raw;
   if (fpsT >= 1) {
     const fps = fpsN / fpsT; $('fps').textContent = Math.round(fps) + ' FPS'; fpsN = fpsT = 0;
