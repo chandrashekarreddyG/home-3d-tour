@@ -8,7 +8,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // heights to the centre of the box, metres above finished floor
 export const H = {
-  door: 1.1, bedside: 0.8, socket: 0.375, counter: 1.05, fridge: 1.25, chimney: 2.2, ac: 2.3,
+  door: 1.1, bedside: 0.8, socket: 0.375, counter: 1.1, fridge: 1.25, chimney: 2.2, ac: 2.3,
   geyser: 1.95, exhaust: 1.95, db: 1.65, vdp: 1.45, bell: 1.35, outdoor: 0.6,
 };
 const FROM_FRAME = 0.175; // door board edge from the door opening (rule: 150–200 mm from the frame)
@@ -19,7 +19,7 @@ export const RULES = [
   ['Bedside boards (both sides of the bed)', '0.80 m', 'Above the side tables (0.50 m), beside — not behind — the headboard; 2-way main light, fan regulator, USB and 6 A socket (700–900 mm rule).'],
   ['General sockets (sofa side)', '0.375 m', 'Above the skirting (300–450 mm rule), at the end of the sofa where a lamp or charger is used.'],
   ['TV wall', 'screen centre (≈ 1.14–1.17 m) + 170 mm above the console', 'On the TV feature panel: power and TV/data hidden behind the screen; a second board 170 mm above the floating console for set-top box / sound bar.'],
-  ['Kitchen counter boards', '1.05 m', '200 mm above the 850 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A.'],
+  ['Kitchen counter boards', '1.10 m', '200 mm above the 910 mm counter, ≥ 300 mm clear of the sink edge, none above the hob, none inside a window; 16 A + 6 A.'],
   ['Refrigerator', '1.25 m beside the fridge', 'Beside, not behind, the appliance so it can be unplugged without moving it.'],
   ['Chimney', '2.20 m', 'Just above the wall cabinets beside the chimney duct (2100–2200 mm rule).'],
   ['Bathroom switches', '1.10 m, outside the door', 'Light, mirror light, exhaust and a 20 A geyser switch with indicator outside the wet room (keep water and switches apart; 30 mA RCCB).'],
@@ -80,7 +80,7 @@ const SPECIAL = {
 const NORMAL = { n: [0, 1], s: [0, -1], w: [1, 0], e: [-1, 0] };
 const overlap = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
 const heightOf = (name) => [
-  [/Wardrobe/i, 2.4], [/Crockery/i, 2.1], [/Refrigerator/i, 1.82], [/counter/i, 0.87], [/TV feature wall/i, 2.4], [/bed/i, 1.18],
+  [/Wardrobe/i, 2.13], [/Crockery/i, 2.1], [/Refrigerator/i, 1.82], [/counter/i, 0.93], [/TV feature wall/i, 2.4], [/bed/i, 1.23],
   [/Sofa/i, 0.9], [/Vanity/i, 2.05], [/EWC/i, 0.85], [/Dining/i, 0.95], [/planter/i, 1.6], [/Coffee/i, 0.5], [/Diwan/i, 0.75], [/Mandir/i, 2.2],
 ].find(([re]) => re.test(name))?.[1] ?? 1.0;
 
@@ -403,7 +403,7 @@ export function buildElectrical({ rooms, openings, fixtures, furniture, roomAt, 
   // ---------- verification: every board re-checked against walls, openings, furniture, leaves and the other
   // boards, and its height against the rule band for its type ----------
   const BANDS = [
-    [/Bedside/, 0.7, 0.9], [/Sofa|Dining socket/, 0.3, 0.45], [/TV wall/, 1.1, 1.3], [/console/, 0.6, 0.8], [/counter/, 1.0, 1.1],
+    [/Bedside/, 0.7, 0.9], [/Sofa|Dining socket/, 0.3, 0.45], [/TV wall/, 1.1, 1.3], [/console/, 0.6, 0.8], [/counter/, 1.05, 1.15],
     [/Refrigerator/, 1.2, 2.0], [/Chimney/, 2.1, 2.2], [/Geyser/, 1.8, 2.0], [/Exhaust/, 1.8, 2.1], [/AC/, 2.1, 2.3],
     [/distribution/, 1.5, 1.8], [/door phone/, 1.4, 1.5], [/Bell/, 1.2, 1.5], [/Outdoor/, 0.45, 0.75], [/./, 1.0, 1.2],
   ];

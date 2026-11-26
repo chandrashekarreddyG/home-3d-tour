@@ -1,19 +1,19 @@
 # Padma Reddy Residence: to-scale 3D walkthrough
 
-Interactive 3D tour of two house designs (Plan-1 and Plan-2) on the G. Padma Reddy site
+Interactive 3D tour of the house design (Plan-2) on the G. Padma Reddy site
 at Yellareddypet (V), Rajanna Siricilla Dist. The site is at 18°22′23.68″N, 78°38′48.17″E.
 
-Plan-2 comes from `PADMA REDDY GANNA.pdf` (plinth 1849 sft, slab 2400 sft). It has the same 43′ × 43′ shell,
-balconies and stair as Plan-1, with Kitchen, Dining, Master Bedroom + toilet across the back, a 17′ × 25′-1½″ Hall,
+Plan-2 comes from `PADMA REDDY GANNA.pdf` (plinth 1849 sft, slab 2400 sft): a 43′ × 43′ shell with a 5′ side
+balcony, a 7′ front balcony and the stair, Kitchen, Dining, Master Bedroom + toilet across the back, a 17′ × 25′-1½″ Hall,
 Bedroom 2 + toilet, and Drawing Room, Pooja, Bedroom 3 + toilet along G.P Road. Its drawing has the East road at the
-top; the model turns it to sit on the survey like Plan-1. The drawn water sump and three bores stand on the 23 SqYds strip
-(paved; no strip garden).
+top; the model turns it to sit on the survey with the side balcony on the 21 ft road. The drawn water sump and three
+bores stand on the 23 SqYds strip (paved; no strip garden).
 
-Both plans (owner request):
-- **Compound wall on the road edge:** the west compound wall and its gate run on the 21 ft road edge (as on Plan-2's
-  drawing), so the 23 SqYds strip is inside the compound: Plan-2's sump and bores, Plan-1's strip garden.
-- **Open kitchen:** the wall between the kitchen and the dining area is removed (the hall / Great Room wall stays),
-  and the kitchen run on that old wall becomes a peninsula counter.
+Owner requests built in:
+- **Compound wall on the road edge:** the west compound wall and its gate run on the 21 ft road edge (as drawn), so
+  the 23 SqYds strip with the sump and bores is inside the compound.
+- **Open kitchen:** the wall between the kitchen and the dining area is removed (the hall wall stays), and the kitchen
+  run on that old wall becomes a peninsula counter.
 
 **Live:** https://chandrashekarreddyg.github.io/home-3d-tour/
 
@@ -22,15 +22,14 @@ Both plans (owner request):
 - **1 world unit = 1 metre.** Feet and inches are converted exactly (1″ = 25.4 mm).
 - Walls are placed from the drawings' **written dimension chains**, not traced pixels. Outer walls are 9″ and inner
   walls 4½″, and room sizes are clear wall-face to wall-face.
-  - Example, Plan-1 top row: 9 + 114 + 4½ + 120 + 4½ + 58½ + 4½ + 192 + 9 = 516″ = 43′-0″.
+  - Example, across the back: 9 + 132 + 4½ + 102 + 4½ + 58½ + 4½ + 192 + 9 = 516″ = 43′-0″.
 - The **measurement report** (button in the app, and [VALIDATION.md](VALIDATION.md)) ray-casts the built model's wall
   meshes and compares every room with its drawing label to within 1 mm. It also checks door and window widths,
   furniture clearances, door swings and walking routes.
-- Two drawing labels contradict their own dimension chains. Both are modelled from the chain and flagged in the report:
-  - **Plan-1 Great Room** is labelled 23′-4½″ but the chain gives 25′-1½″.
-  - **Plan-2 Toilet 1** is labelled 8′-0″ × 4′-10″ but the chain across needs 4′-10½″.
+- One drawing label contradicts its own dimension chain; it is modelled from the chain and flagged in the report:
+  - **Toilet 1** is labelled 8′-0″ × 4′-10″ but the chain across needs 4′-10½″.
 - Anything the drawings don't dimension is listed as an assumption:
-  - heights: 10′ ceiling, 7′ lintels, 3′ sills
+  - heights: 9′ ceiling (as `dollhouse.html`), 7′ lintels, 3′ sills
   - door and window positions, scaled from the drawing
   - standard door widths
   - standard furniture sizes
@@ -70,8 +69,8 @@ Both plans (owner request):
   - True-size cues: the walk view holds a 70° horizontal field of view at any window shape; a light aerial haze softens
     the far fields; and the **🚗 Car** button (top right, off by default) parks a pearl-white five-door SUV, 4795 mm long and
     1.84 m tall (Fortuner class; model: Innerscene "Sage five-door crossover SUV", CC0, `models/suv.glb`), on the
-    21 ft road beside the house, clear of the side gate, in the outside views. Plan-1's slab measures
-    50′-0″ × 52′-0″ in the model, including the 2′-0″ cantilever.
+    21 ft road beside the house, clear of the side gate, in the outside views. The slab measures 50′-0″ × 52′-0″ in
+    the model, including the 2′-0″ cantilever.
   - **⤢ Spacious view** (top right, off by default) shows the walk the way interiors are photographed for sale: a
     95° horizontal lens with the camera at 1.35 m, so each room shows more of itself and reads as open as it
     feels in person. Dimensions are unchanged; switch it off for the true 1.6 m / 70° eye view.
@@ -82,7 +81,7 @@ Both plans (owner request):
   - TV feature walls: centred in the clear wall between the drawn openings and 400 mm clear of furniture next to it,
     with a warm-beige panel, an oak fluted band, a floating walnut console and concealed warm LED. The TV is the
     largest 16:9 size that fits (55″ / 50″ / 43″). Windows on a TV wall get Roman blinds inside the reveal, so no
-    curtain overlaps the panel. In Plan-1's 17′-0″ Great Room wall the 1387 mm gap takes a 1287 mm panel with a 50″ TV.
+    curtain overlaps the panel.
   - doors and windows use typical Indian sizes at the drawn positions:
     - room doors 900 × 2100 mm, toilet doors 750 × 2100 mm, main / double doors 900–1500 mm (nearest to the drawing)
     - windows 600 / 900 / 1200 / 1500 / 1800 / 2100 mm wide × 1200 mm high on a 900 mm sill
@@ -188,4 +187,4 @@ python3 -m http.server 8000   # open http://localhost:8000
 | `js/main.js` | camera modes, interaction, UI |
 | `js/lighting.js` | lighting designs (downlights, profiles, cove, pendants) |
 
-To regenerate `VALIDATION.md`, run `measurementReport()` in the browser console for each plan.
+To regenerate `VALIDATION.md`, run `measurementReport()` in the browser console.

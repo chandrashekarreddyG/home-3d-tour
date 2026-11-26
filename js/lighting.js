@@ -6,7 +6,7 @@ import { boxGeo } from './materials.js';
 export const LIGHTS = [
   { id: 'down', name: 'Recessed downlights', blurb: 'A grid of 150 mm recessed LED downlights, about 1.35 m apart (1.0 m in toilets).' },
   { id: 'profile', name: 'LED profile lines', blurb: 'Recessed aluminium LED profiles, 40 mm wide: a frame 450 mm in from the walls in living rooms and bedrooms, and a single line elsewhere.' },
-  { id: 'cove', name: 'Cove ceiling', blurb: 'Gypsum false-ceiling border (600 mm wide, 250 mm drop, so 2.80 m clear under it) with a hidden LED strip washing the ceiling and downlights in the border.' },
+  { id: 'cove', name: 'Cove ceiling', blurb: 'Gypsum false-ceiling border (600 mm wide, 250 mm drop, so 2.49 m clear under it) with a hidden LED strip washing the ceiling and downlights in the border.' },
   { id: 'pendant', name: 'Pendants & wall washers', blurb: 'Three pendants over the dining table, bedside pendants, and up/down wall washers in the living spaces. Downlights elsewhere.' },
 ];
 export const LIGHT_TEMPS = [

@@ -4,27 +4,33 @@
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { boxGeo } from './materials.js';
+import { STD } from './plans.js';
+import { IN } from './units.js';
+const CEIL = STD.ceiling * IN;
+export const COVE = CEIL - 0.3; // feature walls stop under the cove border (250 mm drop + 50 mm shadow gap)
 
+// Sizes follow dollhouse.html (real-world furniture sizes in feet): sofa 36″ deep, 17″ seat; dining 6′ × 3′, 30″
+// high; beds 60″ / 76″ × 80″; nightstand 18″ × 22″ high; wardrobe 7′ high; kitchen counter 24″ deep, 36″ high.
 export const SIZES = {
-  king: { w: 1.83, l: 1.98 }, // mattress 72″ × 78″
-  queen: { w: 1.52, l: 1.98 }, // mattress 60″ × 78″
-  nightstand: { w: 0.45, d: 0.4, h: 0.5 },
+  king: { w: 1.93, l: 2.03 }, // mattress 76″ × 80″
+  queen: { w: 1.52, l: 2.03 }, // mattress 60″ × 80″
+  nightstand: { w: 0.45, d: 0.4, h: 0.56 },
   wardrobeDepth: 0.6,
-  wardrobeHeight: 2.4,
+  wardrobeHeight: 2.13,
   crockDepth: 0.38,
-  sofaDepth: 0.88,
-  seatH: 0.42,
+  sofaDepth: 0.91,
+  seatH: 0.43,
   counterDepth: 0.6,
-  counterH: 0.85,
+  counterH: 0.91,
   upperFrom: 1.45,
   upperTo: 2.13,
   upperDepth: 0.35,
   fridge: { w: 0.7, d: 0.72, h: 1.8 },
   wc: { w: 0.38, d: 0.7 },
   vanity: { w: 0.6, d: 0.45, h: 0.8 },
-  dining6: { w: 0.9, l: 1.5 },
+  dining6: { w: 0.91, l: 1.83 },
   round4: 1.0,
-  chair: { w: 0.45, d: 0.5, seat: 0.46, back: 0.9 },
+  chair: { w: 0.46, d: 0.46, seat: 0.46, back: 0.84 },
   fanSweep: 1.2,
 };
 
@@ -235,7 +241,7 @@ export function kit(M, style = 'standard') {
   function tvWallLuxe(P) {
     const [inch, tw, th] = TVS.find(([, w]) => w <= P - 0.15) || TVS[TVS.length - 1];
     const g = new THREE.Group();
-    const H = 2.75, t = 0.03, cw = Math.min(P - 0.3, 2.2), cd = 0.38, ch = 0.3, c0 = 0.3;
+    const H = COVE, t = 0.03, cw = Math.min(P - 0.3, 2.2), cd = 0.38, ch = 0.3, c0 = 0.3;
     const Cw = Math.min(P - 0.6, Math.max(tw + 0.5, 1.5)), Sw = (P - Cw) / 2;
     g.add(box(Cw, H, t, M.stoneSlab, 0, H / 2, t / 2));
     for (const s of [-1, 1]) {
@@ -377,7 +383,7 @@ export function kit(M, style = 'standard') {
     }
     // chimney hood 0.9 m wide, 650 mm above hob
     g.add(box(0.9, 0.08, 0.5, M.steel, 0, SIZES.counterH + 0.69, 0.25));
-    g.add(box(0.3, 3.05 - (SIZES.counterH + 0.73), 0.25, M.steel, 0, (3.05 + SIZES.counterH + 0.73) / 2, 0.125));
+    g.add(box(0.3, CEIL - (SIZES.counterH + 0.73), 0.25, M.steel, 0, (CEIL + SIZES.counterH + 0.73) / 2, 0.125));
     return { g };
   }
   function sink() {

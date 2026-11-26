@@ -647,7 +647,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
       }
       const x = Math.min(hi, Math.max(lo, x0));
       if (Math.abs(x - x0) > 0.005) report.adjustments.push(`${rn}: bed moved ${Math.round(Math.abs(x - x0) * 1000)} mm ${x < x0 ? 'west' : 'east'} of its drawn position to keep 600 mm clear in front of the wardrobe / walls (standard-size bed).`);
-      addItem(room, `${it[3] === 'king' ? 'King' : 'Queen'} bed ${it[3] === 'king' ? '1830×1980' : '1520×1980'} mm + side tables`, b, nrm, x, faceOf(room, 'n', x), 0.2);
+      addItem(room, `${it[3] === 'king' ? 'King' : 'Queen'} bed ${it[3] === 'king' ? '1930×2030' : '1520×2030'} mm + side tables`, b, nrm, x, faceOf(room, 'n', x), 0.2);
       fixtures.push({ type: 'bed', room: rn, side: 'n', along: x, ns: half - SIZES.nightstand.w / 2 });
     } else if (type === 'ward' || type === 'crock') {
       const side = it[2], nrm = NORMAL[side];
@@ -693,7 +693,7 @@ export function buildModel(plan, M, onLabelClick, opts = {}) {
       fixtures.push({ type: 'tv', room: rn, side, along, tv: built.tv, gap: [lo, hi], panel: P });
     } else if (type === 'dining') {
       const built = K.dining(it[4]);
-      addItem(room, it[4] === 'round4' ? 'Round dining table Ø1000 mm, 4 chairs' : 'Dining table 900×1500 mm, 6 chairs', built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
+      addItem(room, it[4] === 'round4' ? 'Round dining table Ø1000 mm, 4 chairs' : 'Dining table 910×1830 mm, 6 chairs', built, [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
     } else if (type === 'plant') {
       addItem(room, 'Floor planter', K.plant(), [0, 1], pxX(it[2]) * IN, pxZ(it[3]) * IN, 0.1, false);
     } else if (type === 'fridge') {

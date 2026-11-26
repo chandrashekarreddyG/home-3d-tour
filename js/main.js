@@ -163,7 +163,7 @@ function loadPlan(id) {
   stopTour();
   cancelAnim();
   id = OLD_PLAN_IDS[id] || id;
-  const plan = PLANS.find((p) => p.id === id) || PLANS[0]; // other old links (#gf) open Plan-1
+  const plan = PLANS.find((p) => p.id === id) || PLANS[0]; // old links (#p1, #gf) open Plan-2
   if (MD) {
     scene.remove(MD.root);
     MD.root.traverse((o) => {
@@ -705,6 +705,7 @@ for (const p of PLANS) {
   b.addEventListener('click', () => loadPlan(p.id));
   $('plans').append(b);
 }
+$('plans').hidden = PLANS.length < 2; // nothing to switch between
 $('btnSite').addEventListener('click', () => siteView());
 $('btnHouse').addEventListener('click', () => houseView(true));
 $('btnPlan').addEventListener('click', () => planView());

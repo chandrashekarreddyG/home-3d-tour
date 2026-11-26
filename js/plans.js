@@ -3,7 +3,7 @@
 // Coordinates are INCHES from the outer top-left corner of the building (x → right, z → down
 // on the drawing). Wall positions come from the dimension chains:
 //   outer wall 9″ (228.6 mm), inner wall 4½″ (114.3 mm), room sizes = clear (wall-face to wall-face)
-// e.g. Plan-1 top row: 9 + 114 (9′-6″) + 4½ + 120 (10′) + 4½ + 58½ (4′-10½″) + 4½ + 192 (16′) + 9 = 516 = 43′-0″ ✓
+// e.g. Plan-2 across: 9 + 132 (Kitchen 11′) + 4½ + 102 (Dining 8′-6″) + 4½ + 58½ (Toilet) + 4½ + 192 (M-Bed 16′) + 9 = 516 = 43′-0″ ✓
 //
 // Items the drawings do NOT dimension (door/window positions, furniture positions) are scaled
 // from the drawing with `map` (drawing px → inches, fitted to the dimensioned outer faces).
@@ -19,78 +19,9 @@
 
 export const PLANS = [
   {
-    id: 'p1',
-    name: 'Plan-1 · 2394 sft slab',
-    short: 'Plan-1',
-    image: 'plans/plan-1.jpg',
-    outer: [516, 516], // 43′-0″ × 43′-0″
-    map: { ox: 280, oy: 148, kx: 516 / 1112, kz: 516 / 1112 },
-    note: 'Designed for the 56′-1″ × 59′-1″ Padma Reddy site.',
-    mandirNote: 'Pooja mandir is on the south wall, facing the pooja doors, so you face the deities as you enter (owner instruction). The drawing showed it on the east wall.',
-    deviations: ['Open kitchen (owner instruction): the 4½″ wall between Cooking and Dining is removed (the Great Room wall stays). The kitchen run along that old wall stays as a peninsula counter.'],
-    tour: ['Front Balcony', 'Living', 'Great Room', 'Pooja', 'Dining', 'Cooking', 'Toilet 1', 'Master Bedroom', 'Bedroom 2', 'Toilet 2', 'Bedroom 3', 'Toilet 3', 'Side Balcony'],
-    // west compound wall on the 21 ft road edge (owner instruction, as Plan-2): the 23 SqYds strip garden is inside
-    plot: { x0: -127, z0: -25.5, x1: 546, z1: 683.5, label: [673, 709], gates: [{ side: 'w', from: 313, to: 361 }, { side: 's', from: 19, to: 139 }], westOnStrip: true },
-    balconies: { side: 60, front: 84 },
-    stairs: [1028, 1260, 1290, 1440],
-    walls: [
-      [4.5, 4.5, 511.5, 4.5, 9, [['w', 377, 467], ['w', 565, 780], ['v', 860, 912], ['w', 973, 1090]]],
-      [4.5, 4.5, 4.5, 511.5, 9, [['w', 372, 450], ['w', 517, 595], ['w', 710, 790], ['dd', 838, 910, '+'], ['w', 1035, 1150]]],
-      [511.5, 4.5, 511.5, 511.5, 9, [['w', 400, 475], ['w', 720, 800], ['v', 850, 900], ['v', 1060, 1110]]],
-      // pooja window (px 722-775) omitted on owner's instruction
-      [4.5, 511.5, 511.5, 511.5, 9, [['w', 345, 398], ['dd', 400, 500, '-'], ['w', 500, 553], ['w', 836, 952]]],
-      // open kitchen: no wall between Cooking and Dining (was [125.25, 4.5, 125.25, 158.25] with an arch)
-      [4.5, 158.25, 511.5, 158.25, 4.5, [['a', 575, 775], ['a', 845, 930]]],
-      [249.75, 4.5, 249.75, 158.25, 4.5, []],
-      [249.75, 107.25, 312.75, 107.25, 4.5, [['dt', 840, 900, 'a-']]],
-      [312.75, 4.5, 312.75, 366.75, 4.5, [['d', 400, 470, 'b+'], ['d', 850, 920, 'b+']]],
-      [312.75, 308.25, 511.5, 308.25, 4.5, [['a', 980, 1060], ['dt', 1190, 1250, 'a+']]],
-      [372.75, 308.25, 372.75, 366.75, 4.5, []],
-      [4.5, 366.75, 511.5, 366.75, 4.5, [['a', 360, 520], ['a', 705, 790], ['d', 835, 905, 'a+']]],
-      [185.25, 366.75, 185.25, 511.5, 4.5, []],
-      [249.75, 366.75, 249.75, 511.5, 4.5, []],
-      [185.25, 408.75, 249.75, 408.75, 4.5, [['dd', 710, 785, '+']]],
-      [444.75, 366.75, 444.75, 511.5, 4.5, [['dt', 1060, 1120, 'b+']]],
-    ],
-    rooms: [
-      // open kitchen: Cooking also takes the floor strip of the removed Cooking–Dining wall
-      { n: 'Cooking', rs: [[9, 9, 123, 156], [123, 9, 127.5, 156]], lab: [114, 147], d: '9′-6″ × 12′-3″', f: 'kitchen' },
-      { n: 'Dining', r: [127.5, 9, 247.5, 156], lab: [120, 147], d: '10′ × 12′-3″', f: 'tile' },
-      { n: 'Toilet 1', r: [252, 9, 310.5, 105], lab: [58.5, 96], d: '8′ × 4′-10½″', f: 'bath' },
-      { n: 'Passage', r: [252, 109.5, 310.5, 156], lab: null, f: 'tile', tour: false },
-      { n: 'Master Bedroom', r: [315, 9, 507, 156], lab: [192, 147], d: '16′ × 12′-3″', f: 'wood' },
-      { n: 'Great Room', r: [9, 160.5, 310.5, 364.5], lab: [280.5, 204], d: '23′-4½″ × 17′', f: 'tile',
-        issue: 'Labelled 23′-4½″ wide (looks copied from the GF plan), but the dimension chain gives 9 + G + 4½ + 192 (Bedroom-2, 16′) + 9 = 516″ (43′), so G = 25′-1½″. The drawing is also drawn at 25′-1½″, so it is modelled at 25′-1½″.' },
-      { n: 'Bedroom 2', r: [315, 160.5, 507, 306], lab: [192, 145.5], d: '16′ × 12′-1½″', f: 'wood' },
-      { n: 'Lobby', r: [315, 310.5, 370.5, 364.5], lab: null, f: 'tile', tour: false },
-      { n: 'Toilet 2', r: [375, 310.5, 507, 364.5], lab: [132, 54], d: '11′ × 4′-6″', f: 'bath' },
-      { n: 'Living', r: [9, 369, 183, 507], lab: [174, 138], d: '14′-6″ × 11′-6″', f: 'tile' },
-      { n: 'Pooja Lobby', r: [187.5, 369, 247.5, 406.5], lab: null, f: 'tile', tour: false },
-      { n: 'Pooja', r: [187.5, 411, 247.5, 507], lab: [60, 96], d: '5′ × 8′', f: 'marble' },
-      { n: 'Bedroom 3', r: [252, 369, 442.5, 507], lab: [190.5, 138], d: '15′-10½″ × 11′-6″', f: 'wood' },
-      { n: 'Toilet 3', r: [447, 369, 507, 507], lab: [60, 138], d: '5′ × 11′-6″', f: 'bath' },
-    ],
-    furn: [
-      ['kitchen', 'Cooking', { runs: [['n', 300, 555], ['w', 212, 470], ['e', 212, 360, { island: true }]], hob: ['w', 295], sink: ['w', 440], upper: [['n', 300, 555]] }],
-      ['dining', 'Dining', 668, 284, 'rect6'], ['crock', 'Dining', 'e', 168, 485],
-      // mandir moved to the south wall so it faces the pooja doors (owner's instruction)
-      ['mandir', 'Pooja', 's'],
-      ['wc', 'Toilet 1', 'n', 885], ['vanity', 'Toilet 1', 'w', 278],
-      ['bed', 'Master Bedroom', 1156.5, 'king'], ['ward', 'Master Bedroom', 'e', 168, 385],
-      ['bed', 'Bedroom 2', 1156.5, 'queen'], ['ward', 'Bedroom 2', 'e', 495, 710],
-      ['wc', 'Toilet 2', 'n', 1325], ['vanity', 'Toilet 2', 's', 1230], ['glass', 'Toilet 2', 'x', 1165, 818, 935],
-      ['bed', 'Bedroom 3', 1036.5, 'queen'], ['ward', 'Bedroom 3', 'e', 945, 1055], ['ward', 'Bedroom 3', 'e', 1130, 1240],
-      ['wc', 'Toilet 3', 'n', 1308], ['vanity', 'Toilet 3', 'e', 1085], ['glass', 'Toilet 3', 'z', 1162, 1245, 1372],
-      ['sofa', 'Great Room', 'z', 578, 535, 625, 's'], ['sofa', 'Great Room', 'x', 700, 628, 832, 'w'],
-      ['ctable', 'Great Room', 568, 736, 0.55, 1.1], ['tv', 'Great Room', 'w', 650], ['plant', 'Great Room', 662, 603],
-      ['sofa', 'Living', 'x', 674, 980, 1080, 'w'], ['sofa', 'Living', 'x', 674, 1108, 1210, 'w'],
-      ['ctable', 'Living', 542, 1099, 0.5, 1.0],
-    ],
-  },
-  {
     // From PADMA REDDY GANNA.pdf ("Ground Floor Plan", plinth 1849 sft, slab 2400 sft). The drawing has the East
     // road (5′ balcony, main door) at the top; all px below are on that drawing turned 90° anticlockwise, so it
-    // sits like Plan-1 on the survey: 5′ balcony on the 21 ft road (west), 7′ balcony + stair on G.P Road (south).
+    // sits on the survey with the 5′ balcony on the 21 ft road (west) and the 7′ balcony + stair on G.P Road (south).
     // Chains: across 9 + 132 (Kitchen 11′) + 4½ + 102 (Dining 8′-6″) + 4½ + 58½ (Toilet) + 4½ + 192 (M-Bed 16′) + 9 = 516;
     // down 9 + 147 (12′-3″) + 4½ + 204 (Hall 17′) + 4½ + 138 (11′-6″) + 9 = 516.
     id: 'p2',
@@ -137,7 +68,7 @@ export const PLANS = [
       { n: 'Kitchen', rs: [[9, 9, 141, 156], [141, 9, 145.5, 156]], lab: [132, 147], d: '12′-3″ × 11′-0″', f: 'kitchen' },
       { n: 'Dining', r: [145.5, 9, 247.5, 156], lab: [102, 147], d: '12′-3″ × 8′-6″', f: 'tile' },
       { n: 'Toilet 1', r: [252, 9, 310.5, 105], lab: [58, 96], d: '8′-0″ × 4′-10″', f: 'bath',
-        issue: 'Labelled 4′-10″, but the dimension chain across needs 9 + 132 + 4½ + 102 + 4½ + T + 4½ + 192 + 9 = 516″ (43′), so T = 4′-10½″ (as Plan-1’s same toilet). Modelled at 4′-10½″.' },
+        issue: 'Labelled 4′-10″, but the dimension chain across needs 9 + 132 + 4½ + 102 + 4½ + T + 4½ + 192 + 9 = 516″ (43′), so T = 4′-10½″. Modelled at 4′-10½″.' },
       // M-Bed includes the lobby in front of its toilet (entered from the Hall)
       { n: 'Master Bedroom', rs: [[315, 9, 507, 156], [252, 109.5, 315, 156]], lab: [192, 147], d: '12′-3″ × 16′-0″', f: 'wood' },
       // Hall includes the passage to Bedroom 2 and Toilet 2
@@ -162,8 +93,8 @@ export const PLANS = [
       // mandir on the south wall so it faces the pooja door (owner's instruction)
       ['mandir', 'Pooja', 's'],
       ['sofa', 'Hall', 'z', 1224, 1780, 2135, 's'], ['sofa', 'Hall', 'x', 1675, 1360, 1545, 'e'], ['sofa', 'Hall', 'x', 2240, 1360, 1545, 'w'],
-      ['ctable', 'Hall', 1960, 1480, 0.8, 0.5], ['tv', 'Hall', 's', 2073],
-      ['sofa', 'Hall', 'x', 2873, 1460, 1735, 'w'], ['ctable', 'Hall', 2612, 1598, 0.55, 1.1],
+      ['ctable', 'Hall', 1960, 1480, 0.76, 0.48], ['tv', 'Hall', 's', 2073],
+      ['sofa', 'Hall', 'x', 2873, 1460, 1735, 'w'], ['ctable', 'Hall', 2612, 1598, 0.5, 1.1],
       ['sofa', 'Drawing Room', 'x', 2163, 2245, 2525, 'w'], ['ctable', 'Drawing Room', 1905, 2385, 0.5, 0.9],
     ],
   },
@@ -175,7 +106,7 @@ export const PLANS = [
 // ventilators 600 × 450 under the 2100 mm lintel.
 const MM = (mm) => mm / 25.4;
 export const STD = {
-  ceiling: 120, // floor to ceiling 10′-0″ (3.048 m)
+  ceiling: 108, // floor to ceiling 9′-0″ (2.743 m), as dollhouse.html; not on the drawing
   slab: 5, // RCC roof slab 5″
   plinth: 18, // finished floor 1′-6″ above ground
   doorHead: MM(2100), // doors, arches and window heads (lintel) 2100 mm

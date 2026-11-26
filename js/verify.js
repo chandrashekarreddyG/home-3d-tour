@@ -152,7 +152,7 @@ export function validate(model) {
   });
 
   const heights = [
-    ['Floor to ceiling', CEIL, `${ftIn(CEIL)} — not on drawing; standard 10′-0″`],
+    ['Floor to ceiling', CEIL, `${ftIn(CEIL)} — not on drawing; assumed (as dollhouse.html)`],
     ['Door / arch / window head (lintel)', DOOR_H, `${ftIn(DOOR_H)} — not on drawing; standard 2100 mm`],
     ['Window sill', STD.sill * IN, `${ftIn(STD.sill * IN)} — not on drawing; standard 900 mm (1200 mm high windows)`],
     ['Ventilator sill', STD.ventSill * IN, `${ftIn(STD.ventSill * IN)} — 600 × 450 mm ventilator under the lintel`],

@@ -13,6 +13,7 @@
 // The furniture itself changes style in furniture.js (kit(M, 'luxe')).
 import * as THREE from 'three';
 import { boxGeo } from './materials.js';
+import { COVE } from './furniture.js';
 
 const TEX = new Map();
 const texMat = (url, emissive = 0) => {
@@ -45,7 +46,7 @@ export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, 
     return m;
   };
   const byName = (n) => rooms.find((r) => r.name === n);
-  const H = 2.75; // feature walls stop at the cove border (2.80 m clear)
+  const H = COVE; // feature walls stop under the cove border
   const groove = M.solid('#d3ccc0', { roughness: 0.6 });
 
   // ---------- wall faces ----------
@@ -230,7 +231,7 @@ export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, 
     const t = tables.filter((q) => q.room === s.room).map((q) => ({ q, c: [(q.rect[0] + q.rect[2]) / 2, (q.rect[1] + q.rect[3]) / 2] })).sort((p, q) => Math.hypot(p.c[0] - fx, p.c[1] - fz) - Math.hypot(q.c[0] - fx, q.c[1] - fz))[0];
     if (t && !lit.has(t.q) && Math.hypot(t.c[0] - fx, t.c[1] - fz) < 1.6) {
       lit.add(t.q);
-      branchChandelier(t.c[0], t.c[1], 2.45);
+      branchChandelier(t.c[0], t.c[1], ceil - 0.6);
       if (Math.hypot(t.c[0] - room.center[0], t.c[1] - room.center[1]) < 1.3) { noFan.add(room.name); notes.push(`${room.name}: branch chandelier over the coffee table in place of the ceiling fan (warm luxe interior).`); }
     }
   }
@@ -316,7 +317,7 @@ export function buildInterior({ M, rooms, fixtures, furniture, openings, walls, 
       put(side, f, L, 0.02, 0.08, M.lacquer, (a0 + a1) / 2, H - 0.01); // top cap
     }
     const [tx, tz] = [(d.rect[0] + d.rect[2]) / 2, (d.rect[1] + d.rect[3]) / 2];
-    ringChandelier(tx, tz, 2.1);
+    ringChandelier(tx, tz, ceil - 0.95);
     if (Math.hypot(tx - room.center[0], tz - room.center[1]) < 1.3) { noFan.add(room.name); notes.push(`${room.name}: ring chandelier over the table in place of the ceiling fan (warm luxe interior).`); }
   }
 
